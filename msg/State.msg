@@ -1,0 +1,8 @@
+task_sim/Object[] objects
+geometry_msgs/Pose2D drawer_position
+float64 drawer_opening
+geometry_msgs/Point box_position
+geometry_msgs/Point lid_position
+geometry_msgs/Point gripper_position
+bool gripper_open
+string object_in_gripper
