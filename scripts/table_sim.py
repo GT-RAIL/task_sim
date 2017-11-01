@@ -21,6 +21,8 @@ class TableSim:
     def __init__(self):
         self.init_simulation()
 
+        self.error = ''
+
         self.action_service_ = rospy.Service('execute_action', Execute, self.execute)
 
 
@@ -121,6 +123,12 @@ class TableSim:
             self.state_.gripper_position = self.copyPoint(self.state_.lid_position)
             self.state_.gripper_open = False
             self.state_.object_in_gripper = 'Lid'
+            return
+        elif object == 'drawer' or object == 'Drawer':
+            self.state_.gripper_position = self.copyPoint(self.getDrawerHandle())
+            self.state_.gripper_open = False
+            self.state_.object_in_gripper = 'Drawer'
+            return
 
         target = self.getObject(object)
         if target:
@@ -139,6 +147,10 @@ class TableSim:
         Keyword arguments:
         position -- place position, uses only position.x and position.y since position.z is calculated
         """
+        # Special case: drawer
+        if self.state_.object_in_gripper == 'Drawer':
+            self.error = 'Cannot execute place while grasping drawer.'
+            return
         height = 4
         tempPos = Point(position.x, position.y, 0)
         for i in range(3,-1,-1):
@@ -158,9 +170,7 @@ class TableSim:
                 if self.inCollision(tempPos):
                     break
             height -= 1
-        print 'height for place: ' + str(height)
         if height == 4:  # place failed
-            print 'place failed'
             return
 
         tempPos.z = height
@@ -176,6 +186,8 @@ class TableSim:
             if self.state_.object_in_gripper == 'Lid':
                 self.state_.object_in_gripper = None
                 self.gravity()
+            elif self.state_.object_in_gripper == 'Drawer':
+                self.state_.object_in_gripper = None
             else:
                 object = self.getObject(self.state_.object_in_gripper)
                 self.state_.object_in_gripper = None
@@ -189,6 +201,12 @@ class TableSim:
             o = self.getObjectAt(self.state_.gripper_position)
             if o:
                 self.state_.object_in_gripper = o.name
+            else:
+                # Handle special cases
+                if self.state_.gripper_position == self.state_.lid_position:
+                    self.state_.object_in_gripper = 'Lid'
+                elif self.state_.gripper_position == self.getDrawerHandle():
+                    self.state_.object_in_gripper = 'Drawer'
 
 
     def move(self, position):
@@ -197,21 +215,35 @@ class TableSim:
         Keyword arguments:
         position -- point to move to, uses only position.x and position.y as this is a planar move (for ease of sim)
         """
-        points = self.interpolate(self.state_.gripper_position.x, self.state_.gripper_position.y, position.x, position.y)
+        points = self.interpolate(self.state_.gripper_position.x, self.state_.gripper_position.y, position.x,
+                                  position.y)
         goal = self.copyPoint(self.state_.gripper_position)
         for point in points:
             testPos = Point(int(floor(point[0] + 0.5)), int(floor(point[1] + 0.5)), self.state_.gripper_position.z)
-            if self.environmentCollision(testPos):
-                break
+            # handle special cases
+            if self.state_.object_in_gripper == 'Lid':
+                if self.environmentWithoutLidCollision(testPos):
+                    break
+            elif self.state_.object_in_gripper == 'Drawer':
+                # TODO: check that point is along valid open/close path
+                if not any(valid_point == testPos for valid_point in self.getDrawerValidPoints()):
+                    break
+                if self.environmentWithoutDrawerCollision(testPos):
+                    break
+            else:
+                if self.environmentCollision(testPos):
+                    break
             goal = self.copyPoint(testPos)
 
-        # TODO: move objects towards goal (use interpolation and gravity calls)
         for object in self.state_.objects:
-            if object.position.z == self.state_.gripper_position.z and self.distanceFromPath(object.position.x, object.position.y, self.state_.gripper_position.x, self.state_.gripper_position.y, goal.x, goal.y) < 1.2:
+            if object.position.z == self.state_.gripper_position.z and \
+                            self.distanceFromPath(object.position.x, object.position.y, self.state_.gripper_position.x,
+                                                  self.state_.gripper_position.y, goal.x, goal.y) < 1.2:
                 object_goal = self.randomFreePoint(Point(goal.x, goal.y, goal.z), 2, 2)
                 object_points = self.interpolate(object.position.x, object.position.y, object_goal.x, object_goal.y)
                 for point in object_points:
-                    test_pos = Point(int(floor(point[0] + 0.5)), int(floor(point[1] + 0.5)), self.state_.gripper_position.z)
+                    test_pos = Point(int(floor(point[0] + 0.5)), int(floor(point[1] + 0.5)),
+                                     self.state_.gripper_position.z)
                     if self.environmentCollision(testPos):
                         break
                     object.position = self.copyPoint(test_pos)
@@ -265,6 +297,9 @@ class TableSim:
 
     def raiseArm(self):
         """Move the arm up one z-level"""
+        if self.state_.object_in_gripper == 'Drawer':
+            self.error = 'Cannot raise arm while grasping drawer'
+            return
         if self.state_.gripper_position.z < 4:
             checkPos = Point(self.state_.gripper_position.x,
                              self.state_.gripper_position.y,
@@ -276,6 +311,9 @@ class TableSim:
 
     def lowerArm(self):
         """Move the arm down one z-level"""
+        if self.state_.object_in_gripper == 'Drawer':
+            self.error = 'Cannot lower arm while grasping drawer'
+            return
         if self.state_.gripper_position.z == 0:
             return
 
@@ -291,6 +329,9 @@ class TableSim:
 
     def resetArm(self):
         """Move the arm to the initial position"""
+        if self.state_.object_in_gripper == 'Drawer':
+            self.error = 'Cannot reset arm while grasping drawer'
+            return
         resetPosition = Point()
         resetPosition.x = 8
         resetPosition.y = 1
@@ -400,6 +441,8 @@ class TableSim:
                     object.position.x += dx
                     object.position.y += dy
                     object.position.z += dz
+            elif self.state_.object_in_gripper == 'Drawer':
+                self.updateDrawerOffset(position)
             else:
                 self.getObject(self.state_.object_in_gripper).position = self.copyPoint(position)
 
@@ -448,6 +491,16 @@ class TableSim:
     def environmentCollision(self, position):
         """Detect collision with either the box, lid, or drawer"""
         return self.boxCollision(position) or self.lidCollision(position) or any(self.drawerCollision(position))
+
+
+    def environmentWithoutLidCollision(self, position):
+        """Detect collision with either the box or drawer"""
+        return self.boxCollision(position) or any(self.drawerCollision(position))
+
+
+    def environmentWithoutDrawerCollision(self, position):
+        """Detect collision with all environment objects except the drawer"""
+        return self.boxCollision(position) or self.lidCollision(position) or self.drawerCollision(position)[0]
 
 
     def checkLidCollision(self, position):
@@ -502,12 +555,17 @@ class TableSim:
 
 
     def drawerCollision(self, position):
-        """Detect collision with only the drawer"""
+        """Detect collision with only the drawer
+
+        Returns:
+        List of collisions as follows:
+        [drawer stack collision, drawer bottom collision, drawer edge collision]
+        """
         xmin, xmax, ymin, ymax, xminDrawer, xmaxDrawer, yminDrawer, ymaxDrawer = self.getDrawerBounds()
 
         return [self.inVolume(position, xmin, xmax, ymin, ymax, 0, self.drawerHeight),
-                self.inVolume(position, xminDrawer + 1, xmaxDrawer - 1, yminDrawer + 1, ymaxDrawer - 1, self.drawerHeight - 1,
-                              self.drawerHeight - 1),
+                self.inVolume(position, xminDrawer + 1, xmaxDrawer - 1, yminDrawer + 1, ymaxDrawer - 1,
+                              self.drawerHeight - 1, self.drawerHeight - 1),
                 self.onBoxEdge(position, xminDrawer, xmaxDrawer, yminDrawer, ymaxDrawer,
                                self.drawerHeight - 1, self.drawerHeight)]
 
@@ -519,8 +577,8 @@ class TableSim:
             (xmin, xmax, ymin, ymax) -- bounding box of the drawer stack
             (xminDrawer, xmaxDrawer, yminDrawer, ymaxDrawer) -- bounding box of the drawer
         """
-        widthAdjustment = ((self.drawerWidth - 1)/2)
-        depthAdjustment = ((self.drawerDepth - 1)/2)
+        widthAdjustment = (self.drawerWidth - 1)/2
+        depthAdjustment = (self.drawerDepth - 1)/2
         if self.state_.drawer_position.theta == 0:
             xmin = self.state_.drawer_position.x - depthAdjustment
             xmax = self.state_.drawer_position.x + depthAdjustment
@@ -563,6 +621,77 @@ class TableSim:
 
         return xmin, xmax, ymin, ymax, xminDrawer, xmaxDrawer, yminDrawer, ymaxDrawer
 
+
+    def getDrawerHandle(self):
+        """Calculate the point corresponding to the handle on the drawer"""
+        depthAdjustment = ((self.drawerDepth - 1)/2)
+        handle_point = Point(self.state_.drawer_position.x, self.state_.drawer_position.y, self.drawerHeight)
+        offset = depthAdjustment + self.state_.drawer_opening + 1
+        if self.state_.drawer_position.theta == 0:
+            handle_point.x += offset
+        elif self.state_.drawer_position.theta == 90:
+            handle_point.y += offset
+        elif self.state_.drawer_position.theta == 180:
+            handle_point.x -= offset
+        else:
+            handle_point.y -= offset
+        return handle_point
+
+
+    def getDrawerValidPoints(self):
+        """Calculate the set of valid points that make up the drawer path"""
+        depthAdjustment = (self.drawerDepth - 1)/2
+        min_point = Point(self.state_.drawer_position.x, self.state_.drawer_position.y, self.drawerHeight)
+        max_point = self.copyPoint(min_point)
+        offset = depthAdjustment + 1
+        points = []
+        if self.state_.drawer_position.theta == 0:
+            min_point.x += offset
+            points.append(min_point)
+            for x in range(1, self.drawerDepth):
+                point = self.copyPoint(min_point)
+                point.x += x
+                points.append(point)
+        elif self.state_.drawer_position.theta == 90:
+            min_point.y += offset
+            for y in range(1, self.drawerDepth):
+                point = self.copyPoint(min_point)
+                point.y += y
+                points.append(point)
+        elif self.state_.drawer_position.theta == 180:
+            min_point.x -= offset
+            max_point.x = min_point.x - self.drawerDepth
+            for x in range(1, self.drawerDepth):
+                point = self.copyPoint(max_point)
+                point.x += x
+                points.append(point)
+        else:
+            min_point.y -= offset
+            max_point.y = min_point.y - self.drawerDepth
+            for y in range(1, self.drawerDepth):
+                point = self.copyPoint(max_point)
+                point.y += y
+                points.append(point)
+        return points
+
+
+    def updateDrawerOffset(self, position):
+        """Calculate the drawer offset given the drawer handle position"""
+        depthAdjustment = ((self.drawerDepth - 1)/2)
+        handle_closed_point = Point(self.state_.drawer_position.x, self.state_.drawer_position.y, self.drawerHeight)
+        offset = depthAdjustment + 1
+        if self.state_.drawer_position.theta == 0:
+            handle_closed_point.x += offset
+            self.state_.drawer_opening = position.x - handle_closed_point.x
+        elif self.state_.drawer_position.theta == 90:
+            handle_closed_point.y += offset
+            self.state_.drawer_opening = position.y - handle_closed_point.y
+        elif self.state_.drawer_position.theta == 180:
+            handle_closed_point.x -= offset
+            self.state_.drawer_opening = handle_closed_point.x - position.x
+        else:
+            handle_closed_point.y -= offset
+            self.state_.drawer_opening = handle_closed_point.y - position.y
 
     def onBoxEdge(self, position, xmin, xmax, ymin, ymax, zmin, zmax):
         """Detect whether a point is on the perimeter of a given rectangular prism
@@ -729,6 +858,9 @@ class TableSim:
         print('')
         for line in output:
             print(''.join(line))
+        if len(self.error) > 0:
+            print(self.error)
+            self.error = ''
 
     def drawLine(self, output, x1, y1, x2, y2):
         """Draw a line with the Bresenham algorithm
