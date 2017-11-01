@@ -304,7 +304,7 @@ class TableSim:
             checkPos = Point(self.state_.gripper_position.x,
                              self.state_.gripper_position.y,
                              self.state_.gripper_position.z + 1)
-            if self.drawerCollision(checkPos):
+            if any(self.drawerCollision(checkPos)):
                 return
             self.moveGripper(checkPos)
 
@@ -477,6 +477,18 @@ class TableSim:
         objects = []
         for x in range(self.state_.lid_position.x - self.boxRadius, self.state_.lid_position.x + self.boxRadius + 1):
             for y in range(self.state_.lid_position.y - self.boxRadius, self.state_.lid_position.y + self.boxRadius + 1):
+                object = self.getObjectAt(Point(x, y, self.state_.lid_position.z + 1))
+                if object:
+                    objects.append(object)
+        return objects
+
+
+    def getObjectsInDrawer(self):
+        """Return a list of all objects in the drawer"""
+        objects = []
+        xmin, xmax, ymin, ymax, xminDrawer, xmaxDrawer, yminDrawer, ymaxDrawer = self.getDrawerBounds()
+        for x in range(xminDrawer + 1, xmaxDrawer):
+            for y in range(yminDrawer + 1, ymaxDrawer):
                 object = self.getObjectAt(Point(x, y, self.state_.lid_position.z + 1))
                 if object:
                     objects.append(object)
@@ -680,18 +692,31 @@ class TableSim:
         depthAdjustment = ((self.drawerDepth - 1)/2)
         handle_closed_point = Point(self.state_.drawer_position.x, self.state_.drawer_position.y, self.drawerHeight)
         offset = depthAdjustment + 1
+        prev_opening = self.state_.drawer_opening
+        objects = self.getObjectsInDrawer()
+        xchange = 0
+        ychange = 0
         if self.state_.drawer_position.theta == 0:
             handle_closed_point.x += offset
             self.state_.drawer_opening = position.x - handle_closed_point.x
+            xchange = self.state_.drawer_opening - prev_opening
         elif self.state_.drawer_position.theta == 90:
             handle_closed_point.y += offset
             self.state_.drawer_opening = position.y - handle_closed_point.y
+            ychange = self.state_.drawer_opening - prev_opening
         elif self.state_.drawer_position.theta == 180:
             handle_closed_point.x -= offset
             self.state_.drawer_opening = handle_closed_point.x - position.x
+            xchange = prev_opening - self.state_.drawer_opening
         else:
             handle_closed_point.y -= offset
             self.state_.drawer_opening = handle_closed_point.y - position.y
+            ychange = prev_opening - self.state_.drawer_opening
+        for object in objects:
+            object.position.x += xchange
+            object.position.y += ychange
+            print object.position.z
+
 
     def onBoxEdge(self, position, xmin, xmax, ymin, ymax, zmin, zmax):
         """Detect whether a point is on the perimeter of a given rectangular prism
