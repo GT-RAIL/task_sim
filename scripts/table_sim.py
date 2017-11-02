@@ -851,11 +851,15 @@ class TableSim:
         TODO: we may need a version that writes to a buffer (to calculate occlusion) without writing to the screen
         """
         output = []
+        output_level = []
         for y in range(0, self.tableDepth + 1):
             line = []
+            line_level = []
             for x in range(0, self.tableWidth + 1):
                 line.append(' ')
+                line_level.append(0)
             output.append(line)
+            output_level.append(line_level)
 
         xmin, xmax, ymin, ymax, xminDrawer, xmaxDrawer, yminDrawer, ymaxDrawer = self.getDrawerBounds()
         xminBox = self.state_.box_position.x - self.boxRadius
@@ -876,64 +880,81 @@ class TableSim:
             # objects
             for object in self.state_.objects:
                 if object.position.z == z:
-                    self.setOutput(output, object.position.x, object.position.y, object.name[0])
+                    self.setOutput(output, output_level, object.position.x, object.position.y, z, object.name[0])
 
             # drawer
             if self.drawerHeight - 1 == z:
                 for x in range(xminDrawer, xmaxDrawer + 1):
                     for y in range(yminDrawer, ymaxDrawer + 1):
                         if x == xminDrawer or x == xmaxDrawer or y == yminDrawer or y == ymaxDrawer:
-                            self.setOutput(output, x, y, '%')
+                            self.setOutput(output, output_level, x, y, z, '%')
                         else:
-                            self.setOutput(output, x, y, '*')
+                            self.setOutput(output, output_level, x, y, z, '*')
             if self.drawerHeight == z:
                 for x in range(xmin, xmax + 1):
                     for y in range(ymin, ymax + 1):
-                        self.setOutput(output, x, y, '#')
+                        self.setOutput(output, output_level, x, y, z, '#')
 
             # box
             if self.state_.box_position.z == z:
                 for x in range(xminBox, xmaxBox + 1):
                     for y in range(yminBox, ymaxBox + 1):
                         if not (x == xminBox or x == xmaxBox or y == yminBox or y == ymaxBox):
-                            self.setOutput(output, x, y, '+')
+                            self.setOutput(output, output_level, x, y, z, '+')
             if self.boxHeight == z:
                 for x in range(xminBox, xmaxBox + 1):
                     for y in range(yminBox, ymaxBox + 1):
                         if x == xminBox or x == xmaxBox or y == yminBox or y == ymaxBox:
-                            self.setOutput(output, x, y, '%')
+                            self.setOutput(output, output_level, x, y, z, '%')
             if self.state_.lid_position.z == z:
                 for x in range(self.state_.lid_position.x - self.boxRadius,
                                self.state_.lid_position.x + self.boxRadius + 1):
                     for y in range(self.state_.lid_position.y - self.boxRadius,
                                    self.state_.lid_position.y + self.boxRadius + 1):
-                        self.setOutput(output, x, y, '@')
+                        self.setOutput(output, output_level, x, y, z, '@')
 
             # gripper
             if self.state_.gripper_position.z == z:
                 cx = self.state_.gripper_position.x
                 cy = self.state_.gripper_position.y
-                self.setOutput(output, cx-1, cy+1, '-')
-                self.setOutput(output, cx+1, cy+1, '-')
-                self.setOutput(output, cx-1, cy-1, '-')
-                self.setOutput(output, cx+1, cy-1, '-')
+                self.setOutput(output, output_level, cx-1, cy+1, z, '-')
+                self.setOutput(output, output_level, cx+1, cy+1, z, '-')
+                self.setOutput(output, output_level, cx-1, cy-1, z, '-')
+                self.setOutput(output, output_level, cx+1, cy-1, z, '-')
                 if self.state_.gripper_open:
-                    self.setOutput(output, cx, cy-1, '-')
-                    self.setOutput(output, cx, cy+1, '-')
-                    self.setOutput(output, cx-1, cy, '[')
-                    self.setOutput(output, cx+1, cy, ']')
+                    self.setOutput(output, output_level, cx, cy-1, z, '-')
+                    self.setOutput(output, output_level, cx, cy+1, z, '-')
+                    self.setOutput(output, output_level, cx-1, cy, z, '[')
+                    self.setOutput(output, output_level, cx+1, cy, z, ']')
                 else:
-                    self.setOutput(output, cx, cy+1, 'v')
-                    self.setOutput(output, cx, cy-1, '^')
-                    self.setOutput(output, cx-1, cy, '>')
-                    self.setOutput(output, cx+1, cy, '<')
+                    self.setOutput(output, output_level, cx, cy+1, z, 'v')
+                    self.setOutput(output, output_level, cx, cy-1, z, '^')
+                    self.setOutput(output, output_level, cx-1, cy, z, '>')
+                    self.setOutput(output, output_level, cx+1, cy, z, '<')
 
         # arm
-        self.drawLine(output, self.tableWidth/2, 1, self.state_.gripper_position.x, self.state_.gripper_position.y)
-        self.drawLine(output, self.tableWidth/2 - 1, 1, self.state_.gripper_position.x, self.state_.gripper_position.y)
-        self.drawLine(output, self.tableWidth/2 + 1, 1, self.state_.gripper_position.x, self.state_.gripper_position.y)
-        self.drawLine(output, self.tableWidth/2, 0, self.state_.gripper_position.x, self.state_.gripper_position.y)
-        self.drawLine(output, self.tableWidth/2, 2, self.state_.gripper_position.x, self.state_.gripper_position.y)
+        self.drawLine(output, output_level, self.tableWidth/2, 1, self.state_.gripper_position.x, self.state_.gripper_position.y, 4)
+        self.drawLine(output, output_level, self.tableWidth/2 - 1, 1, self.state_.gripper_position.x, self.state_.gripper_position.y, 4)
+        self.drawLine(output, output_level, self.tableWidth/2 + 1, 1, self.state_.gripper_position.x, self.state_.gripper_position.y, 4)
+        self.drawLine(output, output_level, self.tableWidth/2, 0, self.state_.gripper_position.x, self.state_.gripper_position.y, 4)
+        self.drawLine(output, output_level, self.tableWidth/2, 2, self.state_.gripper_position.x, self.state_.gripper_position.y, 4)
+
+        # merge color levels into output buffer
+        for i in range(len(output)):
+            for j in range(len(output[i])):
+                if output[i][j] == ' ':
+                    continue
+
+                if output_level[i][j] == 0:
+                    pass
+                elif output_level[i][j] == 1:
+                    output[i][j] = '\033[1;33m' + output[i][j] + '\033[0m'
+                elif output_level[i][j] == 2:
+                    output[i][j] = '\033[33m' + output[i][j] + '\033[0m'
+                elif output_level[i][j] == 3:
+                    output[i][j] = '\033[31m' + output[i][j] + '\033[0m'
+                else:
+                    output[i][j] = '\033[35m' + output[i][j] + '\033[0m'
 
         # state
         output[0].append(' | Objects:')
@@ -982,7 +1003,7 @@ class TableSim:
             print(self.error)
             self.error = ''
 
-    def drawLine(self, output, x1, y1, x2, y2):
+    def drawLine(self, output, output_level, x1, y1, x2, y2, z):
         """Draw a line with the Bresenham algorithm
 
         Kewyord arguments:
@@ -1007,7 +1028,7 @@ class TableSim:
             check = self.getOutput(output, x, y)
             if not (check == '[' or check == ']' or check == '<' or check == '>'
                 or check == '-' or check == 'v' or check == '^'):
-                self.setOutput(output, x, y, '$')
+                self.setOutput(output, output_level, x, y, z, '$')
             while d >= 0:
                 d -= 2*dx
                 if swap:
@@ -1020,16 +1041,18 @@ class TableSim:
             else:
                 x += s1
 
-    def setOutput(self, output, x, y, value):
+    def setOutput(self, output, output_level, x, y, z, value):
         """Fill an output cell with a given value
 
         Keyword arguments:
         output -- the output buffer (a list of list of strings)
+        output_level -- output buffer storing heights
         (x, y) -- the point to fill, in the table coordinate frame
         value -- the value to fill
         """
         if x >= 0 and x <= self.tableWidth and y >= 0 and y <= self.tableDepth:
             output[self.tableDepth - y][x] = value
+            output_level[self.tableDepth - y][x] = z
             # TODO: can handle occlusions in here - if cell already has value, search object list and update occluded
 
     def getOutput(self, output, x, y):
