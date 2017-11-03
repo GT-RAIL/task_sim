@@ -4,6 +4,7 @@
 from math import floor
 from math import sqrt
 from random import shuffle
+from random import random
 
 # ROS
 import rospy
@@ -120,11 +121,20 @@ class TableSim:
 
         # special cases
         if object == 'lid' or object == 'Lid':
+            if not self.motionPlanChance(self.state_.lid_position):
+                self.error = 'Motion planner failed.'
+                return
+            if self.getObjectAt(self.state_.lid_position):
+                self.error = 'Lid is occluded and cannot be grasped.'
+                return
             self.state_.gripper_position = self.copyPoint(self.state_.lid_position)
             self.state_.gripper_open = False
             self.state_.object_in_gripper = 'Lid'
             return
         elif object == 'drawer' or object == 'Drawer':
+            if not self.motionPlanChance(self.state_.getDrawerHandle()):
+                self.error = 'Motion planner failed.'
+                return
             self.state_.gripper_position = self.copyPoint(self.getDrawerHandle())
             self.state_.gripper_open = False
             self.state_.object_in_gripper = 'Drawer'
@@ -132,13 +142,48 @@ class TableSim:
 
         target = self.getObject(object)
         if target:
-            # TODO: motion plan fail chance (proportional to distance)
             # TODO: object not in graspable position (hidden state)
+            if target.occluded:
+                self.error = target.name + ' is occluded and cannot be grasped.'
+                return
+
+            if not self.motionPlanChance(target.position):
+                self.error = 'Motion planner failed.'
+                return
+
             self.state_.gripper_position = self.copyPoint(target.position)
             self.state_.gripper_open = False
             self.state_.object_in_gripper = object
         else:
             self.error = 'Object ' + object + ' does not exist.'
+
+
+    def motionPlanChance(self, target):
+        """Determine if a motion planner will succeed or fail
+
+        Keyword arguments:
+        target -- goal position for the planner
+        """
+        dst = self.euclidean3D(self.state_.gripper_position, target)
+        chance = min(1 - (dst - 10)/50.0, 1)
+        blocked = 0
+        free = 0
+        for z in range(0, 2):
+            for x in range(-2, 3):
+                for y in range(-2, 3):
+                    temp_pos = self.copyPoint(self.state_.gripper_position)
+                    temp_pos.x += x
+                    temp_pos.y += y
+                    temp_pos.z += z
+                    if self.inCollision(temp_pos):
+                        blocked += 1
+                    else:
+                        free += 1
+        chance = max(chance - 1.5*float(blocked)/(blocked + free), 0)
+        return random() < chance
+
+    def euclidean3D(self, p1, p2):
+        return sqrt(float(pow(p1.x - p2.x, 2) + pow(p1.y - p2.y, 2) + pow(p1.z - p2.z, 2)))
 
 
     def place(self, position):
@@ -174,7 +219,10 @@ class TableSim:
             return
 
         tempPos.z = height
-        # TODO: motion plan fail chance
+
+        if not self.motionPlanChance(tempPos):
+            self.error('Motion planner failed.')
+            return
         self.moveGripper(tempPos)
         self.open()
 
@@ -447,6 +495,7 @@ class TableSim:
                     change = change or self.gravity(object)
         else:
             tempPos = Point(object.position.x, object.position.y, object.position.z)
+            fall_dst = 0
             while object.position.z > 0:
                 tempPos.z -= 1
                 if self.onEdge(tempPos) or self.objectCollision(tempPos):
@@ -454,16 +503,21 @@ class TableSim:
                     drop = self.randomFreePoint(tempPos, 2, 2)
                     if drop:
                         tempPos = drop
-                        object.position.x = tempPos.x
-                        object.position.y = tempPos.y
-                        object.position.z = tempPos.z
+                        object.position = self.copyPoint(tempPos)
                         continue
                     else:
                         break
                 elif self.environmentCollision(tempPos):
                     break
                 object.position.z -= 1
+                fall_dst += 1
                 change = True
+            if fall_dst > 0:
+                # try some random roll positions
+                roll = self.randomFreePoint(object.position, fall_dst, fall_dst)
+                if roll:
+                    object.position = self.copyPoint(roll)
+
         return change
 
 
@@ -850,6 +904,10 @@ class TableSim:
         Note: this also calculates occlusion
         TODO: we may need a version that writes to a buffer (to calculate occlusion) without writing to the screen
         """
+        # reset occlusion
+        for object in self.state_.objects:
+                object.occluded = False
+
         output = []
         output_level = []
         for y in range(0, self.tableDepth + 1):
@@ -877,6 +935,18 @@ class TableSim:
             output[y][self.tableWidth] = ':'
 
         for z in range(0,5):
+            # box
+            if self.state_.box_position.z == z:
+                for x in range(xminBox, xmaxBox + 1):
+                    for y in range(yminBox, ymaxBox + 1):
+                        if not (x == xminBox or x == xmaxBox or y == yminBox or y == ymaxBox):
+                            self.setOutput(output, output_level, x, y, z, '+')
+            if self.boxHeight == z:
+                for x in range(xminBox, xmaxBox + 1):
+                    for y in range(yminBox, ymaxBox + 1):
+                        if x == xminBox or x == xmaxBox or y == yminBox or y == ymaxBox:
+                            self.setOutput(output, output_level, x, y, z, '%')
+
             # objects
             for object in self.state_.objects:
                 if object.position.z == z:
@@ -895,17 +965,7 @@ class TableSim:
                     for y in range(ymin, ymax + 1):
                         self.setOutput(output, output_level, x, y, z, '#')
 
-            # box
-            if self.state_.box_position.z == z:
-                for x in range(xminBox, xmaxBox + 1):
-                    for y in range(yminBox, ymaxBox + 1):
-                        if not (x == xminBox or x == xmaxBox or y == yminBox or y == ymaxBox):
-                            self.setOutput(output, output_level, x, y, z, '+')
-            if self.boxHeight == z:
-                for x in range(xminBox, xmaxBox + 1):
-                    for y in range(yminBox, ymaxBox + 1):
-                        if x == xminBox or x == xmaxBox or y == yminBox or y == ymaxBox:
-                            self.setOutput(output, output_level, x, y, z, '%')
+            # lid
             if self.state_.lid_position.z == z:
                 for x in range(self.state_.lid_position.x - self.boxRadius,
                                self.state_.lid_position.x + self.boxRadius + 1):
@@ -995,6 +1055,26 @@ class TableSim:
         output[line_index].append(' |  Lid: (' + str(self.state_.lid_position.x) + ', '
                                   + str(self.state_.lid_position.y) + ', ' + str(self.state_.lid_position.z) + ')')
 
+        # tic marks
+        for i in range(len(output)):
+            if self.tableDepth - i < 10:
+                output[i].insert(0, ' ' + str(self.tableDepth - i) + '| ')
+            else:
+                output[i].insert(0, str(self.tableDepth - i) + '| ')
+        tics = '    '
+        labels = '    '
+        for i in range(0, self.tableWidth + 1, 5):
+            tics += '|    '
+            labels += str(i)
+            if i < 10:
+                labels += '    '
+            else:
+                labels += '   '
+        output.insert(0, [tics])
+        output.insert(0, [labels])
+        output.append([tics])
+        output.append([labels])
+
         #  print
         print('')
         for line in output:
@@ -1051,9 +1131,14 @@ class TableSim:
         value -- the value to fill
         """
         if x >= 0 and x <= self.tableWidth and y >= 0 and y <= self.tableDepth:
+            prev = self.getOutput(output, x, y)
+            if prev != ' ':
+                for object in self.state_.objects:
+                    if object.name[0] == prev:
+                        object.occluded = True
+                        break
             output[self.tableDepth - y][x] = value
             output_level[self.tableDepth - y][x] = z
-            # TODO: can handle occlusions in here - if cell already has value, search object list and update occluded
 
     def getOutput(self, output, x, y):
         """Get the value of an output cell
