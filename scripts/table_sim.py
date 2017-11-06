@@ -14,6 +14,7 @@ from task_sim.srv import Execute
 from task_sim.msg import Action
 from task_sim.msg import State
 from task_sim.msg import Object
+from grasp_state import GraspState
 
 class TableSim:
     ## TODO: create a hidden state for whether an object can be picked up or not (dict with name as key and
@@ -21,6 +22,7 @@ class TableSim:
 
     def __init__(self):
         self.init_simulation()
+        self.worldUpdate()
 
         self.error = ''
 
@@ -89,6 +91,35 @@ class TableSim:
         self.state_.gripper_position.z = 2
         self.state_.gripper_open = True
 
+        # Hidden state
+        self.grasp_states = {}
+        for object in self.state_.objects:
+            self.grasp_states[object.name] = GraspState(self.getNeighborCount(object.position),
+                                                        self.copyPoint(object.position))
+
+
+    def getNeighborCount(self, position):
+        count = 0
+        for x in range(-1, 2):
+            for y in range(-1, 2):
+                if x == 0 and y == 0:
+                    continue
+                if self.inCollision(Point(position.x + x, position.y + y, position.z)):
+                    count += 1
+        return count
+
+
+    def worldUpdate(self):
+        self.gravity()
+        self.updateObjectStates()
+        for object in self.state_.objects:
+            object.lost = (object.position.x <= 0 or object.position.x >= self.tableWidth
+                           or object.position.y <= 0 or object.position.y >= self.tableDepth) \
+                          and not self.state_.object_in_gripper == object.name and not object.on_lid
+            if not object.lost:
+                self.grasp_states[object.name].updateGraspRate(self.getNeighborCount(object.position),
+                                                               self.copyPoint(object.position))
+
 
     def execute(self, req):
         """Handle execution of all robot actions as a ROS service routine"""
@@ -142,9 +173,16 @@ class TableSim:
 
         target = self.getObject(object)
         if target:
-            # TODO: object not in graspable position (hidden state)
+            if target.lost:
+                self.error = target.name + ' is lost.'
+                return
+
             if target.occluded:
                 self.error = target.name + ' is occluded and cannot be grasped.'
+                return
+
+            if not self.grasp_states[target.name].graspable:
+                self.error = 'Could not find a grasp for ' + target.name + '.'
                 return
 
             if not self.motionPlanChance(target.position):
@@ -164,6 +202,8 @@ class TableSim:
         Keyword arguments:
         target -- goal position for the planner
         """
+        if not self.reachable(target):
+            return False
         dst = self.euclidean3D(self.state_.gripper_position, target)
         chance = min(1 - (dst - 10)/50.0, 1)
         blocked = 0
@@ -181,6 +221,7 @@ class TableSim:
                         free += 1
         chance = max(chance - 1.5*float(blocked)/(blocked + free), 0)
         return random() < chance
+
 
     def euclidean3D(self, p1, p2):
         return sqrt(float(pow(p1.x - p2.x, 2) + pow(p1.y - p2.y, 2) + pow(p1.z - p2.z, 2)))
@@ -272,16 +313,21 @@ class TableSim:
             if self.state_.object_in_gripper == 'Lid':
                 if self.environmentWithoutLidCollision(testPos):
                     break
+                if not self.reachable(testPos):
+                    break
             elif self.state_.object_in_gripper == 'Drawer':
                 if not any(valid_point == testPos for valid_point in self.getDrawerValidPoints()):
                     break
                 if self.environmentWithoutDrawerCollision(testPos):
                     break
+                if not self.reachable(testPos):
+                    break
             else:
+                if not self.reachable(testPos):
+                    break
                 drawer_collisions = self.drawerCollision(testPos)
                 # special case: colliding with protruding drawer only
                 if (drawer_collisions[1] or drawer_collisions[2]) and not drawer_collisions[0]:
-                    #TODO: if motion is aligned with opening or closing, push drawer 1 space open/closed and continue
                     if self.openingDrawer(testPos):
                         if not self.pushOpen():
                             break
@@ -295,6 +341,8 @@ class TableSim:
             goal = self.copyPoint(testPos)
 
         for object in self.state_.objects:
+            if object.lost:
+                continue
             if (self.state_.object_in_gripper == 'Drawer' and object.in_drawer) or \
                     (self.state_.object_in_gripper == 'Lid' and object.on_lid):
                 continue
@@ -473,10 +521,11 @@ class TableSim:
         if self.state_.object_in_gripper == 'Drawer':
             self.error = 'Cannot reset arm while grasping drawer'
             return
-        resetPosition = Point()
-        resetPosition.x = 8
-        resetPosition.y = 1
-        resetPosition.z = 2
+
+        resetPosition = Point(8, 1, 2)
+        if not self.motionPlanChance(resetPosition):
+            self.error = 'Motion planner failed.'
+            return
         self.moveGripper(resetPosition)
 
 
@@ -645,6 +694,11 @@ class TableSim:
                              self.state_.box_position.x + self.boxRadius, self.state_.box_position.y - self.boxRadius,
                              self.state_.box_position.y + self.boxRadius, self.state_.box_position.z,
                              self.boxHeight)
+
+
+    def reachable(self, position):
+        dst = self.euclidean2D(self.tableWidth/2, 1, position.x, position.y)
+        return dst > 3 and dst < 20
 
 
     def inCollision(self, position):
@@ -949,7 +1003,7 @@ class TableSim:
 
             # objects
             for object in self.state_.objects:
-                if object.position.z == z:
+                if not object.lost and object.position.z == z:
                     self.setOutput(output, output_level, object.position.x, object.position.y, z, object.name[0])
 
             # drawer
@@ -1021,7 +1075,8 @@ class TableSim:
         line_index = 1
         for object in self.state_.objects:
             output[line_index].append(' |  ' + object.name + ': (' + str(object.position.x) + ', '
-                                      + str(object.position.y) + ', ' + str(object.position.z) + ')')
+                                      + str(object.position.y) + ', ' + str(object.position.z) + ')'
+                                      + ' graspable: ' + str(self.grasp_states[object.name].graspable))
             line_index += 1
 
         output[line_index].append(' |')
@@ -1200,7 +1255,7 @@ if __name__ == '__main__':
 
     # Currently just run in an input mode for debugging, no ROS functionality
     while True:
-        table_sim.updateObjectStates()
+        table_sim.worldUpdate()
         table_sim.show()
         if not table_sim.getInput():
             break

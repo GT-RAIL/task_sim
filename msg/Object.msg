@@ -5,3 +5,4 @@ bool in_box
 bool on_lid
 bool in_gripper
 bool occluded
+bool lost
