@@ -163,7 +163,7 @@ class TableSim:
             self.state_.object_in_gripper = 'Lid'
             return
         elif object == 'drawer' or object == 'Drawer':
-            if not self.motionPlanChance(self.state_.getDrawerHandle()):
+            if not self.motionPlanChance(self.getDrawerHandle()):
                 self.error = 'Motion planner failed.'
                 return
             self.state_.gripper_position = self.copyPoint(self.getDrawerHandle())
@@ -1212,51 +1212,66 @@ class TableSim:
         Returns:
         False on 'quit', True otherwise (used for breaking loops)
         """
-        action = raw_input('Action?: ').split(' ')
-        if len(action) > 0:
-            if action[0] == 'grasp' or action[0] == 'g':
-                if len(action) >= 2:
-                    self.grasp(action[1])
+        try:
+            action = raw_input('Action?: ').split(' ')
+            if len(action) > 0:
+                if action[0] == 'grasp' or action[0] == 'g':
+                    if len(action) >= 2:
+                        self.grasp(action[1])
+                    else:
+                        print('Grasp takes parameter: object')
+                elif action[0] == 'place' or action[0] == 'p':
+                    if len(action) >= 3:
+                        self.place(Point(int(action[1]), int(action[2]), 0))
+                    else:
+                        print('Place takes parameters: x y')
+                elif action[0] == 'open' or action[0] == 'o':
+                    self.open()
+                elif action[0] == 'close' or action[0] == 'c':
+                    self.close()
+                elif action[0] == 'home' or action[0] == 'h':
+                    self.resetArm()
+                elif action[0] == 'raise' or action[0] == 'r':
+                    self.raiseArm()
+                elif action[0] == 'lower' or action[0] == 'l':
+                    self.lowerArm()
+                elif action[0] == 'move' or action[0] == 'm':
+                    if len(action) >= 3:
+                        self.move(Point(int(action[1]), int(action[2]), 0))
+                    else:
+                        print('Move takes parameters: x y')
+                elif action[0] == 'quit' or action[0] == 'q':
+                    return False
+                elif action[0] == '?' or action[0] == 'help':
+                    cmd_template = "{:1}\t{:10}\t{:69}"
+                    print("Valid commands:")
+                    print(cmd_template.format('o', 'open', 'Open the gripper'))
+                    print(cmd_template.format('c', 'close', 'Close the gripper'))
+                    print(cmd_template.format('g', 'grasp', 'Grasp object. param: object_name'))
+                    print(cmd_template.format('p', 'place', 'Place object. param: x y'))
+                    print(cmd_template.format('h', 'home', 'Arm to home'))
+                    print(cmd_template.format('r', 'raise', 'Raise arm'))
+                    print(cmd_template.format('l', 'lower', 'Lower arm'))
+                    print(cmd_template.format('m', 'move', 'Move to location. param: x y'))
+                    print(cmd_template.format('q', 'quit', 'Quit simulator'))
+                    print(cmd_template.format('?', 'help', 'Show list of actions'))
                 else:
-                    print('Grasp takes parameter: object')
-            elif action[0] == 'place' or action[0] == 'p':
-                if len(action) >= 3:
-                    self.place(Point(int(action[1]), int(action[2]), 0))
-                else:
-                    print('Place takes parameters: x y')
-            elif action[0] == 'open' or action[0] == 'o':
-                self.open()
-            elif action[0] == 'close' or action[0] == 'c':
-                self.close()
-            elif action[0] == 'home' or action[0] == 'h':
-                self.resetArm()
-            elif action[0] == 'raise' or action[0] == 'r':
-                self.raiseArm()
-            elif action[0] == 'lower' or action[0] == 'l':
-                self.lowerArm()
-            elif action[0] == 'move' or action[0] == 'm':
-                if len(action) >= 3:
-                    self.move(Point(int(action[1]), int(action[2]), 0))
-                else:
-                    print('Move takes parameters: x y')
-            elif action[0] == 'quit' or action[0] == 'q':
-                return False
+                    print('Invalid command.')
             else:
                 print('Invalid command.')
-        else:
-            print('Invalid command.')
 
-        return True
+            return True
+        except (KeyboardInterrupt, EOFError) as e:
+            return False
 
 
 if __name__ == '__main__':
     rospy.init_node('table_sim')
     table_sim = TableSim()
 
-    # Currently just run in an input mode for debugging, no ROS functionality
-    while True:
+    # Shutdown based on the ROS signal. Call the callbacks
+    while not rospy.is_shutdown():
         table_sim.worldUpdate()
         table_sim.show()
         if not table_sim.getInput():
             break
-    #rospy.spin()
