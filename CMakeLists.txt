@@ -53,6 +53,7 @@ add_message_files(
   Action.msg
   Object.msg
   State.msg
+  Log.msg
 )
 
 # Generate services in the 'srv' folder

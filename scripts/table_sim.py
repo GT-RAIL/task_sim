@@ -10,10 +10,8 @@ from random import random
 import rospy
 from geometry_msgs.msg import Point
 from numpy import sign
-from task_sim.srv import Execute
-from task_sim.msg import Action
-from task_sim.msg import State
-from task_sim.msg import Object
+from task_sim.srv import Execute, ExecuteResponse
+from task_sim.msg import Action, State, Object, Log
 from grasp_state import GraspState
 
 class TableSim:
@@ -21,13 +19,13 @@ class TableSim:
     ## TODO: trinary state as value (yes, no, unknown)
 
     def __init__(self):
-        self.init_simulation()
-        self.worldUpdate()
-
         self.error = ''
 
-        self.action_service_ = rospy.Service('execute_action', Execute, self.execute)
+        self.action_service_ = rospy.Service('~execute_action', Execute, self.execute)
+        self.log_pub_ = rospy.Publisher('~task_log', Log, queue_size=1)
 
+        self.init_simulation()
+        self.worldUpdate()
 
     def init_simulation(self):
         """Create a hardcoded 40x15 table with a few objects, a closed drawer, and a closed box"""
@@ -109,7 +107,7 @@ class TableSim:
         return count
 
 
-    def worldUpdate(self):
+    def worldUpdate(self, action=None):
         self.gravity()
         self.updateObjectStates()
         for object in self.state_.objects:
@@ -120,6 +118,12 @@ class TableSim:
                 self.grasp_states[object.name].updateGraspRate(self.getNeighborCount(object.position),
                                                                self.copyPoint(object.position))
 
+        # Create a log message and send it along
+        log_msg = Log(
+            action=(action or Action(action_type=Action.NOOP)),
+            state=self.state_
+        )
+        self.log_pub_.publish(log_msg)
 
     def execute(self, req):
         """Handle execution of all robot actions as a ROS service routine"""
@@ -132,13 +136,17 @@ class TableSim:
         elif req.action == Action.CLOSE_GRIPPER:
             self.close()
         elif req.action == Action.MOVE_ARM:
-            self.move(req.position)
+            self.move(req.action.position)
         elif req.action == Action.RAISE_ARM:
             self.raiseArm()
         elif req.action == Action.LOWER_ARM:
             self.lowerArm()
         elif req.action == Action.RESET_ARM:
             self.resetArm()
+
+        # Update the world state
+        self.worldUpdate(req.action)
+        return ExecuteResponse(state=self.state_)
 
 
     def grasp(self, object):
@@ -1211,58 +1219,80 @@ class TableSim:
 
         Returns:
         False on 'quit', True otherwise (used for breaking loops)
+        action_msg, A message structure for the executed action
         """
         try:
             action = raw_input('Action?: ').split(' ')
-            if len(action) > 0:
-                if action[0] == 'grasp' or action[0] == 'g':
-                    if len(action) >= 2:
-                        self.grasp(action[1])
-                    else:
-                        print('Grasp takes parameter: object')
-                elif action[0] == 'place' or action[0] == 'p':
-                    if len(action) >= 3:
-                        self.place(Point(int(action[1]), int(action[2]), 0))
-                    else:
-                        print('Place takes parameters: x y')
-                elif action[0] == 'open' or action[0] == 'o':
-                    self.open()
-                elif action[0] == 'close' or action[0] == 'c':
-                    self.close()
-                elif action[0] == 'home' or action[0] == 'h':
-                    self.resetArm()
-                elif action[0] == 'raise' or action[0] == 'r':
-                    self.raiseArm()
-                elif action[0] == 'lower' or action[0] == 'l':
-                    self.lowerArm()
-                elif action[0] == 'move' or action[0] == 'm':
-                    if len(action) >= 3:
-                        self.move(Point(int(action[1]), int(action[2]), 0))
-                    else:
-                        print('Move takes parameters: x y')
-                elif action[0] == 'quit' or action[0] == 'q':
-                    return False
-                elif action[0] == '?' or action[0] == 'help':
-                    cmd_template = "{:1}\t{:10}\t{:69}"
-                    print("Valid commands:")
-                    print(cmd_template.format('o', 'open', 'Open the gripper'))
-                    print(cmd_template.format('c', 'close', 'Close the gripper'))
-                    print(cmd_template.format('g', 'grasp', 'Grasp object. param: object_name'))
-                    print(cmd_template.format('p', 'place', 'Place object. param: x y'))
-                    print(cmd_template.format('h', 'home', 'Arm to home'))
-                    print(cmd_template.format('r', 'raise', 'Raise arm'))
-                    print(cmd_template.format('l', 'lower', 'Lower arm'))
-                    print(cmd_template.format('m', 'move', 'Move to location. param: x y'))
-                    print(cmd_template.format('q', 'quit', 'Quit simulator'))
-                    print(cmd_template.format('?', 'help', 'Show list of actions'))
+            action_msg = Action()
+            if len(action) == 0:
+                print('Invalid command.')
+                action_msg.action_type = Action.NOOP
+                return True, action_msg
+
+            if action[0] == 'grasp' or action[0] == 'g':
+                if len(action) >= 2:
+                    self.grasp(action[1])
+                    action_msg.action_type = Action.GRASP
+                    action_msg.object = action[1]
                 else:
-                    print('Invalid command.')
+                    print('Grasp takes parameter: object')
+                    action_msg.action_type = Action.NOOP
+            elif action[0] == 'place' or action[0] == 'p':
+                if len(action) >= 3:
+                    place_location = Point(int(action[1]), int(action[2]), 0)
+                    self.place(place_location)
+                    action_msg.action_type = Action.PLACE
+                    action_msg.position = place_location
+                else:
+                    print('Place takes parameters: x y')
+                    action_msg.action_type = Action.NOOP
+            elif action[0] == 'open' or action[0] == 'o':
+                self.open()
+                action_msg.action_type = Action.OPEN_GRIPPER
+            elif action[0] == 'close' or action[0] == 'c':
+                self.close()
+                action_msg.action_type = Action.CLOSE_GRIPPER
+            elif action[0] == 'home' or action[0] == 'h':
+                self.resetArm()
+                action_msg.action_type = Action.RESET_ARM
+            elif action[0] == 'raise' or action[0] == 'r':
+                self.raiseArm()
+                action_msg.action_type = RAISE_ARM
+            elif action[0] == 'lower' or action[0] == 'l':
+                self.lowerArm()
+                action_msg.action_type = LOWER_ARM
+            elif action[0] == 'move' or action[0] == 'm':
+                if len(action) >= 3:
+                    move_location = Point(int(action[1]), int(action[2]), 0)
+                    self.move(move_location)
+                    action_msg.action_type = Action.MOVE_ARM
+                    action_msg.position = move_location
+                else:
+                    print('Move takes parameters: x y')
+                    action_msg.action_type = Action.NOOP
+            elif action[0] == 'quit' or action[0] == 'q':
+                return False, None
+            elif action[0] == '?' or action[0] == 'help':
+                cmd_template = "{:1}\t{:10}\t{:69}"
+                print("Valid commands:")
+                print(cmd_template.format('o', 'open', 'Open the gripper'))
+                print(cmd_template.format('c', 'close', 'Close the gripper'))
+                print(cmd_template.format('g', 'grasp', 'Grasp object. param: object_name'))
+                print(cmd_template.format('p', 'place', 'Place object. param: x y'))
+                print(cmd_template.format('h', 'home', 'Arm to home'))
+                print(cmd_template.format('r', 'raise', 'Raise arm'))
+                print(cmd_template.format('l', 'lower', 'Lower arm'))
+                print(cmd_template.format('m', 'move', 'Move to location. param: x y'))
+                print(cmd_template.format('q', 'quit', 'Quit simulator'))
+                print(cmd_template.format('?', 'help', 'Show list of actions'))
+                action_msg.action_type = Action.NOOP
             else:
                 print('Invalid command.')
+                action_msg.action_type = Action.NOOP
 
-            return True
+            return True, action_msg
         except (KeyboardInterrupt, EOFError) as e:
-            return False
+            return False, None
 
 
 if __name__ == '__main__':
@@ -1270,8 +1300,10 @@ if __name__ == '__main__':
     table_sim = TableSim()
 
     # Shutdown based on the ROS signal. Call the callbacks
+    no_quit, user_action = None, None
     while not rospy.is_shutdown():
-        table_sim.worldUpdate()
+        table_sim.worldUpdate(user_action)
         table_sim.show()
-        if not table_sim.getInput():
+        no_quit, user_action = table_sim.getInput()
+        if not no_quit:
             break

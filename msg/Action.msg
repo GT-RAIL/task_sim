@@ -1,3 +1,4 @@
+uint8 NOOP=255
 uint8 GRASP=0
 uint8 PLACE=1
 uint8 OPEN_GRIPPER=2
