@@ -3,7 +3,9 @@
 # Python
 from math import floor
 from math import sqrt
+from random import seed
 from random import shuffle
+from random import randint
 from random import random
 
 # ROS
@@ -27,10 +29,168 @@ class TableSim:
         self.quiet_mode = rospy.get_param('~quiet_mode', False)
         self.terminal_input = rospy.get_param('~terminal_input', True)
 
-        self.init_simulation()
+        self.init_simulation(level = 1)
         self.worldUpdate()
 
-    def init_simulation(self):
+
+    def init_simulation(self, rand_seed = None, level = 0):
+        """Create the initial world configuration
+
+        Keyword arguments:
+        seed -- random seed for consistent starting situations
+        level -- level of randomization, as follows:
+            0 : randomize objects only
+            1 : randomize objects and drawer/box positions
+            2 : randomize objects, drawer and box dimensions and positions
+        """
+        seed(rand_seed)
+
+        self.state_ = State()
+
+        # Table properties
+        self.tableWidth = 40
+        self.tableDepth = 15
+
+        # Container properties
+        if level >= 2:
+            self.boxRadius = randint(1,4)
+            self.boxHeight = randint(1,4)
+            self.drawerWidth = randint(3,9)
+            self.drawerDepth = randint(3,9)
+            if self.drawerWidth % 2 == 0:
+                self.drawerWidth += 1
+            if self.drawerDepth % 2 == 0:
+                self.drawerDepth += 1
+            self.drawerHeight = randint(2, 3)
+        else:
+            self.boxRadius = 2
+            self.boxHeight = 1
+            self.drawerWidth = 5
+            self.drawerDepth = 7
+            self.drawerHeight = 2
+
+        # Container positions
+        if level >= 1:
+            drawer_set = False
+            while not drawer_set:
+                self.state_.drawer_position.x = randint(self.drawerWidth/2 + 1,
+                                                        self.tableWidth - (self.drawerWidth/2 + 1))
+                self.state_.drawer_position.y = randint(self.drawerDepth/2 + 1,
+                                                        self.tableDepth - (self.drawerDepth/2 + 1))
+                self.state_.drawer_position.theta = randint(0, 3)*90
+
+                xmin, xmax, ymin, ymax, xminDrawer, xmaxDrawer, yminDrawer, ymaxDrawer = self.getDrawerBounds()
+                drawer_set = self.onTable(Point(xmin, ymin, self.drawerHeight)) \
+                             and self.onTable(Point(xmin, ymax, self.drawerHeight)) \
+                             and self.onTable(Point(xmax, ymin, self.drawerHeight)) \
+                             and self.onTable(Point(xmax, ymax, self.drawerHeight)) \
+                             and self.onTable(Point(xmaxDrawer, yminDrawer, self.drawerHeight - 1)) \
+                             and self.onTable(Point(xmaxDrawer, ymaxDrawer, self.drawerHeight - 1))
+
+                drawer_points = self.getDrawerValidPoints()
+                for point in drawer_points:
+                    drawer_set = drawer_set and self.reachable(point)
+
+            self.state_.drawer_opening = randint(0, self.drawerDepth - 1)
+
+            box_set = False
+            while not box_set:
+                self.state_.box_position.x = randint(self.boxRadius + 1,
+                                                     self.tableWidth - (self.boxRadius + 1))
+                self.state_.box_position.y = randint(self.boxRadius + 1,
+                                                     self.tableDepth - (self.boxRadius + 1))
+                self.state_.lid_position.x = self.state_.box_position.x
+                self.state_.lid_position.y = self.state_.box_position.y
+                self.state_.lid_position.z = self.boxHeight
+
+                xmin = self.state_.box_position.x - self.boxRadius
+                xmax = self.state_.box_position.x + self.boxRadius
+                ymin = self.state_.box_position.y - self.boxRadius
+                ymax = self.state_.box_position.y + self.boxRadius
+                box_set = self.onTable(Point(xmin, ymin, 0)) and self.onTable(Point(xmin, ymax, 0)) \
+                          and self.onTable(Point(xmax, ymin, 0)) and self.onTable(Point(xmax, ymax, 0)) \
+                          and self.reachable(self.state_.lid_position) \
+                          and self.euclidean2D(self.state_.box_position.x, self.state_.box_position.y,
+                                               self.state_.drawer_position.x, self.state_.drawer_position.y) \
+                              >= max(self.drawerWidth, self.drawerDepth)*3/2 + self.boxRadius + 2
+        else:
+            self.state_.drawer_position.x = 10
+            self.state_.drawer_position.y = 12
+            self.state_.drawer_position.theta = 0
+            self.state_.drawer_opening = 3
+
+            self.state_.box_position.x = 30
+            self.state_.box_position.y = 6
+            self.state_.lid_position.x = 30
+            self.state_.lid_position.y = 6
+            self.state_.lid_position.z = 1
+
+        # Objects
+        obj1 = Object()
+        obj1.name = "Apple"
+        object_set = False
+        while not object_set:
+            obj1.position.x = randint(1, self.tableWidth - 1)
+            obj1.position.y = randint(1, self.tableDepth - 1)
+            obj1.position.z = 0
+            object_set = not self.inCollision(obj1.position) and self.reachable(obj1.position)
+
+        obj2 = Object()
+        obj2.name = "Batteries"
+        object_set = False
+        while not object_set:
+            obj2.position.x = randint(1, self.tableWidth - 1)
+            obj2.position.y = randint(1, self.tableDepth - 1)
+            obj2.position.z = 0
+            object_set = not self.inCollision(obj2.position) and self.reachable(obj2.position)
+
+        obj3 = Object()
+        obj3.name = "Flashlight"
+        object_set = False
+        while not object_set:
+            obj3.position.x = randint(1, self.tableWidth - 1)
+            obj3.position.y = randint(1, self.tableDepth - 1)
+            obj3.position.z = 0
+            object_set = not self.inCollision(obj3.position) and self.reachable(obj3.position)
+
+        obj4 = Object()
+        obj4.name = "Granola"
+        object_set = False
+        while not object_set:
+            obj4.position.x = randint(1, self.tableWidth - 1)
+            obj4.position.y = randint(1, self.tableDepth - 1)
+            obj4.position.z = 0
+            object_set = not self.inCollision(obj4.position) and self.reachable(obj4.position)
+
+        obj5 = Object()
+        obj5.name = "Knife"
+        object_set = False
+        while not object_set:
+            obj5.position.x = randint(1, self.tableWidth - 1)
+            obj5.position.y = randint(1, self.tableDepth - 1)
+            obj5.position.z = 0
+            object_set = not self.inCollision(obj5.position) and self.reachable(obj5.position)
+
+        self.state_.objects.append(obj1)
+        self.state_.objects.append(obj2)
+        self.state_.objects.append(obj3)
+        self.state_.objects.append(obj4)
+        self.state_.objects.append(obj5)
+
+        # Initial robot configuration (home)
+        self.state_.gripper_position.x = 8
+        self.state_.gripper_position.y = 1
+        self.state_.gripper_position.z = 2
+        self.state_.gripper_open = True
+
+        # Hidden state
+        self.grasp_states = {}
+        for object in self.state_.objects:
+            self.grasp_states[object.name] = GraspState(self.getNeighborCount(object.position),
+                                                        self.copyPoint(object.position))
+
+
+    def init_simulation_fixed(self):
         """Create a hardcoded 40x15 table with a few objects, a closed drawer, and a closed box"""
         self.tableWidth = 40
         self.tableDepth = 15
@@ -152,24 +312,6 @@ class TableSim:
 
     def execute(self, req):
         """Handle execution of all robot actions as a ROS service routine"""
-        # if req.action.action_type == Action.GRASP:
-        #     self.grasp(req.action.object)
-        # elif req.action.action_type == Action.PLACE:
-        #     self.place(req.action.position)
-        # elif req.action.action_type == Action.OPEN_GRIPPER:
-        #     self.open()
-        # elif req.action.action_type == Action.CLOSE_GRIPPER:
-        #     self.close()
-        # elif req.action.action_type == Action.MOVE_ARM:
-        #     self.move(req.action.position)
-        # elif req.action.action_type == Action.RAISE_ARM:
-        #     self.raiseArm()
-        # elif req.action.action_type == Action.LOWER_ARM:
-        #     self.lowerArm()
-        # elif req.action.action_type == Action.RESET_ARM:
-        #     self.resetArm()
-
-        # Update the world state
         self.worldUpdate(req.action)
         return ExecuteResponse(state=self.state_)
 
@@ -295,7 +437,7 @@ class TableSim:
         tempPos.z = height
 
         if not self.motionPlanChance(tempPos):
-            self.error('Motion planner failed.')
+            self.error = 'Motion planner failed.'
             return
         self.moveGripper(tempPos)
         self.open()
@@ -741,7 +883,11 @@ class TableSim:
 
     def reachable(self, position):
         dst = self.euclidean2D(self.tableWidth/2, 1, position.x, position.y)
-        return dst > 3 and dst < 20
+        return dst > 3 and dst < 20 and self.onTable(position)
+
+
+    def onTable(self, position):
+        return position.x >= 0 and position.x <= self.tableWidth and position.y >= 0 and position.y <= self.tableDepth
 
 
     def inCollision(self, position):
@@ -915,6 +1061,7 @@ class TableSim:
                 points.append(point)
         elif self.state_.drawer_position.theta == 90:
             min_point.y += offset
+            points.append(min_point)
             for y in range(1, self.drawerDepth):
                 point = self.copyPoint(min_point)
                 point.y += y
@@ -922,6 +1069,7 @@ class TableSim:
         elif self.state_.drawer_position.theta == 180:
             min_point.x -= offset
             max_point.x = min_point.x - self.drawerDepth
+            points.append(min_point)
             for x in range(1, self.drawerDepth):
                 point = self.copyPoint(max_point)
                 point.x += x
@@ -929,6 +1077,7 @@ class TableSim:
         else:
             min_point.y -= offset
             max_point.y = min_point.y - self.drawerDepth
+            points.append(min_point)
             for y in range(1, self.drawerDepth):
                 point = self.copyPoint(max_point)
                 point.y += y
