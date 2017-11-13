@@ -446,15 +446,15 @@ class TableSim:
     def open(self):
         """Open the gripper, dropping anything currently in it"""
         self.state_.gripper_open = True
-        if self.state_.object_in_gripper:
+        if self.state_.object_in_gripper != '':
             if self.state_.object_in_gripper == 'Lid':
-                self.state_.object_in_gripper = None
+                self.state_.object_in_gripper = ''
                 self.gravity()
             elif self.state_.object_in_gripper == 'Drawer':
-                self.state_.object_in_gripper = None
+                self.state_.object_in_gripper = ''
             else:
                 object = self.getObject(self.state_.object_in_gripper)
-                self.state_.object_in_gripper = None
+                self.state_.object_in_gripper = ''
                 self.gravity(object)
 
 
@@ -812,7 +812,7 @@ class TableSim:
         position -- where to move the gripper to
         """
         self.state_.gripper_position = position
-        if self.state_.object_in_gripper:
+        if self.state_.object_in_gripper != '':
             if self.state_.object_in_gripper == 'Lid':
                 ## Lid case
                 dx = position.x - self.state_.lid_position.x
