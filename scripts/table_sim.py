@@ -767,7 +767,6 @@ class TableSim:
             for x in range(tempPos.x - self.boxRadius, tempPos.x + self.boxRadius + 1):
                 for y in range(tempPos.y - self.boxRadius, tempPos.y + self.boxRadius + 1):
                     if self.inCollision(Point(x, y, tempPos.z)):
-                        print 'Collision found for lid at height: ' + str(tempPos.z)
                         collision = True
                         break
                 if collision:
@@ -1205,7 +1204,7 @@ class TableSim:
                 for x in range(xminDrawer, xmaxDrawer + 1):
                     for y in range(yminDrawer, ymaxDrawer + 1):
                         if x == xminDrawer or x == xmaxDrawer or y == yminDrawer or y == ymaxDrawer:
-                            self.setOutput(output, output_level, x, y, z, '%')
+                            self.setOutput(output, output_level, x, y, z + 1, '%')
                         else:
                             self.setOutput(output, output_level, x, y, z, '*')
             if self.drawerHeight == z:
