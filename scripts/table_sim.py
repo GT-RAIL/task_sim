@@ -757,6 +757,8 @@ class TableSim:
 
     def gravityLid(self):
         """Apply gravity to the box lid"""
+        if self.state_.object_in_gripper == 'Lid':
+            return
         change = False
         tempPos = self.copyPoint(self.state_.lid_position)
         while self.state_.lid_position.z > 0:
