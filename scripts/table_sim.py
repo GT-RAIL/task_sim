@@ -525,6 +525,7 @@ class TableSim:
                 self.distanceFromPath(object.position.x, object.position.y, self.state_.gripper_position.x,
                                       self.state_.gripper_position.y, goal.x, goal.y) < 1.2:
                 object_goal = self.randomFreePoint(Point(goal.x, goal.y, goal.z), 2, 2)
+                # TODO: Do a null check here on if there is no free space for the gripper to move to
                 object_points = self.interpolate(object.position.x, object.position.y, object_goal.x, object_goal.y)
                 for point in object_points:
                     test_pos = Point(int(floor(point[0] + 0.5)), int(floor(point[1] + 0.5)),
