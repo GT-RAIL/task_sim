@@ -515,6 +515,8 @@ class TableSim:
                     break
             goal = self.copyPoint(testPos)
 
+        self.moveGripper(goal)
+
         for object in self.state_.objects:
             if object.lost:
                 continue
@@ -525,18 +527,16 @@ class TableSim:
                 self.distanceFromPath(object.position.x, object.position.y, self.state_.gripper_position.x,
                                       self.state_.gripper_position.y, goal.x, goal.y) < 1.2:
                 object_goal = self.randomFreePoint(Point(goal.x, goal.y, goal.z), 2, 2)
-                object_points = self.interpolate(object.position.x, object.position.y, object_goal.x, object_goal.y)
-                for point in object_points:
-                    test_pos = Point(int(floor(point[0] + 0.5)), int(floor(point[1] + 0.5)),
-                                     self.state_.gripper_position.z)
-                    if self.environmentCollision(testPos):
-                        break
-                    object.position = self.copyPoint(test_pos)
-                    if self.gravity(object):
-                        break
-
-        self.moveGripper(goal)
-
+                if object_goal:
+                    object_points = self.interpolate(object.position.x, object.position.y, object_goal.x, object_goal.y)
+                    for point in object_points:
+                        test_pos = Point(int(floor(point[0] + 0.5)), int(floor(point[1] + 0.5)),
+                                         self.state_.gripper_position.z)
+                        if self.environmentCollision(testPos):
+                            break
+                        object.position = self.copyPoint(test_pos)
+                        if self.gravity(object):
+                            break
 
     def openingDrawer(self, position):
         if self.state_.drawer_position.theta == 0:
