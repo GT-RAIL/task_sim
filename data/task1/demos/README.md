@@ -40,3 +40,6 @@ Traceback (most recent call last):
     object_points = self.interpolate(object.position.x, object.position.y, object_goal.x, object_goal.y)
 AttributeError: 'NoneType' object has no attribute 'x'
 ```
+
+**Dave**:
+2017-11-16-16-08-56.bag

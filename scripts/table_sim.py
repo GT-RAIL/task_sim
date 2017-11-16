@@ -30,7 +30,7 @@ class TableSim:
         self.terminal_input = rospy.get_param('~terminal_input', True)
 
         self.init_simulation(level = 1)
-        self.worldUpdate()
+        #self.worldUpdate()
 
 
     def init_simulation(self, rand_seed = None, level = 0):
@@ -481,6 +481,7 @@ class TableSim:
         """
         points = self.interpolate(self.state_.gripper_position.x, self.state_.gripper_position.y, position.x,
                                   position.y)
+        start = self.copyPoint(self.state_.gripper_position)
         goal = self.copyPoint(self.state_.gripper_position)
         for point in points:
             testPos = Point(int(floor(point[0] + 0.5)), int(floor(point[1] + 0.5)), self.state_.gripper_position.z)
@@ -520,18 +521,18 @@ class TableSim:
         for object in self.state_.objects:
             if object.lost:
                 continue
+            if object.name == self.state_.object_in_gripper:
+                continue
             if (self.state_.object_in_gripper == 'Drawer' and object.in_drawer) or \
                     (self.state_.object_in_gripper == 'Lid' and object.on_lid):
                 continue
-            if object.position.z == self.state_.gripper_position.z and \
-                self.distanceFromPath(object.position.x, object.position.y, self.state_.gripper_position.x,
-                                      self.state_.gripper_position.y, goal.x, goal.y) < 1.2:
+            if object.position.z == start.z and \
+                self.distanceFromPath(object.position.x, object.position.y, start.x, start.y, goal.x, goal.y) < 1.2:
                 object_goal = self.randomFreePoint(Point(goal.x, goal.y, goal.z), 2, 2)
                 if object_goal:
                     object_points = self.interpolate(object.position.x, object.position.y, object_goal.x, object_goal.y)
                     for point in object_points:
-                        test_pos = Point(int(floor(point[0] + 0.5)), int(floor(point[1] + 0.5)),
-                                         self.state_.gripper_position.z)
+                        test_pos = Point(int(floor(point[0] + 0.5)), int(floor(point[1] + 0.5)), start.z)
                         if self.environmentCollision(testPos):
                             break
                         object.position = self.copyPoint(test_pos)
@@ -1472,6 +1473,9 @@ class TableSim:
 if __name__ == '__main__':
     rospy.init_node('table_sim')
     table_sim = TableSim()
+
+    rospy.sleep(1.0)
+    table_sim.worldUpdate()
 
     # Shutdown based on the ROS signal. Call the callbacks
     no_quit, user_action = None, None
