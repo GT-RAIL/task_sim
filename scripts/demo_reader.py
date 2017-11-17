@@ -49,9 +49,7 @@ class DemoReader:
         for demo_file in self.demo_list:
             print '\nReading ' + demo_file + '...'
             bag = rosbag.Bag(demo_file)
-
             for topic, msg, t in bag.read_messages(topics=['/table_sim/task_log']):
-
                 # Parse messages based on parse modes
                 if 'state-action' in self.parse_modes:
                     if prev_state is None:
@@ -60,7 +58,6 @@ class DemoReader:
                         pair = {'state': prev_state, 'action': DemoReader.naive_action_vector(msg.action)}
                         prev_state = DemoReader.naive_state_vector(msg.state)
                         state_action_pairs.append(pair)
-
             bag.close()
 
         # Write out data files
