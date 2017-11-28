@@ -16,6 +16,8 @@ from task_sim.srv import Execute, ExecuteResponse
 from task_sim.msg import Action, State, Object, Log
 from grasp_state import GraspState
 
+from data_utils import DataUtils
+
 class TableSim:
     ## TODO: create a hidden state for whether an object can be picked up or not (dict with name as key and
     ## TODO: trinary state as value (yes, no, unknown)

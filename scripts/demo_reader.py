@@ -7,10 +7,13 @@ import os
 import yaml
 
 # ROS
+from geometry_msgs.msg import Point
 import rosbag
 import rospkg
 import rospy
 from task_sim.msg import Action
+
+from data_utils import DataUtils
 
 
 class DemoReader:
@@ -55,7 +58,7 @@ class DemoReader:
                     if prev_state is None:
                         prev_state = DemoReader.naive_state_vector(msg.state)
                     elif msg.action.action_type != Action.NOOP:
-                        pair = {'state': prev_state, 'action': DemoReader.naive_action_vector(msg.action)}
+                        pair = {'state': prev_state, 'action': DemoReader.naive_action_vector(msg.state, msg.action)}
                         prev_state = DemoReader.naive_state_vector(msg.state)
                         state_action_pairs.append(pair)
             bag.close()
@@ -86,36 +89,26 @@ class DemoReader:
                        state.drawer_opening, state.box_position.x, state.box_position.y, state.box_position.z,
                        state.lid_position.x, state.lid_position.y, state.lid_position.z, state.gripper_position.x,
                        state.gripper_position.y, state.gripper_position.z, int(state.gripper_open),
-                       DemoReader.name_to_int(state.object_in_gripper)])
+                       DataUtils.name_to_int(state.object_in_gripper)])
         return vector
 
     @staticmethod
-    def naive_action_vector(action):
-        """Convert an action message into a simple feature vector."""
+    def naive_action_vector(state, action):
+        """Convert an action message into a simple feature vector.
+
+        Note that the position will be in the coordinate frame of the target object.
+        If the target object is unspecified, it will be set as the closest object.
+        """
+        frame = action.object
+        target = Point(action.position.x, action.position.y, 0)
+        if action.action_type in [Action.PLACE, Action.MOVE_ARM]:
+            frame = DataUtils.get_closest_frame(state, target)
+            if frame != '':
+                target = DataUtils.change_frame_of_point(target, state, frame)
+
         vector = []
-        vector.extend([action.action_type, DemoReader.name_to_int(action.object), action.position.x, action.position.y])
+        vector.extend([action.action_type, DataUtils.name_to_int(frame), target.x, target.y])
         return vector
-
-    @staticmethod
-    def name_to_int(name):
-        if name.lower() == '':
-            return 0
-        if name.lower() == 'drawer':
-            return 1
-        elif name.lower() == 'lid':
-            return 2
-        elif name.lower() == 'apple':
-            return 3
-        elif name.lower() == 'batteries':
-            return 4
-        elif name.lower() == 'flashlight':
-            return 5
-        elif name.lower() == 'granola':
-            return 6
-        elif name.lower() == 'knife':
-            return 7
-        else:
-            return -1
 
 
 if __name__ == '__main__':
