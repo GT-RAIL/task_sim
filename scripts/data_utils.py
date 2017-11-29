@@ -4,6 +4,9 @@
 import copy
 from math import sin, cos, floor, sqrt
 
+# numpy
+from numpy import mean, std
+
 # ROS
 from geometry_msgs.msg import Point
 
@@ -112,14 +115,14 @@ class DataUtils:
         dst = DataUtils.euclidean_3D(position, Point(state.drawer_position.x, state.drawer_position.y, 0))
         if dst < min_dst:
             min_dst = dst
-            frame = 'Drawer'
+            frame = 'Stack'
 
         # handle
         dst = DataUtils.euclidean_3D(position, Point(state.drawer_position.x + state.drawer_opening + 4,
                                                      state.drawer_position.y, 0))
         if dst < min_dst:
             min_dst = dst
-            frame = 'Handle'
+            frame = 'Drawer'
 
         # box
         dst = DataUtils.euclidean_3D(position, state.box_position)
@@ -177,16 +180,29 @@ class DataUtils:
         DataUtils.rotate_pose(state.gripper_position, rotation)
 
     @staticmethod
+    def normalize_vector(vector):
+        vec = copy.copy(vector)
+        means = mean(vec, axis=0)
+        stds = std(vec, axis=0)
+        for row in vec:
+            for i in range(row.shape[0]):
+                if stds[i] == 0:
+                    row[i] = 0
+                else:
+                    row[i] = (row[i] - means[i]) / stds[i]
+        return vec
+
+    @staticmethod
     def name_to_int(name):
         if name.lower() == '':
             return 0
         elif name.lower() == 'gripper':
             return 1
-        elif name.lower() == 'drawer':
+        elif name.lower() == 'stack':
             return 2
-        elif name.lower() == 'handle':
+        elif name.lower() == 'drawer':
             return 3
-        elif name.lower == 'box':
+        elif name.lower() == 'box':
             return 4
         elif name.lower() == 'lid':
             return 5
