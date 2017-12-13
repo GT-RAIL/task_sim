@@ -2,13 +2,15 @@
 
 # Python
 import copy
-from math import sin, cos, floor, sqrt
+from math import sin, cos, atan2, floor, sqrt, pi
 
 # numpy
 from numpy import mean, std
 
 # ROS
 from geometry_msgs.msg import Point
+
+from task_sim.msg import Action
 
 
 class DataUtils:
@@ -17,14 +19,22 @@ class DataUtils:
     def change_frame(state, frame):
         """Convert a state to a different frame."""
         state_copy = copy.deepcopy(state)
+        if frame == '' or frame.lower() == 'table':
+            return state_copy
         # Special object cases
         translation = Point()
-        if frame.lower() == 'drawer':
+        if frame.lower() == 'stack':
             DataUtils.rotate_state(state_copy, -state_copy.drawer_position.theta)
             translation.x = -state_copy.drawer_position.x
             translation.y = -state_copy.drawer_position.y
             #translation.z = -state.drawer_position.z
             translation.z = 0
+        elif frame.lower() == 'drawer':
+            DataUtils.rotate_state(state_copy, -state_copy.drawer_position.theta)
+            translation.x = -(state_copy.drawer_position.x + state_copy.drawer_opening)
+            translation.y = -state_copy.drawer_position.y
+            #translation.z = -state.drawer_position.z
+            translation.z = -2
         elif frame.lower() == 'handle':  # Note: assumes hardcoded drawer height of 2
             DataUtils.rotate_state(state_copy, -state_copy.drawer_position.theta)
             # Note: translation offset has a hardcoded drawer size
@@ -64,12 +74,19 @@ class DataUtils:
 
     @staticmethod
     def change_frame_of_point(point, state, frame):
+        """Change a point from the global coordinate frame to a specific frame."""
         state_copy = copy.deepcopy(state)
         point_copy = copy.copy(point)
-        if frame.lower() == 'drawer':
+
+        if frame.lower() == 'stack':
             DataUtils.rotate_pose(point_copy, -state_copy.drawer_position.theta)
             DataUtils.rotate_state(state_copy, -state_copy.drawer_position.theta)
             point_copy.x -= state_copy.drawer_position.x
+            point_copy.y -= state_copy.drawer_position.y
+        elif frame.lower() == 'drawer':
+            DataUtils.rotate_pose(point_copy, -state_copy.drawer_position.theta)
+            DataUtils.rotate_state(state_copy, -state_copy.drawer_position.theta)
+            point_copy.x -= state_copy.drawer_position.x + state_copy.drawer_opening
             point_copy.y -= state_copy.drawer_position.y
         elif frame.lower() == 'handle':  # Note: assumes hardcoded drawer height of 2
             DataUtils.rotate_pose(point_copy, -state_copy.drawer_position.theta)
@@ -103,7 +120,7 @@ class DataUtils:
     @staticmethod
     def get_closest_frame(state, position):
         """Get the closest frame to a given position (within a threshold)"""
-        min_dst = 10  # Distance threshold for frame change to happen
+        min_dst = 5  # Distance threshold for frame change to happen
         frame = ''
 
         for object in state.objects:
@@ -111,18 +128,45 @@ class DataUtils:
             if dst < min_dst:
                 min_dst = dst
                 frame = object.name
-        # drawer
+        # drawer stack
         dst = DataUtils.euclidean_3D(position, Point(state.drawer_position.x, state.drawer_position.y, 0))
         if dst < min_dst:
             min_dst = dst
             frame = 'Stack'
 
-        # handle
-        dst = DataUtils.euclidean_3D(position, Point(state.drawer_position.x + state.drawer_opening + 4,
-                                                     state.drawer_position.y, 0))
+        # drawer
+        if state.drawer_position.theta == 0:
+            dst = DataUtils.euclidean_3D(position, Point(state.drawer_position.x + state.drawer_opening,
+                                                         state.drawer_position.y, 0))
+        elif state.drawer_position.theta == 90:
+            dst = DataUtils.euclidean_3D(position, Point(state.drawer_position.x,
+                                                         state.drawer_position.y + state.drawer_opening, 0))
+        elif state.drawer_position.theta == 180:
+            dst = DataUtils.euclidean_3D(position, Point(state.drawer_position.x - state.drawer_opening,
+                                                         state.drawer_position.y, 0))
+        elif state.drawer_position.theta == 270:
+            dst = DataUtils.euclidean_3D(position, Point(state.drawer_position.x,
+                                                         state.drawer_position.y - state.drawer_opening, 0))
         if dst < min_dst:
             min_dst = dst
             frame = 'Drawer'
+
+        # handle
+        if state.drawer_position.theta == 0:
+            dst = DataUtils.euclidean_3D(position, Point(state.drawer_position.x + state.drawer_opening + 4,
+                                                         state.drawer_position.y, 0))
+        elif state.drawer_position.theta == 90:
+            dst = DataUtils.euclidean_3D(position, Point(state.drawer_position.x,
+                                                         state.drawer_position.y + state.drawer_opening + 4, 0))
+        elif state.drawer_position.theta == 180:
+            dst = DataUtils.euclidean_3D(position, Point(state.drawer_position.x - state.drawer_opening - 4,
+                                                         state.drawer_position.y, 0))
+        elif state.drawer_position.theta == 270:
+            dst = DataUtils.euclidean_3D(position, Point(state.drawer_position.x,
+                                                         state.drawer_position.y - state.drawer_opening - 4, 0))
+        if dst < min_dst:
+            min_dst = dst
+            frame = 'Handle'
 
         # box
         dst = DataUtils.euclidean_3D(position, state.box_position)
@@ -143,6 +187,56 @@ class DataUtils:
             frame = 'Gripper'
 
         return frame
+
+    @staticmethod
+    def get_task_frame(state, position):
+        """Get a task-related frame (e.g. drawer, lid, table, etc.) for actions such as place"""
+
+        # drawer
+        if state.drawer_position.theta == 0:
+            if (position.x >= state.drawer_position.x - 3 and position.x <= state.drawer_position.x + 3
+                and position.y >= state.drawer_position.y - 2 and position.y <= state.drawer_position.y + 2):
+                return 'Stack'
+            elif (position.x >= state.drawer_position.x + state.drawer_opening - 3
+                  and position.x <= state.drawer_position.x + state.drawer_opening + 3
+                  and position.y >= state.drawer_position.y - 2 and position.y <= state.drawer_position.y + 2):
+                return 'Drawer'
+        elif state.drawer_position.theta == 90:
+            if (position.x >= state.drawer_position.x - 2 and position.x <= state.drawer_position.x + 2
+                and position.y >= state.drawer_position.y - 3 and position.y <= state.drawer_position.y + 3):
+                return 'Stack'
+            elif (position.x >= state.drawer_position.x - 2 and position.x <= state.drawer_position.x + 2
+                  and position.y >= state.drawer_position.y + state.drawer_opening - 3
+                  and position.y <= state.drawer_position.y + state.drawer_opening + 3):
+                return 'Drawer'
+        elif state.drawer_position.theta == 180:
+            if (position.x >= state.drawer_position.x - 3 and position.x <= state.drawer_position.x + 3
+                and position.y >= state.drawer_position.y - 2 and position.y <= state.drawer_position.y + 2):
+                return 'Stack'
+            elif (position.x >= state.drawer_position.x - state.drawer_opening - 3
+                  and position.x <= state.drawer_position.x - state.drawer_opening + 3
+                  and position.y >= state.drawer_position.y - 2 and position.y <= state.drawer_position.y + 2):
+                return 'Drawer'
+        elif state.drawer_position.theta == 270:
+            if (position.x >= state.drawer_position.x - 2 and position.x <= state.drawer_position.x + 2
+                and position.y >= state.drawer_position.y - 3 and position.y <= state.drawer_position.y + 3):
+                return 'Stack'
+            elif (position.x >= state.drawer_position.x - 2 and position.x <= state.drawer_position.x + 2
+                  and position.y >= state.drawer_position.y - state.drawer_opening - 3
+                  and position.y <= state.drawer_position.y - state.drawer_opening + 3):
+                return 'Drawer'
+
+        # box and lid
+        if (position.x >= state.lid_position.x - 2 and position.x <= state.lid_position.x + 2
+            and position.y >= state.lid_position.y - 2 and position.y <= state.lid_position.y + 2):
+            return 'Lid'
+        elif (position.x >= state.box_position.x - 2 and position.x <= state.box_position.x + 2
+            and position.y >= state.box_position.y - 2 and position.y <= state.box_position.y + 2):
+            return 'Box'
+
+        # default
+        return 'Table'
+
 
     @staticmethod
     def euclidean_3D(p1, p2):
@@ -193,8 +287,39 @@ class DataUtils:
         return vec
 
     @staticmethod
+    def create_combined_action(action_type, object, target, state):
+        label = 100*action_type
+        if action_type in [Action.GRASP, Action.PLACE]:
+            label += DataUtils.name_to_int(object)
+        elif action_type in [Action.MOVE_ARM]:
+            # Note: assumes position is in the global frame
+            x = target.x - state.gripper_position.x
+            y = target.y - state.gripper_position.y
+            angle = atan2(y, x)
+            while angle < 0:
+                angle += 2*pi
+            min_dst = 2*pi
+            dir = 0
+            for i in range(9):
+                dst = abs(i*pi/4 - angle)
+                if dst < min_dst:
+                    min_dst = dst
+                    dir = i
+            dir %= 8
+            label += dir
+        return label
+
+    @staticmethod
+    def get_action_from_label(action_label):
+        return action_label//100
+
+    @staticmethod
+    def get_action_modifier_from_label(action_label):
+        return action_label%100
+
+    @staticmethod
     def name_to_int(name):
-        if name.lower() == '':
+        if name.lower() == '' or name.lower() == 'table':
             return 0
         elif name.lower() == 'gripper':
             return 1
@@ -202,19 +327,21 @@ class DataUtils:
             return 2
         elif name.lower() == 'drawer':
             return 3
-        elif name.lower() == 'box':
+        elif name.lower() == 'handle':
             return 4
-        elif name.lower() == 'lid':
+        elif name.lower() == 'box':
             return 5
-        elif name.lower() == 'apple':
+        elif name.lower() == 'lid':
             return 6
-        elif name.lower() == 'batteries':
+        elif name.lower() == 'apple':
             return 7
-        elif name.lower() == 'flashlight':
+        elif name.lower() == 'batteries':
             return 8
-        elif name.lower() == 'granola':
+        elif name.lower() == 'flashlight':
             return 9
-        elif name.lower() == 'knife':
+        elif name.lower() == 'granola':
             return 10
+        elif name.lower() == 'knife':
+            return 11
         else:
             return -1
