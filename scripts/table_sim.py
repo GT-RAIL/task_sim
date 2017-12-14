@@ -12,20 +12,19 @@ from random import random
 import rospy
 from geometry_msgs.msg import Point
 from numpy import sign
-from task_sim.srv import Execute, ExecuteResponse
+from task_sim.srv import Execute, ExecuteResponse, QueryState
 from task_sim.msg import Action, State, Object, Log
 from grasp_state import GraspState
 
 from data_utils import DataUtils
 
 class TableSim:
-    ## TODO: create a hidden state for whether an object can be picked up or not (dict with name as key and
-    ## TODO: trinary state as value (yes, no, unknown)
 
     def __init__(self):
         self.error = ''
 
         self.action_service_ = rospy.Service('~execute_action', Execute, self.execute)
+        self.state_service_ = rospy.Service('~query_state', QueryState, self.query_state)
         self.log_pub_ = rospy.Publisher('~task_log', Log, queue_size=1)
 
         self.quiet_mode = rospy.get_param('~quiet_mode', False)
@@ -33,6 +32,10 @@ class TableSim:
 
         self.init_simulation(level = 1)
         #self.worldUpdate()
+
+
+    def query_state(self, req):
+        return self.state_
 
 
     def init_simulation(self, rand_seed = None, level = 0):
@@ -1481,7 +1484,9 @@ if __name__ == '__main__':
 
     # Shutdown based on the ROS signal. Call the callbacks
     no_quit, user_action = None, None
+    loop_rate = rospy.Rate(30)
     while not rospy.is_shutdown():
         if table_sim.terminal_input:
             if not table_sim.getInput():
                 break
+        loop_rate.sleep()

@@ -71,7 +71,7 @@ class DemoReader:
                     if prev_state_msg is None:
                         prev_state_msg = msg.state
                     if prev_state is None:
-                        prev_state = DemoReader.naive_state_vector(msg.state, self.state_positions,
+                        prev_state = DataUtils.naive_state_vector(msg.state, self.state_positions,
                                                                    self.state_semantics)
 
                     elif msg.action.action_type != Action.NOOP:
@@ -92,7 +92,7 @@ class DemoReader:
 
                         pair = {'state': prev_state, 'action': action_vector}
                         prev_state_msg = msg.state
-                        prev_state = DemoReader.naive_state_vector(msg.state, self.state_positions,
+                        prev_state = DataUtils.naive_state_vector(msg.state, self.state_positions,
                                                                    self.state_semantics)
 
                         state_action_pairs.append(pair)
@@ -112,24 +112,6 @@ class DemoReader:
             f = open(fullpath, 'w')
         yaml.dump(data, f)
         f.close()
-
-    @staticmethod
-    def naive_state_vector(state, state_positions=True, state_semantics=True):
-        """Convert a state message into a simple feature vector."""
-        vector = []
-        for obj in state.objects:
-            if state_positions:
-                vector.extend([obj.position.x, obj.position.y, obj.position.z, int(obj.occluded), int(obj.lost)])
-            if state_semantics:
-                vector.extend([int(obj.in_drawer), int(obj.in_box), int(obj.on_lid), int(obj.in_gripper)])
-        if state_positions:
-            vector.extend([state.drawer_position.x, state.drawer_position.y, state.drawer_position.theta,
-                           state.drawer_opening, state.box_position.x, state.box_position.y, state.box_position.z,
-                           state.lid_position.x, state.lid_position.y, state.lid_position.z, state.gripper_position.x,
-                           state.gripper_position.y, state.gripper_position.z, int(state.gripper_open)])
-        if state_semantics:
-            vector.extend([DataUtils.name_to_int(state.object_in_gripper)])
-        return vector
 
     @staticmethod
     def naive_action_vector(state, action, transform_frame=False, combined_actions=False):

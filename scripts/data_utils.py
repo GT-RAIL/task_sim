@@ -118,6 +118,52 @@ class DataUtils:
         return point_copy
 
     @staticmethod
+    def get_point_in_global_frame(state, point, frame):
+        """Move a point from a local frame to the table coordinate system"""
+        state_copy = copy.deepcopy(state)
+        point_copy = copy.copy(point)
+
+        if frame.lower() == 'stack':
+            DataUtils.rotate_pose(point_copy, state_copy.drawer_position.theta)
+            #DataUtils.rotate_state(state_copy, state_copy.drawer_position.theta)
+            point_copy.x += state_copy.drawer_position.x
+            point_copy.y += state_copy.drawer_position.y
+        elif frame.lower() == 'drawer':
+            DataUtils.rotate_pose(point_copy, state_copy.drawer_position.theta)
+            #DataUtils.rotate_state(state_copy, state_copy.drawer_position.theta)
+            point_copy.x += state_copy.drawer_position.x + cos(state.drawer_position.theta*pi/180)*state_copy.drawer_opening
+            point_copy.y += state_copy.drawer_position.y + sin(state.drawer_position.theta*pi/180)*state_copy.drawer_opening
+        elif frame.lower() == 'handle':  # Note: assumes hardcoded drawer height of 2
+            DataUtils.rotate_pose(point_copy, state_copy.drawer_position.theta)
+            #DataUtils.rotate_state(state_copy, state_copy.drawer_position.theta)
+            # Note: translation offset has a hardcoded drawer size
+            point_copy.x += state_copy.drawer_position.x + cos(state.drawer_position.theta*pi/180)*(state_copy.drawer_opening + 4)
+            point_copy.y += state_copy.drawer_position.y + sin(state.drawer_position.theta*pi/180)*(state_copy.drawer_opening + 4)
+            point_copy.z += 2
+            pass
+        elif frame.lower() == 'box':
+            point_copy.x += state_copy.box_position.x
+            point_copy.y += state_copy.box_position.y
+            point_copy.z += state_copy.box_position.z
+        elif frame.lower() == 'lid':
+            point_copy.x += state_copy.lid_position.x
+            point_copy.y += state_copy.lid_position.y
+            point_copy.z += state_copy.lid_position.z
+        elif frame.lower() == 'gripper':
+            point_copy.x += state_copy.gripper_position.x
+            point_copy.y += state_copy.gripper_position.y
+            point_copy.z += state_copy.gripper_position.z
+        else:  # General object case
+            for object in state_copy.objects:
+                if frame.lower() == object.name.lower():
+                    point_copy.x += object.position.x
+                    point_copy.y += object.position.y
+                    point_copy.z += object.position.z
+                    break
+
+        return point_copy
+
+    @staticmethod
     def get_closest_frame(state, position):
         """Get the closest frame to a given position (within a threshold)"""
         min_dst = 5  # Distance threshold for frame change to happen
@@ -287,6 +333,24 @@ class DataUtils:
         return vec
 
     @staticmethod
+    def naive_state_vector(state, state_positions=True, state_semantics=True):
+        """Convert a state message into a simple feature vector."""
+        vector = []
+        for obj in state.objects:
+            if state_positions:
+                vector.extend([obj.position.x, obj.position.y, obj.position.z, int(obj.occluded), int(obj.lost)])
+            if state_semantics:
+                vector.extend([int(obj.in_drawer), int(obj.in_box), int(obj.on_lid), int(obj.in_gripper)])
+        if state_positions:
+            vector.extend([state.drawer_position.x, state.drawer_position.y, state.drawer_position.theta,
+                           state.drawer_opening, state.box_position.x, state.box_position.y, state.box_position.z,
+                           state.lid_position.x, state.lid_position.y, state.lid_position.z, state.gripper_position.x,
+                           state.gripper_position.y, state.gripper_position.z, int(state.gripper_open)])
+        if state_semantics:
+            vector.extend([DataUtils.name_to_int(state.object_in_gripper)])
+        return vector
+
+    @staticmethod
     def create_combined_action(action_type, object, target, state):
         label = 100*action_type
         if action_type in [Action.GRASP, Action.PLACE]:
@@ -345,3 +409,33 @@ class DataUtils:
             return 11
         else:
             return -1
+
+    @staticmethod
+    def int_to_name(n):
+        if n == 0:
+            return ''
+        elif n == 1:
+            return 'Gripper'
+        elif n == 2:
+            return 'Stack'
+        elif n == 3:
+            return 'Drawer'
+        elif n == 4:
+            return 'Handle'
+        elif n == 5:
+            return 'Box'
+        elif n == 6:
+            return 'Lid'
+        elif n == 7:
+            return 'Apple'
+        elif n == 8:
+            return 'Batteries'
+        elif n == 9:
+            return 'Flashlight'
+        elif n == 10:
+            return 'Granola'
+        elif n == 11:
+            return 'Knife'
+        else:
+            return ''
+
