@@ -317,6 +317,9 @@ class TableSim:
 
     def execute(self, req):
         """Handle execution of all robot actions as a ROS service routine"""
+        req.action.position.x = int(req.action.position.x)
+        req.action.position.y = int(req.action.position.y)
+        req.action.position.z = int(req.action.position.z)
         self.worldUpdate(req.action)
         return ExecuteResponse(state=self.state_)
 
@@ -667,7 +670,6 @@ class TableSim:
 
     def raiseArm(self):
         """Move the arm up one z-level"""
-        print('raising')
         if self.state_.object_in_gripper == 'Drawer':
             self.error = 'Cannot raise arm while grasping drawer'
             return
@@ -682,7 +684,6 @@ class TableSim:
 
     def lowerArm(self):
         """Move the arm down one z-level"""
-        print('lowering')
         if self.state_.object_in_gripper == 'Drawer':
             self.error = 'Cannot lower arm while grasping drawer'
             return

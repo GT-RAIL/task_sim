@@ -2,6 +2,7 @@
 
 # Python
 from math import floor
+from random import random
 
 # ROS
 from task_sim.msg import Action
@@ -20,6 +21,8 @@ class ClassifierNode:
 
     def __init__(self):
         """Initialize action classification pipeline as a service in a ROS node."""
+        self.stochastic = rospy.get_param('~stochastic', False)
+
         self.task = rospy.get_param('~task', 'task1')
 
         classifier_path = self.cleanup_path(rospy.get_param('~classifier_name',
@@ -60,7 +63,18 @@ class ClassifierNode:
         features = DataUtils.naive_state_vector(req.state, True, True)
 
         # Classify action
-        action_label = self.action_model.predict(np.asarray(features).reshape(1, -1))
+        if self.stochastic:
+            probs = self.action_model.predict_proba(np.asarray(features).reshape(1, -1)).flatten().tolist()
+            selection = random()
+            cprob = 0
+            action_label = 0
+            for i in range(1, len(probs)):
+                cprob += probs[i]
+                if cprob >= selection:
+                    action_label = self.action_model.classes_[i]
+                    break
+        else:
+            action_label = self.action_model.predict(np.asarray(features).reshape(1, -1))
         action_type = DataUtils.get_action_from_label(action_label)
         action_modifier = DataUtils.get_action_modifier_from_label(action_label)
         action.action_type = action_type
@@ -73,7 +87,6 @@ class ClassifierNode:
         # Regress parameters where necessary
         if action_type in [Action.PLACE]:
             target = self.place_model.predict(np.asarray(features).reshape(1, -1))
-            print str(target) + ' in frame ' + DataUtils.int_to_name(action_modifier)
             # Convert coordinates to global frame
             action.position = DataUtils.get_point_in_global_frame(req.state, Point(int(floor(target[0][0] + .5)), int(floor(target[0][1] + .5)), 0),
                                                 DataUtils.int_to_name(action_modifier))
