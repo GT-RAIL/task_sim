@@ -438,4 +438,3 @@ class DataUtils:
             return 'Knife'
         else:
             return ''
-

@@ -53,6 +53,7 @@ add_message_files(
   Action.msg
   Object.msg
   State.msg
+  Status.msg
   Log.msg
 )
 
@@ -61,6 +62,8 @@ add_service_files(
   FILES
   Execute.srv
   QueryState.srv
+  QueryStatus.srv
+  RequestIntervention.srv
   SelectAction.srv
 )
 

@@ -12,7 +12,7 @@ from random import random
 import rospy
 from geometry_msgs.msg import Point
 from numpy import sign
-from task_sim.srv import Execute, ExecuteResponse, QueryState
+from task_sim.srv import Execute, ExecuteResponse, QueryState, RequestIntervention, RequestInterventionResponse
 from task_sim.msg import Action, State, Object, Log
 from grasp_state import GraspState
 
@@ -25,6 +25,7 @@ class TableSim:
 
         self.action_service_ = rospy.Service('~execute_action', Execute, self.execute)
         self.state_service_ = rospy.Service('~query_state', QueryState, self.query_state)
+        self.intervention_service_ = rospy.Service('~request_intervention', RequestIntervention, self.request_intervention)
         self.log_pub_ = rospy.Publisher('~task_log', Log, queue_size=1)
 
         self.quiet_mode = rospy.get_param('~quiet_mode', False)
@@ -36,6 +37,25 @@ class TableSim:
 
     def query_state(self, req):
         return self.state_
+
+
+    def request_intervention(self, req):
+        res = RequestInterventionResponse()
+
+        if self.terminal_input:
+            print 'Interventions are not supported in terminal input mode.'
+            return res
+
+        loop_rate = rospy.Rate(30)
+
+        while True:
+            action = self.getInput()
+            if action is not None:
+                res.actions.append(action)
+                loop_rate.sleep()
+            else:
+                break
+        return res
 
 
     def init_simulation(self, rand_seed = None, level = 0):
@@ -394,6 +414,10 @@ class TableSim:
         for z in range(0, 2):
             for x in range(-2, 3):
                 for y in range(-2, 3):
+                    if z == 0:  # Special case: ignore collision at gripper level if lid is in gripper
+                        if self.state_.object_in_gripper == 'Lid':
+                            free += 1
+                            continue
                     temp_pos = self.copyPoint(self.state_.gripper_position)
                     temp_pos.x += x
                     temp_pos.y += y
@@ -403,6 +427,11 @@ class TableSim:
                     else:
                         free += 1
         chance = max(chance - 1.5*float(blocked)/(blocked + free), 0)
+        # Special case: harder motion planning when holding objects of different sizes
+        if self.state_.object_in_gripper == 'Lid':
+            chance *= 0.5
+        elif self.state_.object_in_gripper in ['Apple', 'Batteries', 'Flashlight', 'Granola', 'Knife']:
+            chance *= 0.8
         return random() < chance
 
 
@@ -495,7 +524,16 @@ class TableSim:
             testPos = Point(int(floor(point[0] + 0.5)), int(floor(point[1] + 0.5)), self.state_.gripper_position.z)
             # handle special cases
             if self.state_.object_in_gripper == 'Lid':
-                if self.environmentWithoutLidCollision(testPos):
+                # Test each corner for collision as well
+                corner1 = Point(testPos.x + self.boxRadius, testPos.y + self.boxRadius, testPos.z)
+                corner2 = Point(testPos.x + self.boxRadius, testPos.y - self.boxRadius, testPos.z)
+                corner3 = Point(testPos.x - self.boxRadius, testPos.y + self.boxRadius, testPos.z)
+                corner4 = Point(testPos.x - self.boxRadius, testPos.y - self.boxRadius, testPos.z)
+                if self.environmentWithoutLidCollision(testPos) \
+                        or self.environmentWithoutLidCollision(corner1) \
+                        or self.environmentWithoutLidCollision(corner2) \
+                        or self.environmentWithoutLidCollision(corner3) \
+                        or self.environmentWithoutLidCollision(corner4):
                     break
                 if not self.reachable(testPos):
                     break
@@ -1419,40 +1457,42 @@ class TableSim:
             if len(action) == 0:
                 self.error = 'Invalid command. Type ? for a command list.'
                 action_msg.action_type = Action.NOOP
-            elif action[0] == 'grasp' or action[0] == 'g':
+            elif action[0].lower() == 'grasp' or action[0].lower() == 'g':
                 if len(action) >= 2:
                     action_msg.action_type = Action.GRASP
                     action_msg.object = action[1]
                 else:
                     self.error = 'Grasp takes parameter: object'
                     action_msg.action_type = Action.NOOP
-            elif action[0] == 'place' or action[0] == 'p':
+            elif action[0].lower() == 'place' or action[0].lower() == 'p':
                 if len(action) >= 3:
                     action_msg.action_type = Action.PLACE
                     action_msg.position = Point(int(action[1]), int(action[2]), 0)
                 else:
                     self.error = 'Place takes parameters: x y'
                     action_msg.action_type = Action.NOOP
-            elif action[0] == 'open' or action[0] == 'o':
+            elif action[0].lower() == 'open' or action[0].lower() == 'o':
                 action_msg.action_type = Action.OPEN_GRIPPER
-            elif action[0] == 'close' or action[0] == 'c':
+            elif action[0].lower() == 'close' or action[0].lower() == 'c':
                 action_msg.action_type = Action.CLOSE_GRIPPER
-            elif action[0] == 'home' or action[0] == 'h':
+            elif action[0].lower() == 'home' or action[0].lower() == 'h':
                 action_msg.action_type = Action.RESET_ARM
-            elif action[0] == 'raise' or action[0] == 'r':
+            elif action[0].lower() == 'raise' or action[0].lower() == 'r':
                 action_msg.action_type = Action.RAISE_ARM
-            elif action[0] == 'lower' or action[0] == 'l':
+            elif action[0].lower() == 'lower' or action[0].lower() == 'l':
                 action_msg.action_type = Action.LOWER_ARM
-            elif action[0] == 'move' or action[0] == 'm':
+            elif action[0].lower() == 'move' or action[0].lower() == 'm':
                 if len(action) >= 3:
                     action_msg.action_type = Action.MOVE_ARM
                     action_msg.position = Point(int(action[1]), int(action[2]), 0)
                 else:
                     self.error = 'Move takes parameters: x y'
                     action_msg.action_type = Action.NOOP
-            elif action[0] == 'quit' or action[0] == 'q':
-                return False
-            elif action[0] == '?' or action[0] == 'help':
+            elif action[0].lower() == 'finish' or action[0].lower() == 'f':
+                return None
+            elif action[0].lower() == 'quit' or action[0].lower() == 'q':
+                return None
+            elif action[0] == '?' or action[0].lower() == 'help' or action[0].lower() == 'h':
                 cmd_template = "{:1}\t{:10}\t{:69}"
                 print("Valid commands:")
                 print(cmd_template.format('o', 'open', 'Open the gripper'))
@@ -1463,6 +1503,7 @@ class TableSim:
                 print(cmd_template.format('r', 'raise', 'Raise arm'))
                 print(cmd_template.format('l', 'lower', 'Lower arm'))
                 print(cmd_template.format('m', 'move', 'Move to location. param: x y'))
+                print(cmd_template.format('f', 'finish', 'Finish intervention (for autonomous execution mode)'))
                 print(cmd_template.format('q', 'quit', 'Quit simulator'))
                 print(cmd_template.format('?', 'help', 'Show list of actions'))
                 action_msg.action_type = Action.NOOP
@@ -1471,9 +1512,9 @@ class TableSim:
                 action_msg.action_type = Action.NOOP
 
             self.worldUpdate(action_msg)
-            return True
+            return action_msg
         except (KeyboardInterrupt, EOFError) as e:
-            return False
+            return None
 
 
 if __name__ == '__main__':
@@ -1488,6 +1529,6 @@ if __name__ == '__main__':
     loop_rate = rospy.Rate(30)
     while not rospy.is_shutdown():
         if table_sim.terminal_input:
-            if not table_sim.getInput():
+            if table_sim.getInput() is None:
                 break
         loop_rate.sleep()

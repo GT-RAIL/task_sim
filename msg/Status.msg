@@ -1,0 +1,6 @@
+uint8 IN_PROGRESS=0
+uint8 COMPLETED=1
+uint8 FAILED=2
+uint8 INTERVENTION_REQUESTED=3
+
+uint8 status_code
