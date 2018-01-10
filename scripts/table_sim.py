@@ -30,6 +30,7 @@ class TableSim:
 
         self.quiet_mode = rospy.get_param('~quiet_mode', False)
         self.terminal_input = rospy.get_param('~terminal_input', True)
+        self.history_buffer = rospy.get_param('~history_buffer', 10)
 
         self.init_simulation(level = 1)
         #self.worldUpdate()
@@ -71,6 +72,11 @@ class TableSim:
         seed(rand_seed)
 
         self.state_ = State()
+
+        # Empty action history
+        for i in range(self.history_buffer):
+            self.state_.action_history.append(Action.NOOP)
+            self.state_.result_history.append(True)
 
         # Table properties
         self.tableWidth = 40
@@ -297,23 +303,24 @@ class TableSim:
 
     def worldUpdate(self, action=None):
         # Perform action
+        result = False
         if action:
             if action.action_type == Action.GRASP:
-                self.grasp(action.object)
+                result = self.grasp(action.object)
             elif action.action_type == Action.PLACE:
-                self.place(action.position)
+                result = self.place(action.position)
             elif action.action_type == Action.OPEN_GRIPPER:
-                self.open()
+                result = self.open()
             elif action.action_type == Action.CLOSE_GRIPPER:
-                self.close()
+                result = self.close()
             elif action.action_type == Action.MOVE_ARM:
-                self.move(action.position)
+                result = self.move(action.position)
             elif action.action_type == Action.RAISE_ARM:
-                self.raiseArm()
+                result = self.raiseArm()
             elif action.action_type == Action.LOWER_ARM:
-                self.lowerArm()
+                result = self.lowerArm()
             elif action.action_type == Action.RESET_ARM:
-                self.resetArm()
+                result = self.resetArm()
 
         # Additional state updates
         self.gravity()
@@ -325,6 +332,14 @@ class TableSim:
             if not object.lost:
                 self.grasp_states[object.name].updateGraspRate(self.getNeighborCount(object.position),
                                                                self.copyPoint(object.position))
+
+        # Update state history
+        if action is not None and action.action_type != Action.NOOP and self.history_buffer > 0:
+            self.state_.action_history.append(action.action_type)
+            self.state_.result_history.append(result)
+            self.state_.action_history = self.state_.action_history[-self.history_buffer:]
+            self.state_.result_history = self.state_.result_history[-self.history_buffer:]
+
 
         # Create a log message and send it along
         log_msg = Log(
@@ -349,6 +364,8 @@ class TableSim:
 
         Keyword arguments:
         object - name of the object to grasp
+
+        Return: success/failure of action
         """
         if not self.state_.gripper_open:
             self.open()
@@ -357,46 +374,48 @@ class TableSim:
         if object == 'lid' or object == 'Lid':
             if not self.motionPlanChance(self.state_.lid_position):
                 self.error = 'Motion planner failed.'
-                return
+                return False
             if self.getObjectAt(self.state_.lid_position):
                 self.error = 'Lid is occluded and cannot be grasped.'
-                return
+                return False
             self.state_.gripper_position = self.copyPoint(self.state_.lid_position)
             self.state_.gripper_open = False
             self.state_.object_in_gripper = 'Lid'
-            return
+            return True
         elif object == 'drawer' or object == 'Drawer':
             if not self.motionPlanChance(self.getDrawerHandle()):
                 self.error = 'Motion planner failed.'
-                return
+                return False
             self.state_.gripper_position = self.copyPoint(self.getDrawerHandle())
             self.state_.gripper_open = False
             self.state_.object_in_gripper = 'Drawer'
-            return
+            return True
 
         target = self.getObject(object)
         if target:
             if target.lost:
                 self.error = target.name + ' is lost.'
-                return
+                return False
 
             if target.occluded:
                 self.error = target.name + ' is occluded and cannot be grasped.'
-                return
+                return False
 
             if not self.grasp_states[target.name].graspable:
                 self.error = 'Could not find a grasp for ' + target.name + '.'
-                return
+                return False
 
             if not self.motionPlanChance(target.position):
                 self.error = 'Motion planner failed.'
-                return
+                return False
 
             self.state_.gripper_position = self.copyPoint(target.position)
             self.state_.gripper_open = False
             self.state_.object_in_gripper = object
+            return True
         else:
             self.error = 'Object ' + object + ' does not exist.'
+            return False
 
 
     def motionPlanChance(self, target):
@@ -448,7 +467,7 @@ class TableSim:
         # Special case: drawer
         if self.state_.object_in_gripper == 'Drawer':
             self.error = 'Cannot execute place while grasping drawer.'
-            return
+            return False
         height = 4
         tempPos = Point(position.x, position.y, 0)
         for i in range(3,-1,-1):
@@ -469,15 +488,16 @@ class TableSim:
                     break
             height -= 1
         if height == 4:  # place failed
-            return
+            return False
 
         tempPos.z = height
 
         if not self.motionPlanChance(tempPos):
             self.error = 'Motion planner failed.'
-            return
+            return False
         self.moveGripper(tempPos)
         self.open()
+        return True
 
 
     def open(self):
@@ -493,6 +513,7 @@ class TableSim:
                 object = self.getObject(self.state_.object_in_gripper)
                 self.state_.object_in_gripper = ''
                 self.gravity(object)
+        return True
 
 
     def close(self):
@@ -508,6 +529,7 @@ class TableSim:
                     self.state_.object_in_gripper = 'Lid'
                 elif self.state_.gripper_position == self.getDrawerHandle():
                     self.state_.object_in_gripper = 'Drawer'
+        return True
 
 
     def move(self, position):
@@ -584,6 +606,7 @@ class TableSim:
                         object.position = self.copyPoint(test_pos)
                         if self.gravity(object):
                             break
+        return goal != start
 
     def openingDrawer(self, position):
         if self.state_.drawer_position.theta == 0:
@@ -710,45 +733,49 @@ class TableSim:
         """Move the arm up one z-level"""
         if self.state_.object_in_gripper == 'Drawer':
             self.error = 'Cannot raise arm while grasping drawer'
-            return
+            return False
         if self.state_.gripper_position.z < 4:
             checkPos = Point(self.state_.gripper_position.x,
                              self.state_.gripper_position.y,
                              self.state_.gripper_position.z + 1)
             if any(self.drawerCollision(checkPos)):
-                return
+                return False
             self.moveGripper(checkPos)
+            return True
+        return False
 
 
     def lowerArm(self):
         """Move the arm down one z-level"""
         if self.state_.object_in_gripper == 'Drawer':
             self.error = 'Cannot lower arm while grasping drawer'
-            return
+            return False
         if self.state_.gripper_position.z == 0:
-            return
+            return False
 
         checkPos = Point(self.state_.gripper_position.x, self.state_.gripper_position.y,
                             self.state_.gripper_position.z - 1)
         if self.boxCollision(checkPos) or any(self.drawerCollision(checkPos)):
-            return
+            return False
 
         self.moveGripper(Point(self.state_.gripper_position.x,
                                    self.state_.gripper_position.y,
                                    self.state_.gripper_position.z - 1))
+        return True
 
 
     def resetArm(self):
         """Move the arm to the initial position"""
         if self.state_.object_in_gripper == 'Drawer':
             self.error = 'Cannot reset arm while grasping drawer'
-            return
+            return False
 
         resetPosition = Point(8, 1, 2)
         if not self.motionPlanChance(resetPosition):
             self.error = 'Motion planner failed.'
-            return
+            return False
         self.moveGripper(resetPosition)
+        return True
 
 
     def gravity(self, object = None):

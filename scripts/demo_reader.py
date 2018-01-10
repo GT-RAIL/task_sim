@@ -30,6 +30,7 @@ class DemoReader:
         self.robot_centric_frames = rospy.get_param('~robot_centric_frames', 'False')
         self.robot_centric_state = rospy.get_param('~robot_centric_state', 'False')
         self.combined_actions = rospy.get_param('~combined_actions', 'False')
+        self.history_buffer = rospy.get_param('~history_buffer', 0)
 
         if 'all' in self.parse_modes:
             self.parse_modes = supported_parse_modes
@@ -72,7 +73,8 @@ class DemoReader:
                         prev_state_msg = msg.state
                     if prev_state is None:
                         prev_state = DataUtils.naive_state_vector(msg.state, self.state_positions,
-                                                                   self.state_semantics)
+                                                                  self.state_semantics,
+                                                                  history_buffer=self.history_buffer)
 
                     elif msg.action.action_type != Action.NOOP:
                         if self.action_centric_frames:
@@ -90,12 +92,15 @@ class DemoReader:
                         else:
                             action_vector = DemoReader.naive_action_vector(prev_state_msg, msg.action, self.transform_frame, self.combined_actions)
 
-                        pair = {'state': prev_state, 'action': action_vector}
-                        prev_state_msg = msg.state
-                        prev_state = DataUtils.naive_state_vector(msg.state, self.state_positions,
-                                                                   self.state_semantics)
+                        # append action history
 
+                        pair = {'state': prev_state, 'action': action_vector}
                         state_action_pairs.append(pair)
+
+                        # update stored data for next iteration
+                        prev_state_msg = msg.state
+                        prev_state = DataUtils.naive_state_vector(msg.state, self.state_positions, self.state_semantics,
+                                                                  history_buffer=self.history_buffer)
             bag.close()
 
         # Write out data files

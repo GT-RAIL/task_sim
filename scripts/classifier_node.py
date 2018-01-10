@@ -22,10 +22,9 @@ class ClassifierNode:
 
     def __init__(self):
         """Initialize action classification pipeline as a service in a ROS node."""
+        self.history_buffer = rospy.get_param('~history_buffer', 0)
         self.stochastic = rospy.get_param('~stochastic', False)
-
         self.semantic_place = rospy.get_param('~semantic_place', False)
-
         self.task = rospy.get_param('~task', 'task1')
 
         classifier_path = self.cleanup_path(rospy.get_param('~classifier_name',
@@ -66,7 +65,7 @@ class ClassifierNode:
         action = Action()
 
         # Convert state to feature vector
-        features = DataUtils.naive_state_vector(req.state, True, True)
+        features = DataUtils.naive_state_vector(req.state, True, True, history_buffer=self.history_buffer)
 
         # Classify action
         if self.stochastic:
@@ -292,6 +291,7 @@ class ClassifierNode:
                 repeat += 1
         if repeat >= 5:
             status.status_code = Status.INTERVENTION_REQUESTED
+            # TODO: Clear history for future loop detection?
 
         return status
 

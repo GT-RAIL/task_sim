@@ -333,7 +333,7 @@ class DataUtils:
         return vec
 
     @staticmethod
-    def naive_state_vector(state, state_positions=True, state_semantics=True):
+    def naive_state_vector(state, state_positions=True, state_semantics=True, history_buffer=0):
         """Convert a state message into a simple feature vector."""
         vector = []
         for obj in state.objects:
@@ -348,6 +348,14 @@ class DataUtils:
                            state.gripper_position.y, state.gripper_position.z, int(state.gripper_open)])
         if state_semantics:
             vector.extend([DataUtils.name_to_int(state.object_in_gripper)])
+
+        for i in range(history_buffer):
+            vector.append(state.action_history[len(state.action_history) - i - 1])
+            if state.result_history[len(state.result_history) - i - 1]:
+                vector.append(1)
+            else:
+                vector.append(0)
+
         return vector
 
     @staticmethod

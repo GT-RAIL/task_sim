@@ -6,3 +6,5 @@ geometry_msgs/Point lid_position
 geometry_msgs/Point gripper_position
 bool gripper_open
 string object_in_gripper
+int16[] action_history
+bool[] result_history
