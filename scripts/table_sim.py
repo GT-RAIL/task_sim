@@ -14,6 +14,7 @@ from geometry_msgs.msg import Point
 from numpy import sign
 from task_sim.srv import Execute, ExecuteResponse, QueryState, RequestIntervention, RequestInterventionResponse
 from task_sim.msg import Action, State, Object, Log
+from std_srvs.srv import Empty, EmptyResponse
 from grasp_state import GraspState
 
 from data_utils import DataUtils
@@ -26,19 +27,28 @@ class TableSim:
         self.action_service_ = rospy.Service('~execute_action', Execute, self.execute)
         self.state_service_ = rospy.Service('~query_state', QueryState, self.query_state)
         self.intervention_service_ = rospy.Service('~request_intervention', RequestIntervention, self.request_intervention)
+        self.reset_service_ = rospy.Service('~reset_simulation', Empty, self.reset_sim)
         self.log_pub_ = rospy.Publisher('~task_log', Log, queue_size=1)
 
         self.quiet_mode = rospy.get_param('~quiet_mode', False)
         self.terminal_input = rospy.get_param('~terminal_input', True)
         self.history_buffer = rospy.get_param('~history_buffer', 10)
+        self.sim_seed = rospy.get_param('~seed', None)
 
-        self.init_simulation(level = 1)
+        if self.sim_seed == -1:
+            self.sim_seed = None
+
+        self.init_simulation(rand_seed = self.sim_seed, level = 1)
         #self.worldUpdate()
 
 
     def query_state(self, req):
         return self.state_
 
+    def reset_sim(self, req):
+        self.init_simulation(self.sim_seed, level=1)
+        self.worldUpdate()
+        return EmptyResponse()
 
     def request_intervention(self, req):
         res = RequestInterventionResponse()
