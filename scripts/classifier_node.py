@@ -26,13 +26,15 @@ class ClassifierNode:
         self.stochastic = rospy.get_param('~stochastic', False)
         self.semantic_place = rospy.get_param('~semantic_place', False)
         self.task = rospy.get_param('~task', 'task1')
+        self.state_positions = rospy.get_param('~state_positions', 'True')
+        self.state_semantics = rospy.get_param('~state_semantics', 'True')
 
         classifier_path = self.cleanup_path(rospy.get_param('~classifier_name',
-                                                            'random_forest_action_global_p+s+h0_expert_combined.pkl'))
+                                                            'random_forest_action_global_p+h3_expert_combined.pkl'))
         place_regressor_path = self.cleanup_path(rospy.get_param('~place_regressor_name',
-                                                                 'random_forest_place_target_global_p+s+h0_expert_combined.pkl'))
+                                                                 'random_forest_place_target_global_p+h3_expert_combined.pkl'))
         move_regressor_path = self.cleanup_path(rospy.get_param('~move_regressor_name',
-                                                                'random_forest_move_target_global_p+s+h0_expert_combined.pkl'))
+                                                                'random_forest_move_target_global_p+h3_expert_combined.pkl'))
 
         print classifier_path
         self.action_model = joblib.load(classifier_path)
@@ -65,7 +67,7 @@ class ClassifierNode:
         action = Action()
 
         # Convert state to feature vector
-        features = DataUtils.naive_state_vector(req.state, True, True, history_buffer=self.history_buffer)
+        features = DataUtils.naive_state_vector(req.state, self.state_positions, self.state_semantics, history_buffer=self.history_buffer)
 
         # Classify action
         if self.stochastic:
