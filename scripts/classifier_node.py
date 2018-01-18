@@ -94,7 +94,6 @@ class ClassifierNode:
         # Regress parameters where necessary
         if action_type in [Action.PLACE]:
             if self.semantic_place:
-                print 'Placing in ' + DataUtils.int_to_name(action_modifier)
                 if DataUtils.int_to_name(action_modifier) == 'Stack':
                     # Pick a random free point on top of the stack of drawers
                     points = []
@@ -230,8 +229,6 @@ class ClassifierNode:
                 # Convert coordinates to global frame
                 action.position = DataUtils.get_point_in_global_frame(req.state,
                     Point(int(floor(target[0][0] + .5)), int(floor(target[0][1] + .5)), 0), DataUtils.int_to_name(action_modifier))
-
-            print 'Place position: ' + str(action.position)
 
         if action_type in [Action.MOVE_ARM]:
             target = self.move_model.predict(np.asarray(features).reshape(1, -1))

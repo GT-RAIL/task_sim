@@ -47,7 +47,6 @@ class RandomAction:
                     action_modifier = 0
                 elif action_modifier == 4:
                     action_modifier = 6
-                print 'Placing in ' + DataUtils.int_to_name(action_modifier)
                 if DataUtils.int_to_name(action_modifier) == 'Stack':
                     # Pick a random free point on top of the stack of drawers
                     points = []
@@ -182,8 +181,6 @@ class RandomAction:
             action.position.x = randint(0, 40)
             action.position.y = randint(0, 15)
             action.position.z = 0
-
-        print str(action)
 
         return action
 

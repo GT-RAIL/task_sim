@@ -22,6 +22,9 @@ class Executor:
         if self.trials > 1:
             self.interventions = []
             self.action_counts = []
+            self.temp_action_counts = [0, 0, 0, 0, 0, 0, 0, 0]
+            self.successful_action_counts = []
+            self.failed_action_counts = []
             for i in range(self.trials):
                 self.interventions.append(0)
                 self.action_counts.append([0, 0, 0, 0, 0, 0, 0, 0])
@@ -49,6 +52,7 @@ class Executor:
             self.action_counts[action.action_type] += 1
         else:
             self.action_counts[self.trial][action.action_type] += 1
+            self.temp_action_counts[action.action_type] += 1
         self.step_count += 1
         result_state = self.execute(action)
         status_code = self.query_status(result_state.state).status.status_code
@@ -66,6 +70,7 @@ class Executor:
                             self.action_counts[action.action_type] += 1
                         else:
                             self.action_counts[self.trial][action.action_type] += 1
+                            self.temp_action_counts[action.action_type] += 1
                         self.step_count += 1
             else:
                 status_code = Status.IN_PROGRESS
@@ -73,6 +78,7 @@ class Executor:
         return status_code
 
     def init_trial(self):
+        self.temp_action_counts = [0, 0, 0, 0, 0, 0, 0, 0]
         self.step_count = 0
         self.trial += 1
         self.reset()
@@ -124,13 +130,16 @@ if __name__ == '__main__':
             if status_code == Status.FAILED:
                 print '\tTask failed.'
                 executor.failures += 1
+                executor.failed_action_counts.append(executor.temp_action_counts)
             elif status_code == Status.TIMEOUT:
                 print '\tTask failed (Timeout).'
                 executor.timeouts += 1
             else:
                 print '\tTask succeeded.'
                 executor.successes += 1
-            executor.init_trial()
+                executor.successful_action_counts.append(executor.temp_action_counts)
+            if i != executor.trials - 1:
+                executor.init_trial()
 
         print '\n\n--------------------------------------------------------------------'
         print 'Execution complete.  Results:'
@@ -141,7 +150,7 @@ if __name__ == '__main__':
         if executor.allow_interventions:
             print '\n\tNumber of interventions: ' + str(mean(executor.interventions)) + ' +/- ' \
                   + str(std(executor.interventions))
-        print '\n\tAction counts:'
+        print '\n\tAction counts (total):'
         action_means = mean(executor.action_counts, axis=0)
         action_stds = std(executor.action_counts, axis=0)
         print '\t\t' + str(action_means[0]) + ' +/- ' + str(action_stds[0]) + '\t- grasp'
@@ -152,3 +161,35 @@ if __name__ == '__main__':
         print '\t\t' + str(action_means[5]) + ' +/- ' + str(action_stds[5]) + '\t- raise arm'
         print '\t\t' + str(action_means[6]) + ' +/- ' + str(action_stds[6]) + '\t- lower arm'
         print '\t\t' + str(action_means[7]) + ' +/- ' + str(action_stds[7]) + '\t- reset arm'
+
+        if len(executor.successful_action_counts) > 0:
+            print '\n\tAction counts (successful executions, n=' + str(executor.successes) + '):'
+            action_means = mean(executor.successful_action_counts, axis=0)
+            if len(executor.successful_action_counts) > 1:
+                action_stds = std(executor.successful_action_counts, axis=0)
+            else:
+                action_stds = [0, 0, 0, 0, 0, 0, 0, 0]
+            print '\t\t' + str(action_means[0]) + ' +/- ' + str(action_stds[0]) + '\t- grasp'
+            print '\t\t' + str(action_means[1]) + ' +/- ' + str(action_stds[1]) + '\t- place'
+            print '\t\t' + str(action_means[2]) + ' +/- ' + str(action_stds[2]) + '\t- open gripper'
+            print '\t\t' + str(action_means[3]) + ' +/- ' + str(action_stds[3]) + '\t- close gripper'
+            print '\t\t' + str(action_means[4]) + ' +/- ' + str(action_stds[4]) + '\t- move arm'
+            print '\t\t' + str(action_means[5]) + ' +/- ' + str(action_stds[5]) + '\t- raise arm'
+            print '\t\t' + str(action_means[6]) + ' +/- ' + str(action_stds[6]) + '\t- lower arm'
+            print '\t\t' + str(action_means[7]) + ' +/- ' + str(action_stds[7]) + '\t- reset arm'
+
+        if len(executor.failed_action_counts) > 0:
+            print '\n\tAction counts (failed executions, n=' + str(executor.failures) + '):'
+            action_means = mean(executor.failed_action_counts, axis=0)
+            if len(executor.failed_action_counts) > 1:
+                action_stds = std(executor.failed_action_counts, axis=0)
+            else:
+                action_stds = [0, 0, 0, 0, 0, 0, 0, 0]
+            print '\t\t' + str(action_means[0]) + ' +/- ' + str(action_stds[0]) + '\t- grasp'
+            print '\t\t' + str(action_means[1]) + ' +/- ' + str(action_stds[1]) + '\t- place'
+            print '\t\t' + str(action_means[2]) + ' +/- ' + str(action_stds[2]) + '\t- open gripper'
+            print '\t\t' + str(action_means[3]) + ' +/- ' + str(action_stds[3]) + '\t- close gripper'
+            print '\t\t' + str(action_means[4]) + ' +/- ' + str(action_stds[4]) + '\t- move arm'
+            print '\t\t' + str(action_means[5]) + ' +/- ' + str(action_stds[5]) + '\t- raise arm'
+            print '\t\t' + str(action_means[6]) + ' +/- ' + str(action_stds[6]) + '\t- lower arm'
+            print '\t\t' + str(action_means[7]) + ' +/- ' + str(action_stds[7]) + '\t- reset arm'
