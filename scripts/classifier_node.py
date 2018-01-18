@@ -28,11 +28,11 @@ class ClassifierNode:
         self.task = rospy.get_param('~task', 'task1')
 
         classifier_path = self.cleanup_path(rospy.get_param('~classifier_name',
-                                                            'random_forest_action_global_p+s+h0_expert_combined.pkl'))
+                                                            'random_forest_action_global_p+s+h3_expert_combined.pkl'))
         place_regressor_path = self.cleanup_path(rospy.get_param('~place_regressor_name',
-                                                                 'random_forest_place_target_global_p+s+h0_expert_combined.pkl'))
+                                                                 'random_forest_place_target_global_p+s+h2_expert_combined.pkl'))
         move_regressor_path = self.cleanup_path(rospy.get_param('~move_regressor_name',
-                                                                'random_forest_move_target_global_p+s+h0_expert_combined.pkl'))
+                                                                'random_forest_move_target_global_p+s+h2_expert_combined.pkl'))
 
         print classifier_path
         self.action_model = joblib.load(classifier_path)
