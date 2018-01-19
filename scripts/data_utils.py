@@ -235,6 +235,20 @@ class DataUtils:
         return frame
 
     @staticmethod
+    def get_handle_pos(state):
+        """Get the position of the drawer handle"""
+        point = Point(state.drawer_position.x, state.drawer_position.y, 2)
+        if state.drawer_position.theta == 0:
+            point.x += 4 + state.drawer_opening
+        elif state.drawer_position.theta == 90:
+            point.y += 4 + state.drawer_opening
+        elif state.drawer_position.theta == 180:
+            point.x -= 4 + state.drawer_opening
+        else:
+            point.y -= 4 + state.drawer_opening
+        return point
+
+    @staticmethod
     def get_task_frame(state, position):
         """Get a task-related frame (e.g. drawer, lid, table, etc.) for actions such as place"""
 

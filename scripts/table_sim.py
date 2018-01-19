@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 # Python
+import copy
 from math import floor
 from math import sqrt
 from random import seed
@@ -18,6 +19,7 @@ from std_srvs.srv import Empty, EmptyResponse
 from grasp_state import GraspState
 
 from data_utils import DataUtils
+from plan_action import PlanAction
 
 class TableSim:
 
@@ -1548,7 +1550,16 @@ class TableSim:
                 self.error = 'Invalid command. Type ? for a command list.'
                 action_msg.action_type = Action.NOOP
 
+            s0 = copy.deepcopy(self.state_)
+
             self.worldUpdate(action_msg)
+
+            s1 = copy.deepcopy(self.state_)
+            test = PlanAction(s0, action_msg, s1)
+            print '\n\nPlanAction Check:\n'
+            print str(test)
+            print '\n\n'
+
             return action_msg
         except (KeyboardInterrupt, EOFError) as e:
             return None
