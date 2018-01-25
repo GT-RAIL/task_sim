@@ -5,6 +5,10 @@ import copy
 import datetime
 import glob
 
+# Network
+import matplotlib.pyplot as plt
+import networkx as nx
+
 # ROS
 import rosbag
 import rospkg
@@ -18,7 +22,7 @@ class PlanNetwork:
 
     def __init__(self):
         self.task = rospy.get_param('~task', 'task1')
-        self.affordance_threshold = rospy.get_param('~affordance_threshold', 0.4)
+        self.affordance_threshold = rospy.get_param('~affordance_threshold', 0.7)
         self.demo_list = glob.glob(rospkg.RosPack().get_path('task_sim') + '/data/' + self.task + "/demos/*.bag")
         self.output_suffix = rospy.get_param('~output_suffix', '_' + str(datetime.date.today()))
 
@@ -38,6 +42,10 @@ class PlanNetwork:
         self.object_to_cluster = {}  # object -> cluster mapping
         self.cluster_to_objects = {}  # cluster -> [obj_1, obj_2, ..., obj_n] mapping
 
+        # network
+        self.plan_network = None
+        self.node_labels = {}
+
         self.construct_network()
 
         self.test_output()
@@ -50,13 +58,35 @@ class PlanNetwork:
 
         self.cluster_objects()
 
+        print '\n\nBefore generalization:'
+        print 'Nodes: ' + str(len(self.action_list))
+        # print str(self.action_list)
+        print 'Edges: ' + str(len(self.edges))
+        # print str(self.edges)
+        print 'Edge weights: ' + str(len(self.edge_weights))
+        # print str(self.edge_weights)
+
+        self.generalize_nodes_and_edges()
+
+        print '\n\nAfter generalization:'
+        print 'Nodes: ' + str(len(self.action_list))
+        # print str(self.action_list)
+        print 'Edges: ' + str(len(self.edges))
+        # print str(self.edges)
+        print 'Edge weights: ' + str(len(self.edge_weights))
+        # print str(self.edge_weights)
+        print '\n\n'
+
+        self.build_network()
+
+        self.show_graph()
+
     def parse_actions(self):
         print 'Parsing demonstrations for actions'
 
-        s0 = None
-        prev_act = 'start'
-
         for demo_file in self.demo_list:
+            s0 = None
+            prev_act = 'start'
             objects_used = []
             action_context_pairs = {}
             action_object_pairs = {}
@@ -75,6 +105,7 @@ class PlanNetwork:
 
                     # parse action
                     act = PlanAction(s0, a, s1)
+
                     if act not in self.action_list:
                         self.action_list.append(act)
 
@@ -105,6 +136,8 @@ class PlanNetwork:
                             action_object_pairs[target] = [pair]
                         elif pair not in action_object_pairs[target]:
                             action_object_pairs[target].append(pair)
+
+                    prev_act = act
 
                 s0 = copy.deepcopy(s1)
 
@@ -176,6 +209,18 @@ class PlanNetwork:
                 self.object_by_action_context[i][j] /= float(n)
 
         # TODO: scale probabilities across actions (note: actions, not action-contexts) (should we do this?)
+        action_probs = {}
+        for i in range(len(self.object_by_action_context)):
+            for j in range(len(self.object_by_action_context[i])):
+                action = self.index_to_action_context[j][0]
+                if action in action_probs:
+                    action_probs[action].append(self.object_by_action_context[i][j])
+                else:
+                    action_probs[action] = [self.object_by_action_context[i][j]]
+        for i in range(len(self.object_by_action_context)):
+            for j in range(len(self.object_by_action_context)):
+                self.object_by_action_context[i][j] /= float(max(action_probs[self.index_to_action_context[j][0]]))
+
 
         # add high probability actions for each object's action affordance list
         for i in range(len(self.object_by_action_context)):
@@ -190,6 +235,17 @@ class PlanNetwork:
                 self.context_by_action_object[i][j] /= float(n)
 
         # TODO: scale probabilities across actions (note: actions, not action-objects) (should we do this?)
+        action_probs = {}
+        for i in range(len(self.context_by_action_object)):
+            for j in range(len(self.context_by_action_object[i])):
+                action = self.index_to_action_object[j][0]
+                if action in action_probs:
+                    action_probs[action].append(self.context_by_action_object[i][j])
+                else:
+                    action_probs[action] = [self.context_by_action_object[i][j]]
+        for i in range(len(self.context_by_action_object)):
+            for j in range(len(self.context_by_action_object)):
+                self.context_by_action_object[i][j] /= float(max(action_probs[self.index_to_action_object[j][0]]))
 
         # add high probability actions for each object's context affordance list
         for i in range(len(self.context_by_action_object)):
@@ -203,32 +259,104 @@ class PlanNetwork:
             for j in range(i + 1, len(task_objects)):
                 if (task_objects[i].action_affordances == task_objects[j].action_affordances
                     and task_objects[i].context_affordances == task_objects[j].context_affordances):
-                    if task_objects[i].name in self.object_to_cluster and task_objects[j].name in self.object_to_cluster:
+                    if task_objects[i].name.lower() in self.object_to_cluster and task_objects[j].name.lower() in self.object_to_cluster:
                         continue
-                    if task_objects[i].name in self.object_to_cluster:
-                        group = self.object_to_cluster[task_objects[i].name]
-                        self.object_to_cluster[task_objects[j].name] = group
-                        self.cluster_to_objects[group].append(task_objects[j].name)
-                    elif task_objects[j].name in self.object_to_cluster:
-                        group = self.object_to_cluster[task_objects[j].name]
-                        self.object_to_cluster[task_objects[i].name] = group
-                        self.cluster_to_objects[group].append(task_objects[i].name)
+                    if task_objects[i].name.lower() in self.object_to_cluster:
+                        group = self.object_to_cluster[task_objects[i].name.lower()]
+                        self.object_to_cluster[task_objects[j].name.lower()] = group
+                        self.cluster_to_objects[group].append(task_objects[j].name.lower())
+                    elif task_objects[j].name.lower() in self.object_to_cluster:
+                        group = self.object_to_cluster[task_objects[j].name.lower()]
+                        self.object_to_cluster[task_objects[i].name.lower()] = group
+                        self.cluster_to_objects[group].append(task_objects[i].name.lower())
                     else:
                         group = 'cluster' + str(num_clusters)
-                        self.object_to_cluster[task_objects[i].name] = group
-                        self.object_to_cluster[task_objects[j].name] = group
-                        self.cluster_to_objects[group] = [task_objects[i].name, task_objects[j].name]
+                        self.object_to_cluster[task_objects[i].name.lower()] = group
+                        self.object_to_cluster[task_objects[j].name.lower()] = group
+                        self.cluster_to_objects[group] = [task_objects[i].name.lower(), task_objects[j].name.lower()]
                         num_clusters += 1
 
         # add non-clustered objects to the cluster maps
         for obj in task_objects:
-            if obj.name in self.object_to_cluster:
+            if obj.name.lower() in self.object_to_cluster:
                 continue
-            self.object_to_cluster[obj.name] = obj.name
-            self.cluster_to_objects[obj.name] = obj.name
+            self.object_to_cluster[obj.name.lower()] = obj.name.lower()
+            self.cluster_to_objects[obj.name.lower()] = obj.name.lower()
 
-        print '\nObject clusters: '
-        print str(self.cluster_to_objects)
+    def generalize_nodes_and_edges(self):
+        general_actions = []
+        general_edges = []
+        general_edge_weights = {}
+        for act in self.action_list:
+            general_act = self.generalize_action(act)
+            if general_act not in general_actions:
+                general_actions.append(general_act)
+        for edge in self.edges:
+            general_edge = (self.generalize_action(edge[0]), self.generalize_action(edge[1]))
+            if general_edge in general_edges:
+                general_edge_weights[general_edge] += self.edge_weights[edge]
+            else:
+                general_edges.append(general_edge)
+                general_edge_weights[general_edge] = self.edge_weights[edge]
+        self.action_list = general_actions
+        self.edges = general_edges
+        self.edge_weights = general_edge_weights
+
+    def generalize_action(self, act):
+        if act == 'start':
+            return act
+        result = copy.deepcopy(act)
+        if act.object is not None and act.object != '':
+            if act.object.lower() in self.object_to_cluster:
+                result.object = self.object_to_cluster[act.object.lower()]
+            else:
+                result.object = act.object.lower()
+        if act.target is not None and act.target != '':
+            if act.target.lower() in self.object_to_cluster:
+                result.target = self.object_to_cluster[act.target.lower()]
+            else:
+                result.target = act.target.lower()
+        if act.object_in_gripper is not None and act.object_in_gripper != '':
+            if act.object_in_gripper.lower() in self.object_to_cluster:
+                result.object_in_gripper = self.object_to_cluster[act.object_in_gripper.lower()]
+            else:
+                result.object_in_gripper = act.object_in_gripper.lower()
+        for effect in act.effects:
+            effect_list = []
+            for item in act.effects[effect]:
+                if item.lower() in self.object_to_cluster:
+                    effect_list.append(self.object_to_cluster[item.lower()])
+                else:
+                    effect_list.append(item.lower())
+            result.effects[effect] = effect_list
+        return result
+
+    def build_network(self):
+        self.plan_network = nx.DiGraph()
+
+        # Add nodes and labels
+        self.plan_network.add_node('start')
+        self.plan_network.add_nodes_from(self.action_list)
+        for node in self.plan_network.nodes:
+            if node == 'start':
+                self.node_labels[node] = 'start'
+            else:
+                label = str(node.action) + '-' + str(node.object) + '-' + str(node.target)
+                if len(node.effects) == 0:
+                    label += '-f'
+                self.node_labels[node] = label
+
+        # Add edges
+        for edge in self.edges:
+            self.plan_network.add_edge(edge[0], edge[1], weight=self.edge_weights[edge])
+
+    def show_graph(self):
+        layout = nx.spectral_layout(self.plan_network)
+        nx.draw_networkx_nodes(self.plan_network, layout)
+        nx.draw_networkx_edges(self.plan_network, layout)
+        nx.draw_networkx_labels(self.plan_network, layout, self.node_labels, font_size=10)
+        plt.axis('off')
+        plt.show()
 
     def test_output(self):
         print 'Objects: '
@@ -256,6 +384,12 @@ class PlanNetwork:
             for j in range(len(self.context_by_action_object[i])):
                 out += '\t' + str(self.context_by_action_object[i][j])
             print out
+
+        print '\nObject clusters: '
+        print str(self.cluster_to_objects)
+
+        print '\n Reverse lookup check: '
+        print str(self.object_to_cluster)
 
 
 class TaskObject:

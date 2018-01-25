@@ -1550,15 +1550,15 @@ class TableSim:
                 self.error = 'Invalid command. Type ? for a command list.'
                 action_msg.action_type = Action.NOOP
 
-            s0 = copy.deepcopy(self.state_)
+            # s0 = copy.deepcopy(self.state_)
 
             self.worldUpdate(action_msg)
 
-            s1 = copy.deepcopy(self.state_)
-            test = PlanAction(s0, action_msg, s1)
-            print '\n\nPlanAction Check:\n'
-            print str(test)
-            print '\n\n'
+            # s1 = copy.deepcopy(self.state_)
+            # test = PlanAction(s0, action_msg, s1)
+            # print '\n\nPlanAction Check:\n'
+            # print str(test)
+            # print '\n\n'
 
             return action_msg
         except (KeyboardInterrupt, EOFError) as e:

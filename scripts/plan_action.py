@@ -135,6 +135,8 @@ class PlanAction():
                 self.target_open = drawer_open_pre
             else:
                 self.target_open = True
+        else:
+            self.target_open = True
 
         # effects
         self.effects = dict()
@@ -222,6 +224,25 @@ class PlanAction():
                 s += '\t' + key + ': ' + str(self.effects[key]) + '\n'
         return s
 
+    def __repr__(self):
+        return str(self)
+
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return self.action == other.action and self.object == other.object and self.target == other.target \
+                   and self.object_in_drawer == other.object_in_drawer and self.object_in_box == other.object_in_box \
+                   and self.object_on_lid == other.object_on_lid and self.object_open == other.object_open \
+                   and self.gripper_open == other.gripper_open and self.object_in_gripper == other.object_in_gripper \
+                   and self.target_open == other.target_open and self.effects == other.effects
+        return False
+
+    def __ne__(self, other):
+        return not self == other
+
+    def __hash__(self):
+        return hash((self.action, self.object, self.target, self.object_in_drawer, self.object_in_box,
+                     self.object_on_lid, self.object_open, self.gripper_open, self.object_in_gripper, self.target_open,
+                     tuple(self.effects.keys())))
 
     def add_effect(self, key, value):
         if self.effects.has_key(key):
