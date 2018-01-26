@@ -4,6 +4,7 @@
 import copy
 import datetime
 import glob
+import pickle
 
 # Network
 import matplotlib.pyplot as plt
@@ -21,12 +22,7 @@ from plan_action import PlanAction
 class PlanNetwork:
 
     def __init__(self):
-        self.task = rospy.get_param('~task', 'task1')
-        self.affordance_threshold = rospy.get_param('~affordance_threshold', 0.7)
-        self.demo_list = glob.glob(rospkg.RosPack().get_path('task_sim') + '/data/' + self.task + "/demos/*.bag")
-        self.output_suffix = rospy.get_param('~output_suffix', '_' + str(datetime.date.today()))
-
-        # data structures to store parsed information
+        # data structures to store parsed information (used in graph construction)
         self.action_list = []
         self.edges = []
         self.edge_weights = {}
@@ -39,24 +35,25 @@ class PlanNetwork:
         self.object_by_action_context = []  # probability table for how often each object has an action with a context applied to it
         self.context_by_action_object = []  # probability table for how often each object acts as context under a certain action for another object
         self.object_frequency_count = []  # frequency table for
-        self.object_to_cluster = {}  # object -> cluster mapping
-        self.cluster_to_objects = {}  # cluster -> [obj_1, obj_2, ..., obj_n] mapping
 
         # network
         self.plan_network = None
         self.node_labels = {}
+        self.object_to_cluster = {}  # object -> cluster mapping
+        self.cluster_to_objects = {}  # cluster -> [obj_1, obj_2, ..., obj_n] mapping
 
-        self.construct_network()
+        # self.construct_network()
+        # self.test_output()
 
-        self.test_output()
+    def construct_network(self, task='task1', affordance_threshold=0.5, output_suffix=None):
+        demo_list = glob.glob(rospkg.RosPack().get_path('task_sim') + '/data/' + task + "/demos/*.bag")
+        output_suffix = output_suffix or ('_' + str(datetime.date.today()))
+        print 'Loading demonstrations for ' + task + '...'
+        print 'Found ' + str(len(demo_list)) + ' demonstrations.'
 
-    def construct_network(self):
-        print 'Loading demonstrations for ' + self.task + '...'
-        print 'Found ' + str(len(self.demo_list)) + ' demonstrations.'
+        self.parse_actions(demo_list)
 
-        self.parse_actions()
-
-        self.cluster_objects()
+        self.cluster_objects(affordance_threshold)
 
         print '\n\nBefore generalization:'
         print 'Nodes: ' + str(len(self.action_list))
@@ -79,12 +76,12 @@ class PlanNetwork:
 
         self.build_network()
 
-        self.show_graph()
+        self.save_graph(task, output_suffix)
 
-    def parse_actions(self):
+    def parse_actions(self, demo_list):
         print 'Parsing demonstrations for actions'
 
-        for demo_file in self.demo_list:
+        for demo_file in demo_list:
             s0 = None
             prev_act = 'start'
             objects_used = []
@@ -196,7 +193,7 @@ class PlanNetwork:
 
         print 'Demos parsed.'
 
-    def cluster_objects(self):
+    def cluster_objects(self, affordance_threshold):
         # create TaskObjects for each identified object
         task_objects = []
         for i in range(len(self.index_to_object)):
@@ -225,7 +222,7 @@ class PlanNetwork:
         # add high probability actions for each object's action affordance list
         for i in range(len(self.object_by_action_context)):
             for j in range(len(self.object_by_action_context[i])):
-                if self.object_by_action_context[i][j] >= self.affordance_threshold:
+                if self.object_by_action_context[i][j] >= affordance_threshold:
                     task_objects[i].add_action_affordance(self.index_to_action_context[j])
 
         # calculate probabilities for objects used as context
@@ -250,7 +247,7 @@ class PlanNetwork:
         # add high probability actions for each object's context affordance list
         for i in range(len(self.context_by_action_object)):
             for j in range(len(self.context_by_action_object[i])):
-                if self.context_by_action_object[i][j] >= self.affordance_threshold:
+                if self.context_by_action_object[i][j] >= affordance_threshold:
                     task_objects[i].add_context_affordance(self.index_to_action_object[j])
 
         # create clusters for anything with identical affordance lists
@@ -350,8 +347,28 @@ class PlanNetwork:
         for edge in self.edges:
             self.plan_network.add_edge(edge[0], edge[1], weight=self.edge_weights[edge])
 
+    def save_graph(self, task, output_suffix):
+        print 'Saving plan network, labels, and object clusters...'
+        path = rospkg.RosPack().get_path('task_sim') + '/data/' + task + '/models/'
+        nx.write_gpickle(self.plan_network, path + 'plan_network' + output_suffix + '.pkl')
+        print 'Plan network saved to model directory.'
+        pickle.dump(self.node_labels, open(path + 'node_labels' + output_suffix + '.pkl', 'w'))
+        print 'Node labels saved.'
+        pickle.dump(self.cluster_to_objects, open(path + 'clusters' + output_suffix + '.pkl', 'w'))
+        print 'Cluster list saved.'
+        pickle.dump(self.object_to_cluster, open(path + 'clusters_reverse' + output_suffix + '.pkl', 'w'))
+        print 'Cluster reverse lookup list saved.\n'
+
+    def read_graph(self, task, suffix):
+        path = rospkg.RosPack().get_path('task_sim') + '/data/' + task + '/models/'
+        self.plan_network = nx.read_gpickle(path + 'plan_network' + suffix + '.pkl')
+        self.node_labels = pickle.load(open(path + 'node_labels' + suffix + '.pkl'))
+        self.cluster_to_objects = pickle.load(open(path + 'clusters' + suffix + '.pkl'))
+        self.object_to_cluster = pickle.load(open(path + 'clusters_reverse' + suffix + '.pkl'))
+        print 'Plan network loaded.'
+
     def show_graph(self):
-        layout = nx.spectral_layout(self.plan_network)
+        layout = nx.spring_layout(self.plan_network)
         nx.draw_networkx_nodes(self.plan_network, layout)
         nx.draw_networkx_edges(self.plan_network, layout)
         nx.draw_networkx_labels(self.plan_network, layout, self.node_labels, font_size=10)
@@ -390,6 +407,8 @@ class PlanNetwork:
 
         print '\n Reverse lookup check: '
         print str(self.object_to_cluster)
+
+        self.show_graph()
 
 
 class TaskObject:
