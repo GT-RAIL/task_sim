@@ -12,7 +12,7 @@ from data_utils import DataUtils
 
 class PlanAction():
 
-    def __init__(self, s0, a, s1):
+    def __init__(self, s0, a, s1=None):
         self.action = a.action_type
 
         # extract object and target from action message
@@ -21,20 +21,20 @@ class PlanAction():
             self.target = None
         elif a.action_type == Action.PLACE:
             if s0.object_in_gripper is not None and s0.object_in_gripper != '':
-                self.object = s0.object_in_gripper
+                self.object = s0.object_in_gripper.lower()
             self.target = DataUtils.get_task_frame(s0, a.position)
             if self.target.lower() == 'table':
                 handle_pos = DataUtils.get_handle_pos(s0)
                 if a.position.x == handle_pos.x and a.position.y == handle_pos.y:
-                    self.target = 'Handle'
+                    self.target = 'handle'
                 else:
                     for o in s0.objects:
                         if a.position.x == o.position.x and a.position.y == o.position.y:
-                            self.target = o.name
+                            self.target = o.name.lower()
                             break
         elif a.action_type == Action.MOVE_ARM:
             if s0.object_in_gripper is not None and s0.object_in_gripper != '':
-                self.object = s0.object_in_gripper
+                self.object = s0.object_in_gripper.lower()
             else:
                 self.object = None
             self.target = DataUtils.get_task_frame(s0, a.position)
@@ -42,11 +42,11 @@ class PlanAction():
             if self.target.lower() == 'table':
                 handle_pos = DataUtils.get_handle_pos(s0)
                 if a.position.x == handle_pos.x and a.position.y == handle_pos.y:
-                    self.target = 'Handle'
+                    self.target = 'handle'
                 else:
                     for o in s0.objects:
                         if a.position.x == o.position.x and a.position.y == o.position.y:
-                            self.target = o.name
+                            self.target = o.name.lower()
                             break
             # check if target was to touch something
             if self.target.lower() == 'table':
@@ -64,15 +64,23 @@ class PlanAction():
                     self.target = extended_target
         elif a.action_type in [Action.OPEN_GRIPPER, Action.RAISE_ARM, Action.LOWER_ARM, Action.RESET_ARM]:
             if s0.object_in_gripper is not None and s0.object_in_gripper != '':
-                self.object = s0.object_in_gripper
+                self.object = s0.object_in_gripper.lower()
             else:
                 self.object = None
             self.target = None
         elif a.action_type == Action.CLOSE_GRIPPER:
-            if s1.object_in_gripper is not None and s1.object_in_gripper != '':
-                self.object = s1.object_in_gripper
+            self.object = None
+            if s1 is not None:
+                if s1.object_in_gripper is not None and s1.object_in_gripper != '':
+                    self.object = s1.object_in_gripper.lower()
             else:
-                self.object = None
+                if DataUtils.get_handle_pos(s0) == s0.gripper_position:
+                    self.object = 'drawer'
+                else:
+                    for obj in s0.objects:
+                        if obj.position == s0.gripper_position:
+                            self.object = s0.obj.name.lower()
+                            break
             self.target = None
         else:
             self.object = None
@@ -83,7 +91,7 @@ class PlanAction():
         obj0 = None
         if self.object is not None:
             for o in s0.objects:
-                if o.name == self.object:
+                if o.name.lower() == self.object:
                     obj0 = o
                     break
 
@@ -92,20 +100,22 @@ class PlanAction():
             box_open_pre = False
         else:
             box_open_pre = True
-        dst = sqrt(pow(s1.lid_position.x - s1.box_position.x, 2) + pow(s1.lid_position.y - s1.box_position.y, 2))
-        if dst < 2:
-            box_open_post = False
-        else:
-            box_open_post = True
+        if s1 is not None:
+            dst = sqrt(pow(s1.lid_position.x - s1.box_position.x, 2) + pow(s1.lid_position.y - s1.box_position.y, 2))
+            if dst < 2:
+                box_open_post = False
+            else:
+                box_open_post = True
 
         if s0.drawer_opening < 2:
             drawer_open_pre = False
         else:
             drawer_open_pre = True
-        if s1.drawer_opening < 2:
-            drawer_open_post = False
-        else:
-            drawer_open_post = True
+        if s1 is not None:
+            if s1.drawer_opening < 2:
+                drawer_open_post = False
+            else:
+                drawer_open_post = True
 
 
         # preconditions
@@ -120,13 +130,13 @@ class PlanAction():
 
         self.object_open = False
         if self.object is not None:
-            if self.object.lower() == 'drawer':
+            if self.object.lower() in ['drawer', 'stack', 'handle']:
                 self.object_open = drawer_open_pre
-            elif self.object.lower() == 'lid':
+            elif self.object.lower() in ['lid', 'box']:
                 self.object_open = box_open_pre
 
         self.gripper_open = s0.gripper_open
-        self.object_in_gripper = s0.object_in_gripper
+        self.object_in_gripper = s0.object_in_gripper.lower()
 
         if self.target is not None:
             if self.target.lower() == 'box':
@@ -140,68 +150,175 @@ class PlanAction():
 
         # effects
         self.effects = dict()
-        # small object effects
-        for o0 in s0.objects:
-            for o1 in s1.objects:
-                if o0.name == o1.name:
-                    state_change = False
-                    if o0.in_drawer != o1.in_drawer:
-                        if o1.in_drawer:
-                            self.add_effect('in_drawer', o1.name)
-                        else:
-                            self.add_effect('not_in_drawer', o1.name)
-                        state_change = True
-                    if o0.in_box != o1.in_box:
-                        if o1.in_box:
-                            self.add_effect('in_box', o1.name)
-                        else:
-                            self.add_effect('not_in_box', o1.name)
-                        state_change = True
-                    if o0.on_lid != o1.on_lid:
-                        if o1.on_lid:
-                            self.add_effect('on_lid', o1.name)
-                        else:
-                            self.add_effect('not_on_lid', o1.name)
-                        state_change = True
-                    if not state_change:
-                        if o0.position != o1.position:
-                            self.add_effect('moved', o1.name)
+        if s1 is not None:
+            # small object effects
+            for o0 in s0.objects:
+                for o1 in s1.objects:
+                    if o0.name.lower() == o1.name.lower():
+                        state_change = False
+                        if o0.in_drawer != o1.in_drawer:
+                            if o1.in_drawer:
+                                self.add_effect('in_drawer', o1.name.lower())
+                            else:
+                                self.add_effect('not_in_drawer', o1.name.lower())
+                            state_change = True
+                        if o0.in_box != o1.in_box:
+                            if o1.in_box:
+                                self.add_effect('in_box', o1.name.lower())
+                            else:
+                                self.add_effect('not_in_box', o1.name.lower())
+                            state_change = True
+                        if o0.on_lid != o1.on_lid:
+                            if o1.on_lid:
+                                self.add_effect('on_lid', o1.name.lower())
+                            else:
+                                self.add_effect('not_on_lid', o1.name.lower())
+                            state_change = True
+                        if not state_change:
+                            if o0.position != o1.position:
+                                self.add_effect('moved', o1.name.lower())
 
-        # large object effects
-        box_state_change = False
-        if box_open_pre != box_open_post:
-            box_state_change = True
-            if box_open_post:
-                self.add_effect('open', 'Box')
-            else:
-                self.add_effect('closed', 'Box')
-        if not box_state_change:
-            if s0.lid_position != s1.lid_position:
-                self.add_effect('moved', 'Lid')
+            # large object effects
+            box_state_change = False
+            if box_open_pre != box_open_post:
+                box_state_change = True
+                if box_open_post:
+                    self.add_effect('open', 'box')
+                else:
+                    self.add_effect('closed', 'box')
+            if not box_state_change:
+                if s0.lid_position != s1.lid_position:
+                    self.add_effect('moved', 'lid')
 
-        drawer_state_change = False
-        if drawer_open_pre != drawer_open_post:
-            drawer_state_change = True
-            if drawer_open_post:
-                self.add_effect('open', 'Drawer')
-            else:
-                self.add_effect('closed', 'Drawer')
-        if not drawer_state_change:
-            if s0.drawer_opening != s1.drawer_opening:
-                self.add_effect('moved', 'Drawer')
-                self.add_effect('moved', 'Handle')
+            drawer_state_change = False
+            if drawer_open_pre != drawer_open_post:
+                drawer_state_change = True
+                if drawer_open_post:
+                    self.add_effect('open', 'Drawer')
+                else:
+                    self.add_effect('closed', 'Drawer')
+            if not drawer_state_change:
+                if s0.drawer_opening != s1.drawer_opening:
+                    self.add_effect('moved', 'Drawer')
+                    self.add_effect('moved', 'Handle')
 
-        # gripper effects
-        if s0.object_in_gripper != s1.object_in_gripper:
-            if s1.object_in_gripper is None or s1.object_in_gripper == '':
-                self.add_effect('object_in_gripper', '')
-            else:
-                self.add_effect('object_in_gripper', s1.object_in_gripper)
-        if s0.gripper_open != s1.gripper_open:
-            if s1.gripper_open:
-                self.add_effect('change_gripper', 'Open')
-            else:
-                self.add_effect('change_gripper', 'Closed')
+            # gripper effects
+            if s0.object_in_gripper != s1.object_in_gripper:
+                if s1.object_in_gripper is None or s1.object_in_gripper == '':
+                    self.add_effect('object_in_gripper', '')
+                else:
+                    self.add_effect('object_in_gripper', s1.object_in_gripper.lower())
+            if s0.gripper_open != s1.gripper_open:
+                if s1.gripper_open:
+                    self.add_effect('change_gripper', 'open')
+                else:
+                    self.add_effect('change_gripper', 'closed')
+
+
+    def check_preconditions(self, state, obj, target, object_to_cluster = None):
+        if obj not in ['drawer', 'stack', 'handle', 'box', 'lid']:
+            for o in state.objects:
+                if o.name.lower() == obj:
+                    if (self.object_in_drawer == o.in_drawer and self.object_in_box == o.in_box
+                        and self.object_on_lid == o.on_lid):
+                        break
+                    else:
+                        return False
+
+        box_open = sqrt(pow(state.lid_position.x - state.box_position.x, 2)
+                       + pow(state.lid_position.y - state.box_position.y, 2)) >= 2
+        drawer_open = state.drawer_opening >= 2
+        if obj in ['drawer', 'stack', 'handle']:
+            if drawer_open != self.object_open:
+                return False
+        elif obj in ['box', 'lid']:
+            if box_open != self.object_open:
+                return False
+        if target in ['drawer', 'stack', 'handle']:
+            if drawer_open != self.target_open:
+                return False
+        elif target in ['box', 'lid']:
+            if box_open != self.target_open:
+                return False
+
+        if self.gripper_open != state.gripper_open:
+            return False
+
+        if object_to_cluster is not None:
+            if self.object_in_gripper != object_to_cluster[state.object_in_gripper.lower()]:
+                return False
+
+        return True
+
+
+    def check_effects(self, state, object_to_cluster = None):
+        box_open = sqrt(pow(state.lid_position.x - state.box_position.x, 2)
+                        + pow(state.lid_position.y - state.box_position.y, 2)) >= 2
+        drawer_open = state.drawer_opening >= 2
+        for key in self.effects:
+            if key == 'open':
+                for obj in self.effects[key]:
+                    if obj == 'drawer':
+                        if not drawer_open:
+                            return False
+                    elif obj == 'box':
+                        if not box_open:
+                            return False
+            elif key == 'closed':
+                for obj in self.effects[key]:
+                    if obj == 'drawer':
+                        if drawer_open:
+                            return False
+                    elif obj == 'box':
+                        if box_open:
+                            return False
+
+            elif key == 'object_in_gripper':
+                if state.object_in_gripper.lower() != self.effects[key][0]:
+                    return False
+
+            elif key == 'change_gripper':
+                if self.effects[key][0] == 'open':
+                    if not state.gripper_open:
+                        return False
+                else:
+                    if state.gripper_open:
+                        return False
+
+            elif key == 'in_drawer':
+                for obj in state.objects:
+                    if obj.name.lower() in self.effects[key]:
+                        if not obj.in_drawer:
+                            return False
+            elif key == 'not_in_drawer':
+                for obj in state.objects:
+                    if obj.name.lower() in self.effects[key]:
+                        if obj.in_drawer:
+                            return False
+
+            elif key == 'in_box':
+                for obj in state.objects:
+                    if obj.name.lower() in self.effects[key]:
+                        if not obj.in_box:
+                            return False
+            elif key == 'not_in_box':
+                for obj in state.objects:
+                    if obj.name.lower() in self.effects[key]:
+                        if obj.in_box:
+                            return False
+
+            elif key == 'on_lid':
+                for obj in state.objects:
+                    if obj.name.lower() in self.effects[key]:
+                        if not obj.on_lid:
+                            return False
+            elif key == 'not_on_lid':
+                for obj in state.objects:
+                    if obj.name.lower() in self.effects[key]:
+                        if obj.on_lid:
+                            return False
+
+        return True
 
 
     def __str__(self):

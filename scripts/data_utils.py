@@ -3,6 +3,7 @@
 # Python
 import copy
 from math import sin, cos, atan2, floor, sqrt, pi
+from random import random, randint
 
 # numpy
 from numpy import mean, std
@@ -371,6 +372,188 @@ class DataUtils:
                 vector.append(0)
 
         return vector
+
+    @staticmethod
+    def semantic_action_to_position(state, target):
+        position = Point()
+        if target.lower() == 'stack':
+            # Pick a random free point on top of the stack of drawers
+            points = []
+            if state.drawer_position.theta == 0 or state.drawer_position.theta == 180:
+                for x in range(int(state.drawer_position.x - 3), int(state.drawer_position.x + 4)):
+                    for y in range(int(state.drawer_position.y - 2), int(state.drawer_position.y + 3)):
+                        clear = True
+                        for obj in state.objects:
+                            if obj.position.x == x and obj.position.y == y and obj.position.z == 3:
+                                clear = False
+                                break
+                        if clear:
+                            points.append(Point(x, y, 3))
+            else:
+                for x in range(int(state.drawer_position.x - 2), int(state.drawer_position.x + 3)):
+                    for y in range(int(state.drawer_position.y - 3), int(state.drawer_position.y + 4)):
+                        clear = True
+                        for obj in state.objects:
+                            if obj.position.x == x and obj.position.y == y and obj.position.z == 3:
+                                clear = False
+                                break
+                        if clear:
+                            points.append(Point(x, y, 3))
+            if len(points) > 0:
+                position = points[randint(0, len(points) - 1)]
+            else:  # Set position as table center point
+                position.x = state.drawer_position.x
+                position.y = state.drawer_position.y
+                position.z = 3
+        elif target.lower() == 'drawer':
+            # Pick a random free point in the drawer that's also not in the drawer stack footprint
+            points = []
+            if state.drawer_position.theta == 0:
+                for x in range(int(state.drawer_position.x + 4), int(state.drawer_position.x + state.drawer_opening + 3)):
+                    for y in range(int(state.drawer_position.y - 1), int(state.drawer_position.y + 2)):
+                        clear = True
+                        for obj in state.objects:
+                            if obj.position.x == x and obj.position.y == y and obj.position.z > 0:
+                                clear = False
+                                break
+                        if clear:
+                            points.append(Point(x, y, 2))
+            elif state.drawer_position.theta == 180:
+                for x in range(int(state.drawer_position.x - state.drawer_opening - 2), int(state.drawer_position.x - 3)):
+                    for y in range(int(state.drawer_position.y - 1), int(state.drawer_position.y + 2)):
+                        clear = True
+                        for obj in state.objects:
+                            if obj.position.x == x and obj.position.y == y and obj.position.z > 0:
+                                clear = False
+                                break
+                        if clear:
+                            points.append(Point(x, y, 2))
+            elif state.drawer_position.theta == 90:
+                for x in range(int(state.drawer_position.x - 1), int(state.drawer_position.x + 2)):
+                    for y in range(int(state.drawer_position.y + 4), int(state.drawer_position.y + state.drawer_opening + 3)):
+                        clear = True
+                        for obj in state.objects:
+                            if obj.position.x == x and obj.position.y == y and obj.position.z > 0:
+                                clear = False
+                                break
+                        if clear:
+                            points.append(Point(x, y, 2))
+            else:
+                for x in range(int(state.drawer_position.x - 1), int(state.drawer_position.x + 2)):
+                    for y in range(int(state.drawer_position.y - state.drawer_opening - 2), int(state.drawer_position.y - 3)):
+                        clear = True
+                        for obj in state.objects:
+                            if obj.position.x == x and obj.position.y == y and obj.position.z > 0:
+                                clear = False
+                                break
+                        if clear:
+                            points.append(Point(x, y, 2))
+            if len(points) > 0:
+                position = points[randint(0, len(points) - 1)]
+            else:  # Set position as drawer center point
+                if state.drawer_position.theta == 0:
+                    position.x = state.drawer_position.x + state.drawer_opening
+                    position.y = state.drawer_position.y
+                elif state.drawer_position.theta == 90:
+                    position.x = state.drawer_position.x
+                    position.y = state.drawer_position.y + state.drawer_opening
+                elif state.drawer_position.theta == 180:
+                    position.x = state.drawer_position.x - state.drawer_opening
+                    position.y = state.drawer_position.y
+                else:
+                    position.x = state.drawer_position.x
+                    position.y = state.drawer_position.y - state.drawer_opening
+                position.z = 2
+        elif target.lower() == 'box':
+            # Special case: holding lid
+            if state.object_in_gripper.lower() == 'lid':
+                position = state.box_position
+            else:
+                # Pick a random free point in the box that's also not in the lid footprint
+                points = []
+                for x in range(int(state.box_position.x - 1), int(state.box_position.x + 2)):
+                    for y in range(int(state.box_position.y - 1), int(state.box_position.y + 2)):
+                        if (x >= state.lid_position.x - 2 and x <= state.lid_position.x + 2
+                            and y >= state.lid_position.y - 2 and y <= state.lid_position.y + 2):
+                            continue
+                        clear = True
+                        for obj in state.objects:
+                            if obj.position.x == x and obj.position.y == y and obj.position.z <= 1:
+                                clear = False
+                                break
+                        if clear:
+                            points.append(Point(x, y, 2))
+                if len(points) > 0:
+                    position = points[randint(0, len(points) - 1)]
+                else:  # Set position as box center
+                    position = state.box_position
+        elif target.lower() == 'lid':
+            # Pick a random free point on the lid
+            points = []
+            for x in range(int(state.lid_position.x - 2), int(state.lid_position.x + 3)):
+                for y in range(int(state.lid_position.y - 2), int(state.lid_position.y + 3)):
+                    clear = True
+                    for obj in state.objects:
+                        if obj.position.x == x and obj.position.y == y and obj.position.z == state.lid_position.z:
+                            clear = False
+                            break
+                    if clear:
+                        points.append(Point(x, y, 2))
+            if len(points) > 0:
+                position = points[randint(0, len(points) - 1)]
+            else:  # Set position to lid center
+                position = state.lid_position
+        elif target.lower() == 'handle':
+            position = DataUtils.get_handle_pos(state)
+        elif target.lower() == 'table' or target.lower() == '':  # Pick a random position on the table
+            while True:
+                position.x = randint(0, 40)
+                position.y = randint(0, 15)
+                position.z = 0
+                if position.x >= state.box_position.x - 2 and position.x <= state.box_position.x + 2 \
+                    and position.y >= state.box_position.y - 2 and position.y >= state.box_position.y + 2:
+                    continue
+                if position.x >= state.lid_position.x - 2 and position.x <= state.lid_position.x + 2 \
+                    and position.y >= state.lid_position.y - 2 and position.y >= state.lid_position.y + 2:
+                    continue
+                if state.drawer_position.theta == 0:
+                    if position.x >= state.drawer_position.x - 3 and position.x <= state.drawer_position.x + 3 \
+                            + state.drawer_opening and position.y >= state.drawer_position.y - 2 \
+                            and position.y <= state.drawer_position.y + 2:
+                        continue
+                elif state.drawer_position.theta == 90:
+                    if position.x >= state.drawer_position.x - 2 and position.x <= state.drawer_position.x + 2 \
+                            and position.y >= state.drawer_position.y - 2 \
+                            and position.y <= state.drawer_position.y + 2 + state.drawer_opening:
+                        continue
+                elif state.drawer_position.theta == 180:
+                    if position.x >= state.drawer_position.x - 3 - state.drawer_positiong \
+                            and position.x <= state.drawer_position.x + 3 and position.y >= state.drawer_position.y - 2\
+                            and position.y <= state.drawer_position.y + 2:
+                        continue
+                else:
+                    if position.x >= state.drawer_position.x - 2 and position.x <= state.drawer_position.x + 2 \
+                            and position.y >= state.drawer_position.y - 2 - state.drawer_opening \
+                            and position.y <= state.drawer_position.y + 2:
+                        continue
+                obj_collision = False
+                for o in state.objects:
+                    if position.x == o.x and position.y == o.y:
+                        obj_collision = True
+                        break
+                if obj_collision:
+                    continue
+                break
+        else:
+            for o in state.objects:
+                if target.lower() == o.name.lower():
+                    position = o.position
+                    break
+
+        return position
+
+
+
 
     @staticmethod
     def create_combined_action(action_type, object, target, state):

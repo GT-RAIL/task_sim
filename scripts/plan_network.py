@@ -5,6 +5,7 @@ import copy
 import datetime
 import glob
 import pickle
+from random import randint, shuffle
 
 # Network
 import matplotlib.pyplot as plt
@@ -205,18 +206,18 @@ class PlanNetwork:
             for j in range(len(self.object_by_action_context[i])):
                 self.object_by_action_context[i][j] /= float(n)
 
-        # TODO: scale probabilities across actions (note: actions, not action-contexts) (should we do this?)
-        action_probs = {}
-        for i in range(len(self.object_by_action_context)):
-            for j in range(len(self.object_by_action_context[i])):
-                action = self.index_to_action_context[j][0]
-                if action in action_probs:
-                    action_probs[action].append(self.object_by_action_context[i][j])
-                else:
-                    action_probs[action] = [self.object_by_action_context[i][j]]
-        for i in range(len(self.object_by_action_context)):
-            for j in range(len(self.object_by_action_context)):
-                self.object_by_action_context[i][j] /= float(max(action_probs[self.index_to_action_context[j][0]]))
+        # # TODO: scale probabilities across actions (note: actions, not action-contexts) (should we do this?)
+        # action_probs = {}
+        # for i in range(len(self.object_by_action_context)):
+        #     for j in range(len(self.object_by_action_context[i])):
+        #         action = self.index_to_action_context[j][0]
+        #         if action in action_probs:
+        #             action_probs[action].append(self.object_by_action_context[i][j])
+        #         else:
+        #             action_probs[action] = [self.object_by_action_context[i][j]]
+        # for i in range(len(self.object_by_action_context)):
+        #     for j in range(len(self.object_by_action_context)):
+        #         self.object_by_action_context[i][j] /= float(max(action_probs[self.index_to_action_context[j][0]]))
 
 
         # add high probability actions for each object's action affordance list
@@ -231,24 +232,24 @@ class PlanNetwork:
             for j in range(len(self.context_by_action_object[i])):
                 self.context_by_action_object[i][j] /= float(n)
 
-        # TODO: scale probabilities across actions (note: actions, not action-objects) (should we do this?)
-        action_probs = {}
-        for i in range(len(self.context_by_action_object)):
-            for j in range(len(self.context_by_action_object[i])):
-                action = self.index_to_action_object[j][0]
-                if action in action_probs:
-                    action_probs[action].append(self.context_by_action_object[i][j])
-                else:
-                    action_probs[action] = [self.context_by_action_object[i][j]]
-        for i in range(len(self.context_by_action_object)):
-            for j in range(len(self.context_by_action_object)):
-                self.context_by_action_object[i][j] /= float(max(action_probs[self.index_to_action_object[j][0]]))
-
-        # add high probability actions for each object's context affordance list
-        for i in range(len(self.context_by_action_object)):
-            for j in range(len(self.context_by_action_object[i])):
-                if self.context_by_action_object[i][j] >= affordance_threshold:
-                    task_objects[i].add_context_affordance(self.index_to_action_object[j])
+        # # TODO: scale probabilities across actions (note: actions, not action-objects) (should we do this?)
+        # action_probs = {}
+        # for i in range(len(self.context_by_action_object)):
+        #     for j in range(len(self.context_by_action_object[i])):
+        #         action = self.index_to_action_object[j][0]
+        #         if action in action_probs:
+        #             action_probs[action].append(self.context_by_action_object[i][j])
+        #         else:
+        #             action_probs[action] = [self.context_by_action_object[i][j]]
+        # for i in range(len(self.context_by_action_object)):
+        #     for j in range(len(self.context_by_action_object)):
+        #         self.context_by_action_object[i][j] /= float(max(action_probs[self.index_to_action_object[j][0]]))
+        #
+        # # add high probability actions for each object's context affordance list
+        # for i in range(len(self.context_by_action_object)):
+        #     for j in range(len(self.context_by_action_object[i])):
+        #         if self.context_by_action_object[i][j] >= affordance_threshold:
+        #             task_objects[i].add_context_affordance(self.index_to_action_object[j])
 
         # create clusters for anything with identical affordance lists
         num_clusters = 0
@@ -279,6 +280,12 @@ class PlanNetwork:
                 continue
             self.object_to_cluster[obj.name.lower()] = obj.name.lower()
             self.cluster_to_objects[obj.name.lower()] = obj.name.lower()
+
+        # lookup for None or empty object
+        self.object_to_cluster[None] = ''
+        self.object_to_cluster[''] = ''
+        self.cluster_to_objects[''] = ['']
+        self.cluster_to_objects[None] = ['']
 
     def generalize_nodes_and_edges(self):
         general_actions = []
@@ -366,6 +373,64 @@ class PlanNetwork:
         self.cluster_to_objects = pickle.load(open(path + 'clusters' + suffix + '.pkl'))
         self.object_to_cluster = pickle.load(open(path + 'clusters_reverse' + suffix + '.pkl'))
         print 'Plan network loaded.'
+
+    def has_node(self, node):
+        return self.plan_network.has_node(node)
+
+    def get_successor_actions(self, node, state):
+        action_list = []  # List of successor actions, each entry in form [node, object, target, probability]
+        total_weight = 0
+        for candidate in self.plan_network.successors(node):
+            weight = self.plan_network.get_edge_data(node, candidate)['weight']
+            temp_action_list = []
+            pre_met_count = 0
+            # de-generalize objects and targets, iterate through all combinations:
+            objects = self.cluster_to_objects[candidate.object]
+            targets = self.cluster_to_objects[candidate.target]
+            for obj in objects:
+                for target in targets:
+                    if candidate.check_preconditions(state, obj, target, self.object_to_cluster):
+                        temp_action_list.append([candidate, obj, target, weight])
+                        pre_met_count += 1
+            if pre_met_count > 0:
+                for act in temp_action_list:
+                    act[3] /= float(pre_met_count)
+                action_list.extend(temp_action_list)
+                total_weight += weight
+        if len(action_list) > 0:
+            # normalize by weight
+            for act in action_list:
+                act[3] /= float(total_weight)
+        return action_list
+
+    def find_suitable_node(self, state):
+        nodes = self.plan_network.nodes()
+        shuffle(nodes)
+
+        for node in nodes:
+            objects = self.cluster_to_objects[node.object]
+            targets = self.cluster_to_objects[node.target]
+            parents_checked = False
+            for obj in objects:
+                for target in targets:
+                    if node.check_preconditions(state, obj, target, self.object_to_cluster):
+                        # check that any parent's effects match the state
+                        valid_nodes = []
+                        for parent in self.plan_network.predecessors(node):
+                            if parent == 'start':
+                                continue
+                            if parent.check_effects(state, self.object_to_cluster):
+                                valid_nodes.append(parent)
+                        if len(valid_nodes) > 0:
+                            return valid_nodes[randint(len(valid_nodes))]
+                        parents_checked = True
+                    if parents_checked:
+                        break
+                if parents_checked:
+                    break
+
+        # No valid nodes found if this point is reached...
+        return None
 
     def show_graph(self):
         layout = nx.spring_layout(self.plan_network)

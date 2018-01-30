@@ -1,0 +1,16 @@
+(dp0
+S''
+p1
+g1
+sS'granola'
+p2
+S'cluster0'
+p3
+sS'apple'
+p4
+g3
+sS'knife'
+p5
+g3
+sNg1
+s.

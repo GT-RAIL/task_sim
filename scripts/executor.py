@@ -91,7 +91,7 @@ if __name__ == '__main__':
 
     executor = Executor()
 
-    loop_rate = rospy.Rate(500)
+    loop_rate = rospy.Rate(1)
 
     if executor.trials == 1:
         while not rospy.is_shutdown():
