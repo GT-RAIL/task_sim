@@ -404,10 +404,12 @@ class PlanNetwork:
         return action_list
 
     def find_suitable_node(self, state):
-        nodes = self.plan_network.nodes()
+        nodes = copy.deepcopy(list(self.plan_network.nodes))
         shuffle(nodes)
 
         for node in nodes:
+            if node == 'start':
+                continue
             objects = self.cluster_to_objects[node.object]
             targets = self.cluster_to_objects[node.target]
             parents_checked = False
@@ -422,7 +424,7 @@ class PlanNetwork:
                             if parent.check_effects(state, self.object_to_cluster):
                                 valid_nodes.append(parent)
                         if len(valid_nodes) > 0:
-                            return valid_nodes[randint(len(valid_nodes))]
+                            return valid_nodes[randint(0, len(valid_nodes) - 1)]
                         parents_checked = True
                     if parents_checked:
                         break

@@ -245,28 +245,40 @@ class PlanAction():
             return False
 
         if object_to_cluster is not None:
-            if self.object_in_gripper != object_to_cluster[state.object_in_gripper.lower()]:
+            obj = state.object_in_gripper.lower()
+            if object_to_cluster.has_key(obj):
+                obj = object_to_cluster[obj]
+            if self.object_in_gripper != obj:
                 return False
 
         return True
-
 
     def check_effects(self, state, object_to_cluster = None):
         box_open = sqrt(pow(state.lid_position.x - state.box_position.x, 2)
                         + pow(state.lid_position.y - state.box_position.y, 2)) >= 2
         drawer_open = state.drawer_opening >= 2
+
+        drawer_name = self.to_cluster('drawer', object_to_cluster)
+        box_name = self.to_cluster('box', object_to_cluster)
+
         for key in self.effects:
             if key == 'open':
                 for obj in self.effects[key]:
-                    if obj == 'drawer':
+                    if obj == drawer_name and obj == box_name:
+                        if not (drawer_open or box_open):
+                            return False
+                    elif obj == drawer_name:
                         if not drawer_open:
                             return False
-                    elif obj == 'box':
+                    elif obj == box_name:
                         if not box_open:
                             return False
             elif key == 'closed':
                 for obj in self.effects[key]:
-                    if obj == 'drawer':
+                    if obj == drawer_name and obj == box_name:
+                        if drawer_open or box_open:
+                            return False
+                    elif obj == 'drawer':
                         if drawer_open:
                             return False
                     elif obj == 'box':
@@ -274,7 +286,8 @@ class PlanAction():
                             return False
 
             elif key == 'object_in_gripper':
-                if state.object_in_gripper.lower() != self.effects[key][0]:
+                obj = self.to_cluster(state.object_in_gripper.lower(), object_to_cluster)
+                if obj != self.effects[key][0]:
                     return False
 
             elif key == 'change_gripper':
@@ -286,40 +299,57 @@ class PlanAction():
                         return False
 
             elif key == 'in_drawer':
+                in_drawer = False
                 for obj in state.objects:
-                    if obj.name.lower() in self.effects[key]:
-                        if not obj.in_drawer:
-                            return False
+                    if self.to_cluster(obj.name.lower(), object_to_cluster) in self.effects[key]:
+                        in_drawer = in_drawer or obj.in_drawer
+                if not in_drawer:
+                    return False
             elif key == 'not_in_drawer':
+                not_in_drawer = False
                 for obj in state.objects:
-                    if obj.name.lower() in self.effects[key]:
-                        if obj.in_drawer:
-                            return False
+                    if self.to_cluster(obj.name.lower(), object_to_cluster) in self.effects[key]:
+                        not_in_drawer = not_in_drawer or (not obj.in_drawer)
+                if not not_in_drawer:
+                    return False
 
             elif key == 'in_box':
+                in_box = False
                 for obj in state.objects:
-                    if obj.name.lower() in self.effects[key]:
-                        if not obj.in_box:
-                            return False
+                    if self.to_cluster(obj.name.lower(), object_to_cluster) in self.effects[key]:
+                        in_box = in_box or obj.in_box
+                if not in_box:
+                    return False
             elif key == 'not_in_box':
+                not_in_box = False
                 for obj in state.objects:
-                    if obj.name.lower() in self.effects[key]:
-                        if obj.in_box:
-                            return False
+                    if self.to_cluster(obj.name.lower(), object_to_cluster) in self.effects[key]:
+                        not_in_box = not_in_box or (not obj.in_box)
+                if not not_in_box:
+                    return False
 
             elif key == 'on_lid':
+                on_lid = False
                 for obj in state.objects:
-                    if obj.name.lower() in self.effects[key]:
-                        if not obj.on_lid:
-                            return False
+                    if self.to_cluster(obj.name.lower(), object_to_cluster) in self.effects[key]:
+                        on_lid = on_lid or obj.on_lid
+                if not on_lid:
+                    return False
             elif key == 'not_on_lid':
+                not_on_lid = False
                 for obj in state.objects:
-                    if obj.name.lower() in self.effects[key]:
-                        if obj.on_lid:
-                            return False
+                    if self.to_cluster(obj.name.lower(), object_to_cluster) in self.effects[key]:
+                        not_on_lid = not_on_lid or (not obj.on_lid)
+                if not not_on_lid:
+                    return False
 
         return True
 
+    def to_cluster(self, str, object_to_cluster):
+        if object_to_cluster is not None:
+            if object_to_cluster.has_key(str):
+                return object_to_cluster[str]
+        return str
 
     def __str__(self):
         s = ''

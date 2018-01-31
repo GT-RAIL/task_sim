@@ -32,6 +32,9 @@ class PlanNetworkNode:
         self.prev_action = None
         self.remaining_actions = []
 
+        self.intervention_requested = False
+        self.handle_intervention_action = False
+
         self.state_history = []
 
         self.service = rospy.Service('/table_sim/select_action', SelectAction, self.select_action)
@@ -47,6 +50,9 @@ class PlanNetworkNode:
 
         # check if we are correctly at the current node based on action effects
         if self.current_node != 'start':
+            if self.handle_intervention_action:
+                self.prev_action = req.prev_action
+                self.handle_intervention_action = False
             actual_node = self.network.generalize_action(PlanAction(self.prev_state, self.prev_action, req.state))
             if actual_node != self.current_node:
                 print 'Unexpected effects!  Updating current node... (Note: this node may not be in the graph!)'
@@ -75,7 +81,8 @@ class PlanNetworkNode:
 
         if self.current_node is None:
             action.action_type = Action.NOOP
-            # TODO: intervention request
+            self.prev_state = copy.deepcopy(req.state)
+            self.intervention_requested = True
             return action
         elif len(action_list) == 0:
             action_list = self.network.get_successor_actions(self.current_node, req.state)
@@ -85,7 +92,8 @@ class PlanNetworkNode:
             self.current_node = self.network.find_suitable_node(req.state)
             if self.current_node is None:
                 action.action_type = Action.NOOP
-                # TODO: intervention request
+                self.prev_state = copy.deepcopy(req.state)
+                self.intervention_requested = True
                 return action
             action_list = self.network.get_successor_actions(self.current_node, req.state)
 
@@ -118,7 +126,8 @@ class PlanNetworkNode:
         else:
             print 'Still no actions!'
             action.action_type = Action.NOOP
-            # TODO: intervention request
+            self.prev_state = copy.deepcopy(req.state)
+            self.intervention_requested = True
 
 
         return action
@@ -174,6 +183,11 @@ class PlanNetworkNode:
             return status
 
         # Check if intervention is required (state repeated 8 times in last 50 actions)
+        if self.intervention_requested:
+            status.status_code = Status.INTERVENTION_REQUESTED
+            self.intervention_requested = False
+            self.handle_intervention_action = True
+            return status
         self.state_history.append(copy.deepcopy(req.state))
         self.state_history = self.state_history[-50:]
         repeat = 0
@@ -182,6 +196,7 @@ class PlanNetworkNode:
                 repeat += 1
         if repeat >= 8:
             status.status_code = Status.INTERVENTION_REQUESTED
+            self.handle_intervention_action = True
             # Clear state history for next intervention
             self.state_history = []
 

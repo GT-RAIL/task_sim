@@ -19,6 +19,9 @@ class Executor:
         self.failures = 0
         self.timeouts = 0
 
+        self.last_action = Action()
+        self.last_action.action_type = Action.NOOP
+
         if self.trials > 1:
             self.interventions = []
             self.action_counts = []
@@ -47,12 +50,15 @@ class Executor:
             return Status.TIMEOUT
 
         state = self.query_state().state
-        action = self.select_action(state).action
+        action = self.select_action(state, self.last_action).action
+        self.last_action = action
         if self.trials == 1:
-            self.action_counts[action.action_type] += 1
+            if action.action_type != Action.NOOP:
+                self.action_counts[action.action_type] += 1
         else:
-            self.action_counts[self.trial][action.action_type] += 1
-            self.temp_action_counts[action.action_type] += 1
+            if action.action_type != Action.NOOP:
+                self.action_counts[self.trial][action.action_type] += 1
+                self.temp_action_counts[action.action_type] += 1
         self.step_count += 1
         result_state = self.execute(action)
         status_code = self.query_status(result_state.state).status.status_code
@@ -72,6 +78,7 @@ class Executor:
                             self.action_counts[self.trial][action.action_type] += 1
                             self.temp_action_counts[action.action_type] += 1
                         self.step_count += 1
+                        self.last_action = action
             else:
                 status_code = Status.IN_PROGRESS
 
@@ -91,7 +98,7 @@ if __name__ == '__main__':
 
     executor = Executor()
 
-    loop_rate = rospy.Rate(1)
+    loop_rate = rospy.Rate(100)
 
     if executor.trials == 1:
         while not rospy.is_shutdown():
