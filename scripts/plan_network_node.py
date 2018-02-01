@@ -18,7 +18,7 @@ class PlanNetworkNode:
 
     def __init__(self):
         """Initialize action selection from plan networks as a service in a ROS node."""
-        task = rospy.get_param('~task', 'task2')
+        task = rospy.get_param('~task', 'task1')
         suffix = rospy.get_param('output_suffix', '_2018-02-01')
 
         self.network = PlanNetwork()

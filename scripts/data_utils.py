@@ -527,7 +527,7 @@ class DataUtils:
                             and position.y <= state.drawer_position.y + 2 + state.drawer_opening:
                         continue
                 elif state.drawer_position.theta == 180:
-                    if position.x >= state.drawer_position.x - 3 - state.drawer_positiong \
+                    if position.x >= state.drawer_position.x - 3 - state.drawer_opening \
                             and position.x <= state.drawer_position.x + 3 and position.y >= state.drawer_position.y - 2\
                             and position.y <= state.drawer_position.y + 2:
                         continue
@@ -538,7 +538,7 @@ class DataUtils:
                         continue
                 obj_collision = False
                 for o in state.objects:
-                    if position.x == o.x and position.y == o.y:
+                    if position.x == o.position.x and position.y == o.position.y:
                         obj_collision = True
                         break
                 if obj_collision:

@@ -5,6 +5,7 @@ import copy
 import datetime
 import glob
 import pickle
+import time
 from random import randint, shuffle
 
 # Network
@@ -399,10 +400,11 @@ class PlanNetwork:
                 else:
                     continue
             if candidate.action == Action.CLOSE_GRIPPER:
+                test_obj = ''
                 for obj in state.objects:
-                        if obj.position == state.gripper_position:
-                            test_obj = obj.name.lower()
-                            break
+                    if obj.position == state.gripper_position:
+                        test_obj = obj.name.lower()
+                        break
                 if test_obj in objects:
                     objects = [test_obj]
                 else:
@@ -433,10 +435,16 @@ class PlanNetwork:
         return action_list
 
     def find_suitable_node(self, state):
-        nodes = copy.deepcopy(list(self.plan_network.nodes))
-        shuffle(nodes)
+        nodes = list(self.plan_network.nodes)
+        # shuffle(nodes)
+        indices = range(len(nodes))
+        shuffle(indices)
 
-        for node in nodes:
+        #for node in nodes:
+        for i in indices:
+            # not sure why this is happening, but sometimes predecessors() complains a node is not in the graph,
+            # so node shuffling was switched to index shuffling, which seems to work for now
+            node = nodes[i]
             if node == 'start':
                 continue
             objects = self.cluster_to_objects[node.object]

@@ -177,6 +177,7 @@ class TableSim:
             obj1.position.y = randint(1, self.tableDepth - 1)
             obj1.position.z = 0
             object_set = not self.inCollision(obj1.position) and self.reachable(obj1.position)
+        self.state_.objects.append(obj1)
 
         obj2 = Object()
         obj2.name = "Batteries"
@@ -186,6 +187,7 @@ class TableSim:
             obj2.position.y = randint(1, self.tableDepth - 1)
             obj2.position.z = 0
             object_set = not self.inCollision(obj2.position) and self.reachable(obj2.position)
+        self.state_.objects.append(obj2)
 
         obj3 = Object()
         obj3.name = "Flashlight"
@@ -195,6 +197,7 @@ class TableSim:
             obj3.position.y = randint(1, self.tableDepth - 1)
             obj3.position.z = 0
             object_set = not self.inCollision(obj3.position) and self.reachable(obj3.position)
+        self.state_.objects.append(obj3)
 
         obj4 = Object()
         obj4.name = "Granola"
@@ -204,6 +207,7 @@ class TableSim:
             obj4.position.y = randint(1, self.tableDepth - 1)
             obj4.position.z = 0
             object_set = not self.inCollision(obj4.position) and self.reachable(obj4.position)
+        self.state_.objects.append(obj4)
 
         obj5 = Object()
         obj5.name = "Knife"
@@ -213,11 +217,6 @@ class TableSim:
             obj5.position.y = randint(1, self.tableDepth - 1)
             obj5.position.z = 0
             object_set = not self.inCollision(obj5.position) and self.reachable(obj5.position)
-
-        self.state_.objects.append(obj1)
-        self.state_.objects.append(obj2)
-        self.state_.objects.append(obj3)
-        self.state_.objects.append(obj4)
         self.state_.objects.append(obj5)
 
         # Initial robot configuration (home)
