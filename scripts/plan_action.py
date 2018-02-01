@@ -17,13 +17,13 @@ class PlanAction():
 
         # extract object and target from action message
         if a.action_type == Action.GRASP:
-            self.object = a.object
+            self.object = a.object.lower()
             self.target = None
         elif a.action_type == Action.PLACE:
             if s0.object_in_gripper is not None and s0.object_in_gripper != '':
                 self.object = s0.object_in_gripper.lower()
-            self.target = DataUtils.get_task_frame(s0, a.position)
-            if self.target.lower() == 'table':
+            self.target = DataUtils.get_task_frame(s0, a.position).lower()
+            if self.target == 'table':
                 handle_pos = DataUtils.get_handle_pos(s0)
                 if a.position.x == handle_pos.x and a.position.y == handle_pos.y:
                     self.target = 'handle'
@@ -37,9 +37,9 @@ class PlanAction():
                 self.object = s0.object_in_gripper.lower()
             else:
                 self.object = None
-            self.target = DataUtils.get_task_frame(s0, a.position)
+            self.target = DataUtils.get_task_frame(s0, a.position).lower()
             # check for objects as targets
-            if self.target.lower() == 'table':
+            if self.target == 'table':
                 handle_pos = DataUtils.get_handle_pos(s0)
                 if a.position.x == handle_pos.x and a.position.y == handle_pos.y:
                     self.target = 'handle'
@@ -49,7 +49,7 @@ class PlanAction():
                             self.target = o.name.lower()
                             break
             # check if target was to touch something
-            if self.target.lower() == 'table':
+            if self.target == 'table':
                 pos = copy.copy(a.position)
                 if pos.x > 0:
                     pos.x += 1
@@ -59,8 +59,8 @@ class PlanAction():
                     pos.y += 1
                 elif pos.y < 0:
                     pos.y -= 1
-                extended_target = DataUtils.get_task_frame(s0, pos)
-                if extended_target.lower() != 'table':
+                extended_target = DataUtils.get_task_frame(s0, pos).lower()
+                if extended_target != 'table':
                     self.target = extended_target
         elif a.action_type in [Action.OPEN_GRIPPER, Action.RAISE_ARM, Action.LOWER_ARM, Action.RESET_ARM]:
             if s0.object_in_gripper is not None and s0.object_in_gripper != '':
@@ -139,9 +139,9 @@ class PlanAction():
         self.object_in_gripper = s0.object_in_gripper.lower()
 
         if self.target is not None:
-            if self.target.lower() == 'box':
+            if self.target.lower() == 'box' or self.target.lower() == 'lid':
                 self.target_open = box_open_pre
-            elif self.target.lower() == 'drawer' or self.target.lower() == 'handle':
+            elif self.target.lower() == 'drawer' or self.target.lower() == 'handle' or self.target.lower() == 'stack':
                 self.target_open = drawer_open_pre
             else:
                 self.target_open = True
@@ -194,13 +194,13 @@ class PlanAction():
             if drawer_open_pre != drawer_open_post:
                 drawer_state_change = True
                 if drawer_open_post:
-                    self.add_effect('open', 'Drawer')
+                    self.add_effect('open', 'drawer')
                 else:
-                    self.add_effect('closed', 'Drawer')
+                    self.add_effect('closed', 'drawer')
             if not drawer_state_change:
                 if s0.drawer_opening != s1.drawer_opening:
-                    self.add_effect('moved', 'Drawer')
-                    self.add_effect('moved', 'Handle')
+                    self.add_effect('moved', 'drawer')
+                    self.add_effect('moved', 'handle')
 
             # gripper effects
             if s0.object_in_gripper != s1.object_in_gripper:
@@ -361,6 +361,7 @@ class PlanAction():
              + '\tobject_in_box: ' + str(self.object_in_box) + '\n' \
              + '\tobject_on_lid: ' + str(self.object_on_lid) + '\n' \
              + '\tobject_open: ' + str(self.object_open) + '\n' \
+             + '\ttarget_open: ' + str(self.target_open) + '\n' \
              + '\tgripper_open: ' + str(self.gripper_open) + '\n' \
              + '\tobject_in_gripper: ' + str(self.object_in_gripper) + '\n' \
              + 'effects:' + '\n'

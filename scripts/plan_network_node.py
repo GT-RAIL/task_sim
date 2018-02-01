@@ -18,13 +18,13 @@ class PlanNetworkNode:
 
     def __init__(self):
         """Initialize action selection from plan networks as a service in a ROS node."""
-        task = rospy.get_param('~task', 'task3')
-        suffix = rospy.get_param('output_suffix', '_2018-01-30')
+        task = rospy.get_param('~task', 'task2')
+        suffix = rospy.get_param('output_suffix', '_2018-02-01')
 
         self.network = PlanNetwork()
         self.network.read_graph(task=task, suffix=suffix)
 
-        #self.network.test_output()
+        self.network.test_output()
 
         self.prev_node = 'start'
         self.current_node = 'start'
@@ -56,6 +56,13 @@ class PlanNetworkNode:
             actual_node = self.network.generalize_action(PlanAction(self.prev_state, self.prev_action, req.state))
             if actual_node != self.current_node:
                 print 'Unexpected effects!  Updating current node... (Note: this node may not be in the graph!)'
+                print '\n\n---------------------------------------'
+                print 'Current node: '
+                print str(self.current_node)
+                print '\n----------------------------------------'
+                print 'Actual node: '
+                print str(actual_node)
+                print '-----------------------------------------\n\n'
                 if self.network.has_node(actual_node):
                     self.current_node = actual_node
                 else:
@@ -101,6 +108,12 @@ class PlanNetworkNode:
         #print str(action_list)
 
         if len(action_list) > 0:
+
+            print '\nAction list: '
+            for act in action_list:
+                print str(act[0].action) + ', ' + str(act[1]) + ', ' + str(act[2]) + ', ' + str(act[3])
+            print '\n'
+
             selection = random()
             count = 0
             selected_action = action_list[0]
@@ -129,6 +142,7 @@ class PlanNetworkNode:
             self.prev_state = copy.deepcopy(req.state)
             self.intervention_requested = True
 
+        print 'Action:\n' + str(action.action_type) + ', ' + selected_action[1] + ', ' + selected_action[2]
 
         return action
 

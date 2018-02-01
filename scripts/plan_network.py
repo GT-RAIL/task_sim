@@ -244,14 +244,18 @@ class PlanNetwork:
         # for i in range(len(self.context_by_action_object)):
         #     for j in range(len(self.context_by_action_object)):
         #         self.context_by_action_object[i][j] /= float(max(action_probs[self.index_to_action_object[j][0]]))
-        #
-        # # add high probability actions for each object's context affordance list
-        # for i in range(len(self.context_by_action_object)):
-        #     for j in range(len(self.context_by_action_object[i])):
-        #         if self.context_by_action_object[i][j] >= affordance_threshold:
-        #             task_objects[i].add_context_affordance(self.index_to_action_object[j])
+
+        # add high probability actions for each object's context affordance list
+        for i in range(len(self.context_by_action_object)):
+            for j in range(len(self.context_by_action_object[i])):
+                if self.context_by_action_object[i][j] >= affordance_threshold:
+                    task_objects[i].add_context_affordance(self.index_to_action_object[j])
 
         # create clusters for anything with identical affordance lists
+        for obj in task_objects:
+            print '\nTask object: ' + str(obj.name)
+            print 'Action affordances: ' + str(obj.action_affordances)
+            print 'Context affordances: ' + str(obj.context_affordances)
         num_clusters = 0
         for i in range(len(task_objects)):
             for j in range(i + 1, len(task_objects)):
@@ -279,7 +283,7 @@ class PlanNetwork:
             if obj.name.lower() in self.object_to_cluster:
                 continue
             self.object_to_cluster[obj.name.lower()] = obj.name.lower()
-            self.cluster_to_objects[obj.name.lower()] = obj.name.lower()
+            self.cluster_to_objects[obj.name.lower()] = [obj.name.lower()]
 
         # lookup for None or empty object
         self.object_to_cluster[None] = ''
@@ -386,12 +390,37 @@ class PlanNetwork:
             pre_met_count = 0
             # de-generalize objects and targets, iterate through all combinations:
             objects = self.cluster_to_objects[candidate.object]
+
+            # object is fixed for certain actions... constrain object list for those cases
+            if candidate.action in [Action.PLACE, Action.OPEN_GRIPPER, Action.MOVE_ARM, Action.RAISE_ARM,
+                                    Action.LOWER_ARM, Action.RESET_ARM]:
+                if state.object_in_gripper.lower() in objects:
+                    objects = [state.object_in_gripper.lower()]
+                else:
+                    continue
+            if candidate.action == Action.CLOSE_GRIPPER:
+                for obj in state.objects:
+                        if obj.position == state.gripper_position:
+                            test_obj = obj.name.lower()
+                            break
+                if test_obj in objects:
+                    objects = [test_obj]
+                else:
+                    continue
+
             targets = self.cluster_to_objects[candidate.target]
             for obj in objects:
                 for target in targets:
+                    print '\n******************'
+                    print 'Testing preconditions for ' + str(candidate.action) + ', ' + str(obj) + ', ' + str(target)
+                    print str(candidate)
                     if candidate.check_preconditions(state, obj, target, self.object_to_cluster):
+                        print 'Success'
                         temp_action_list.append([candidate, obj, target, weight])
                         pre_met_count += 1
+                    else:
+                        print 'Failure'
+                    print '****************\n'
             if pre_met_count > 0:
                 for act in temp_action_list:
                     act[3] /= float(pre_met_count)

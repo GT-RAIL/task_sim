@@ -826,7 +826,6 @@ class TableSim:
                 # try some random roll positions
                 roll = self.randomFreePoint(object.position, fall_dst, fall_dst)
                 if roll:
-                    #TODO: Fix!
                     points = self.interpolate(object.position.x, object.position.y, roll.x, roll.y)
                     final_point = self.copyPoint(object.position)
                     for point in points:
@@ -835,6 +834,9 @@ class TableSim:
                             break
                         final_point = self.copyPoint(test_point)
                     object.position = self.copyPoint(final_point)
+                    # roll into open air case
+                    if object.position.z > 0:
+                        self.gravity(object)
 
         return change
 
@@ -1002,7 +1004,9 @@ class TableSim:
 
     def onEdge(self, position):
         """Detect collision with either the box edge or the drawer edge"""
-        return self.boxCollision(position) or self.drawerCollision(position)[2]
+        drawer_collision = self.drawerCollision(position)
+        return (self.boxCollision(position) and not self.lidCollision(position)) \
+               or (drawer_collision[2] and not drawer_collision[0])
 
 
     def objectCollision(self, position):
