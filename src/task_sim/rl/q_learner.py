@@ -1,3 +1,7 @@
+#!/usr/bin/env python
+# This implements Q Learning. The learners are all model-free, but vary in their
+# exploration policies
+
 from collections import defaultdict
 from utils import argmax
 from mdp import MDP
