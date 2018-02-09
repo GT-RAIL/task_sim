@@ -2,18 +2,19 @@
 
 # Python
 import copy
+import numpy as np
+
 from math import floor, sqrt
 from random import random, randint
 
 # ROS
-from task_sim.msg import Action, Status
-from task_sim.srv import QueryStatus, SelectAction
-from geometry_msgs.msg import Point
-import numpy as np
 import rospy
 import rospkg
 
-from data_utils import DataUtils
+from geometry_msgs.msg import Point
+from task_sim.msg import Action, Status
+from task_sim.srv import QueryStatus, SelectAction
+from task_sim.data_utils import DataUtils
 
 # scikit-learn
 from sklearn.externals import joblib

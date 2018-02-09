@@ -7,13 +7,12 @@ import os
 import yaml
 
 # ROS
-from geometry_msgs.msg import Point
 import rosbag
 import rospkg
 import rospy
+from geometry_msgs.msg import Point
 from task_sim.msg import Action
-
-from data_utils import DataUtils
+from task_sim.data_utils import DataUtils
 
 
 class DemoReader:
