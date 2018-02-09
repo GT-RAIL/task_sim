@@ -79,9 +79,6 @@ class QLearningAgent:
         s1, r1 = self.update_state(percept)
         Q, s, a, r = self.Q, self.s, self.a, self.r
         alpha, gamma, terminals = self.alpha, self.gamma, self.terminals
-        actions_in_state = self.actions_in_state
-        EpsilonGreedy = self.EpsilonGreedy
-        all_act = self.all_act
 
         state_list = list(s)
         agent_state = state_list[0]
@@ -98,7 +95,7 @@ class QLearningAgent:
             self.a = self.r = None
         else:
             self.s, self.r = s1, r1
-            self.a = EpsilonGreedy(Q, s1, epsilon, episode)
+            self.a = self.EpsilonGreedy(Q, s1, epsilon, episode)
 
         return self.a
 
