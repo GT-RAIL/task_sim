@@ -29,12 +29,25 @@ class Task(object):
         self.default_reward = default_reward
         self._num_steps = 0
 
+    def actions(self, state):
+        """
+        Return the actions available to the agent at the state. The action
+        representation is upto the task specification. Returns a list
+        """
+        raise NotImplementedError("Don't know what actions are available")
+
+    def create_action_msg(self, state, action):
+        """
+        Given the desired state and action, create an action message
+        """
+        raise NotImplementedError("Don't know how to translate the action to a msg")
+
     def R(self, state, action=None):
         """
         Reward at state. Optional action makes this into the reward for
         performing the action at state.
-        state:  task_sim.State
-        action: task_sim.Action
+        state:  some state specification
+        action: some action specification
         return: float
         """
         if self._num_steps >= self.timeout:
@@ -45,7 +58,7 @@ class Task(object):
     def is_done(self, state):
         """
         Returns a Status code of whether the task is complete or not
-        state:  task_sim.State
+        state:  some state specification
         return: task_sim.Status
         """
         self._num_steps += 1
@@ -58,8 +71,12 @@ class Task(object):
 # Debug task definitions
 
 class DebugTask1(Task):
-    """Goal is to grab any X different objects that can be picked up and then
-    releasing them. Fail occurs if any of the objects is lost."""
+    """
+    Goal is to grab any X different objects that can be picked up and then
+    releasing them. Fail occurs if any of the objects is lost.
+
+    Uses the (Action, Object, Offset) parameterization of available actions
+    """
 
     GRABBABLE_OBJECTS = ["Apple", "Batteries", "Flashlight", "Granola", "Knife"]
 
@@ -79,8 +96,19 @@ class DebugTask1(Task):
         self.object_in_gripper = ''
 
     def _is_fail(self, state):
-        # TODO: Hopefully I can use something from data_utils
-        return False
+        """Failure condition if any of the objects is lost"""
+        failed = False
+        for obj in state.objects:
+            failed = failed or obj.lost
+        return failed
+
+    def actions(self, state):
+        # All actions are available at a given state
+        return DataUtils.get_action_obj_offset_candidates(state)
+
+    def create_action_msg(self, state, action):
+        # This is simply a wrapper to the DataUtils function
+        return DataUtils.msg_from_action_obj_offset(state, action)
 
     def R(self, state, action=None):
         # First check to see if there was an object that we were tracking and

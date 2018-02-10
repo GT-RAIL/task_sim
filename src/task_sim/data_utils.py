@@ -3,8 +3,8 @@
 # Python
 import copy
 import bidict
+import random
 from math import sin, cos, atan2, floor, sqrt, pi
-from random import random, randint
 
 # numpy
 from numpy import mean, std
@@ -266,6 +266,20 @@ class DataUtils:
         return point
 
     @staticmethod
+    def get_drawer_midpoint_pos(state):
+        """Get the midpoint of an open drawer"""
+        point = Point(state.drawer_position.x, state.drawer_position.y, 2)
+        if state.drawer_position.theta == 0:
+            point.x += 4 + state.drawer_opening//2
+        elif state.drawer_position.theta == 90:
+            point.y += 4 + state.drawer_opening//2
+        elif state.drawer_position.theta == 180:
+            point.x -= 4 + state.drawer_opening//2
+        else:
+            point.y -= 4 + state.drawer_opening//2
+        return point
+
+    @staticmethod
     def get_task_frame(state, position):
         """Get a task-related frame (e.g. drawer, lid, table, etc.) for actions such as place"""
 
@@ -416,7 +430,7 @@ class DataUtils:
                         if clear:
                             points.append(Point(x, y, 3))
             if len(points) > 0:
-                position = points[randint(0, len(points) - 1)]
+                position = random.choice(points)
             else:  # Set position as table center point
                 position.x = state.drawer_position.x
                 position.y = state.drawer_position.y
@@ -465,7 +479,7 @@ class DataUtils:
                         if clear:
                             points.append(Point(x, y, 2))
             if len(points) > 0:
-                position = points[randint(0, len(points) - 1)]
+                position = random.choice(points)
             else:  # Set position as drawer center point
                 if state.drawer_position.theta == 0:
                     position.x = state.drawer_position.x + state.drawer_opening
@@ -500,7 +514,7 @@ class DataUtils:
                         if clear:
                             points.append(Point(x, y, 2))
                 if len(points) > 0:
-                    position = points[randint(0, len(points) - 1)]
+                    position = random.choice(points)
                 else:  # Set position as box center
                     position = state.box_position
         elif target.lower() == 'lid':
@@ -516,15 +530,15 @@ class DataUtils:
                     if clear:
                         points.append(Point(x, y, 2))
             if len(points) > 0:
-                position = points[randint(0, len(points) - 1)]
+                position = random.choice(points)
             else:  # Set position to lid center
                 position = state.lid_position
         elif target.lower() == 'handle':
             position = DataUtils.get_handle_pos(state)
         elif target.lower() == 'table' or target.lower() == '':  # Pick a random position on the table
             while True:
-                position.x = randint(0, 40)
-                position.y = randint(0, 15)
+                position.x = random.randint(0, 40)
+                position.y = random.randint(0, 15)
                 position.z = 0
                 if position.x >= state.box_position.x - 2 and position.x <= state.box_position.x + 2 \
                     and position.y >= state.box_position.y - 2 and position.y >= state.box_position.y + 2:
@@ -573,6 +587,9 @@ class DataUtils:
 
     @staticmethod
     def create_combined_action(action_type, object, target, state):
+        """Combined Action is an integer with the action params specified by the
+        tens and ones digit, and the action type specified by the 100s digit on
+        """
         label = 100*action_type
         if action_type in [Action.GRASP, Action.PLACE]:
             label += DataUtils.name_to_int(object)
@@ -596,10 +613,12 @@ class DataUtils:
 
     @staticmethod
     def get_action_from_label(action_label):
+        """action_label is the integer combined action representation"""
         return action_label//100
 
     @staticmethod
     def get_action_modifier_from_label(action_label):
+        """action_label is the integer combined action representation"""
         return action_label%100
 
     @staticmethod
@@ -624,3 +643,123 @@ class DataUtils:
     def object_int_pairs():
         """Returns the (obj (lower), int) pairs of the objects"""
         return DataUtils.object_to_int_map.items()
+
+    @staticmethod
+    def object_name_from_key(object_key):
+        return (object_key[0].upper() + object_key[1:]) if object_key else object_key
+
+    @staticmethod
+    def get_action_obj_offset_candidates(state):
+        """Create action parameterizations that are possible in the format
+        Action(object, offset), where object is a string, and offset is a tuple.
+        The output parameterized action itself is a tuple.
+
+        Input state is of type task_sim.State
+        """
+        action_candidates = []
+
+        # Open, Close Gripper
+        action_candidates.extend([
+            (Action.OPEN_GRIPPER, None, None,),
+            (Action.CLOSE_GRIPPER, None, None),
+        ])
+
+        # Raise, Lower, Reset Arm
+        action_candidates.extend([
+            (Action.RAISE_ARM, None, None),
+            (Action.LOWER_ARM, None, None),
+            (Action.RESET_ARM, None, None),
+        ])
+
+        # Grasp
+        for object_key in DataUtils.object_to_int_map.iterkeys():
+            if not object_key: # Table/Empty object name
+                continue
+
+            # Do not allow a grasp on 'Handle' because it's the same as 'Drawer'
+            if object_key == 'handle':
+                continue
+
+            # Allow the box as a candidate, this should fail
+            action_candidates.append(
+                (ACTION.GRASP, DataUtils.object_name_from_key(object_key), None)
+            )
+
+        # Move, Place
+        for object_key in DataUtils.object_to_int_map.iterkeys():
+            # We perform no collision/edge checking. Instead, all options are
+            # available and I'm choosing to arbitrarily end limit the offset to
+            # -5 < offset < 5 for an object, and the whole range for the table
+            # Tuple format (xlim, ylim, symmetric?)
+            offset_limits = (5, 5, True) if object_name else (40, 15, False)
+
+            # Iterate through the offsets and add the move and place options
+            for x in range(
+                -offset_limits[0] if offset_limits[2] else 0,
+                offset_limits[0]+1 if offset_limits[2] else offset_limits[0]
+            ):
+                for y in range(
+                    -offset_limits[1] if offset_limits[2] else 0,
+                    offset_limits[1]+1 if offset_limits[2] else offset_limits[1]
+                ):
+                    action_candidates.extend([
+                        (Action.PLACE, DataUtils.object_name_from_key(object_key), (x,y)),
+                        (Action.MOVE_ARM, DataUtils.object_name_from_key(object_key), (x,y)),
+                    ])
+
+        return action_candidates
+
+    @staticmethod
+    def get_semantic_action_candidates(state):
+        """Given a state, this returns the possible semantic action candidates
+        that can be used by `semantic_action_to_position()`"""
+        # TODO: This should be implemented later depending on performance of the
+        # other action representation
+        pass
+
+    @staticmethod
+    def msg_from_action_obj_offset(state, action_obj_offset):
+        """Takes an action parameterization from
+        `get_action_obj_offset_candidates` and creates an Action message"""
+        action = Action()
+        action.action_type = action_obj_offset[0]
+
+        # First grab the object if it is a grasp
+        if action.action_type in [Action.GRASP]:
+            action.object = action_obj_offset[1]
+
+        # Then, if we have to move or place, translate the offset
+        if action.action_type in [Action.MOVE_ARM, Action.PLACE]:
+            # First check to see if this is one of the graspable objects
+            found_pos = None
+            for state_obj in state.objects:
+                if action_obj_offset[1] == state_obj.name:
+                    found_pos = state_obj.position
+                    break
+
+            # If the object was not found, check stack, drawer, handle, box,
+            # lid, and gripper
+            if found_pos is None:
+                if action_obj_offset[1] == 'Stack':
+                    found_pos = state.drawer_position
+                elif action_obj_offset[1] == 'Drawer':
+                    found_pos = DataUtils.get_drawer_midpoint_pos(state)
+                elif action_obj_offset[1] == 'Handle':
+                    found_pos = DataUtils.get_handle_pos(state)
+                elif action_obj_offset[1] == 'Box':
+                    found_pos = state.box_position
+                elif action_obj_offset[1] == 'Lid':
+                    found_pos = state.lid_position
+                elif action_obj_offset[1] == 'Gripper':
+                    found_pos = state.gripper_position
+
+            # Update the position in the action object
+            action.position.x = (
+                found_pos.x if found_pos else action_obj_offset[2][0]
+            )
+            action.position.y = (
+                found_pos.y if found_pos else action_obj_offset[2][1]
+            )
+
+        # We're done. Return the action
+        return action
