@@ -17,7 +17,12 @@ class Task(object):
     """Abstract super class that all task definitions implement. Implements a
     simple timeout check by default"""
 
-    def __init__(self, success_reward, fail_penalty, default_reward, timeout)
+    def __init__(self,
+        success_reward=1,
+        fail_penalty=-1,
+        default_reward=0,
+        timeout=100
+    ):
         self.timeout = timeout
         self.success_reward = success_reward
         self.fail_penalty = fail_penalty

@@ -2,6 +2,7 @@
 
 # Python
 import copy
+import bidict
 from math import sin, cos, atan2, floor, sqrt, pi
 from random import random, randint
 
@@ -15,6 +16,21 @@ from task_sim.msg import Action
 
 
 class DataUtils:
+
+    object_to_int_map = bidict.frozenbidict({
+        '': 0, # Also corresponds to the table
+        'gripper': 1,
+        'stack': 2,
+        'drawer': 3,
+        'handle': 4,
+        'box': 5,
+        'lid': 6,
+        'apple': 7,
+        'batteries': 8,
+        'flashlight': 9,
+        'granola': 10,
+        'knife': 11,
+    })
 
     @staticmethod
     def change_frame(state, frame):
@@ -588,58 +604,23 @@ class DataUtils:
 
     @staticmethod
     def name_to_int(name):
-        if name.lower() == '' or name.lower() == 'table':
-            return 0
-        elif name.lower() == 'gripper':
-            return 1
-        elif name.lower() == 'stack':
-            return 2
-        elif name.lower() == 'drawer':
-            return 3
-        elif name.lower() == 'handle':
-            return 4
-        elif name.lower() == 'box':
-            return 5
-        elif name.lower() == 'lid':
-            return 6
-        elif name.lower() == 'apple':
-            return 7
-        elif name.lower() == 'batteries':
-            return 8
-        elif name.lower() == 'flashlight':
-            return 9
-        elif name.lower() == 'granola':
-            return 10
-        elif name.lower() == 'knife':
-            return 11
-        else:
-            return -1
+        """Returns the object as an integer. An unknown object is the same as
+        the object of `''` (table)"""
+        return DataUtils.object_to_int_map.get(
+            name.lower(),
+            DataUtils.object_to_int_map['']
+        )
 
     @staticmethod
     def int_to_name(n):
-        if n == 0:
-            return ''
-        elif n == 1:
-            return 'Gripper'
-        elif n == 2:
-            return 'Stack'
-        elif n == 3:
-            return 'Drawer'
-        elif n == 4:
-            return 'Handle'
-        elif n == 5:
-            return 'Box'
-        elif n == 6:
-            return 'Lid'
-        elif n == 7:
-            return 'Apple'
-        elif n == 8:
-            return 'Batteries'
-        elif n == 9:
-            return 'Flashlight'
-        elif n == 10:
-            return 'Granola'
-        elif n == 11:
-            return 'Knife'
-        else:
-            return ''
+        """Returns the referent object from an int index. If not found, return
+        `''` (table)"""
+        return DataUtils.object_to_int_map.inv.get(
+            n,
+            DataUtils.object_to_int_map.inv[0]
+        )
+
+    @staticmethod
+    def object_int_pairs():
+        """Returns the (obj (lower), int) pairs of the objects"""
+        return DataUtils.object_to_int_map.items()
