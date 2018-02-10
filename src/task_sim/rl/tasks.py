@@ -8,7 +8,6 @@ import numpy as np
 import rospy
 
 from task_sim.msg import State, Action, Status
-from task_sim.srv import QueryStatus, SelectAction
 from task_sim.data_utils import DataUtils
 
 # Class definitions
@@ -27,7 +26,7 @@ class Task(object):
         self.success_reward = success_reward
         self.fail_penalty = fail_penalty
         self.default_reward = default_reward
-        self._num_steps = 0
+        self.num_steps = 0
 
     def actions(self, state):
         """
@@ -42,6 +41,10 @@ class Task(object):
         """
         raise NotImplementedError("Don't know how to translate the action to a msg")
 
+    def increment_steps(self):
+        """Explicit call to increment the number of timesteps that occurred"""
+        self.num_steps += 1
+
     def R(self, state, action=None):
         """
         Reward at state. Optional action makes this into the reward for
@@ -50,19 +53,18 @@ class Task(object):
         action: some action specification
         return: float
         """
-        if self._num_steps >= self.timeout:
+        if self.num_steps >= self.timeout:
             return self.fail_penalty
 
         return self.default_reward
 
-    def is_done(self, state):
+    def status(self, state):
         """
         Returns a Status code of whether the task is complete or not
         state:  some state specification
         return: task_sim.Status
         """
-        self._num_steps += 1
-        if self._num_steps >= self.timeout:
+        if self.num_steps >= self.timeout:
             return Status.TIMEOUT
 
         return Status.IN_PROGRESS
@@ -81,7 +83,8 @@ class DebugTask1(Task):
     GRABBABLE_OBJECTS = ["Apple", "Batteries", "Flashlight", "Granola", "Knife"]
 
     def __init__(
-        self, num_to_grab=2, grab_reward=1, time_penalty=-0.04,
+        self,
+        num_to_grab=2, grab_reward=1, time_penalty=-0.04,
         fail_penalty=-1, timeout=100
     ):
         super(DebugTask1, self).__init__(
@@ -136,15 +139,15 @@ class DebugTask1(Task):
         # Return the default reward post timeout check
         return super(DebugTask1, self).R(state, action)
 
-    def is_done(self, state):
+    def status(self, state):
         # Check to see if we've picked up the requisite number of grabbable
         # objects.
         if len(self.grabbed_objects) >= self.num_to_grab:
-            return self.success_reward
+            return Status.COMPLETED
 
         # Check for a fail
         if self._is_fail(state):
-            return self.fail_penalty
+            return Status.FAILED
 
         # Otherwise, do a timeout check
-        return super(DebugTask1, self).is_done(state)
+        return super(DebugTask1, self).status(state)
