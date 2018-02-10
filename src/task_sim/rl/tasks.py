@@ -45,6 +45,10 @@ class Task(object):
         """Explicit call to increment the number of timesteps that occurred"""
         self.num_steps += 1
 
+    def reset_task_state(self):
+        """Reset the task state for another iteration"""
+        self.num_steps = 0
+
     def R(self, state, action=None):
         """
         Reward at state. Optional action makes this into the reward for
@@ -112,6 +116,11 @@ class DebugTask1(Task):
     def create_action_msg(self, state, action):
         # This is simply a wrapper to the DataUtils function
         return DataUtils.msg_from_action_obj_offset(state, action)
+
+    def reset_task_state(self):
+        super(DebugTask1, self).reset_task_state()
+        self.grabbed_objects = []
+        self.object_in_gripper = ''
 
     def R(self, state, action=None):
         # First check to see if there was an object that we were tracking and

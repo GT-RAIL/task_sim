@@ -682,7 +682,7 @@ class DataUtils:
 
             # Allow the box as a candidate, this should fail
             action_candidates.append(
-                (ACTION.GRASP, DataUtils.object_name_from_key(object_key), None)
+                (Action.GRASP, DataUtils.object_name_from_key(object_key), None)
             )
 
         # Move, Place
@@ -691,7 +691,7 @@ class DataUtils:
             # available and I'm choosing to arbitrarily end limit the offset to
             # -5 < offset < 5 for an object, and the whole range for the table
             # Tuple format (xlim, ylim, symmetric?)
-            offset_limits = (5, 5, True) if object_name else (40, 15, False)
+            offset_limits = (5, 5, True) if object_key else (40, 15, False)
 
             # Iterate through the offsets and add the move and place options
             for x in range(

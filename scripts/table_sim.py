@@ -35,8 +35,8 @@ class TableSim:
         self.quiet_mode = rospy.get_param('~quiet_mode', False)
         self.terminal_input = rospy.get_param('~terminal_input', True)
         self.history_buffer = rospy.get_param('~history_buffer', 10)
-        self.sim_seed = rospy.get_param('~seed', None)
 
+        self.sim_seed = rospy.get_param('~seed', None)
         if self.sim_seed == -1:
             self.sim_seed = None
 
@@ -48,6 +48,11 @@ class TableSim:
         return self.state_
 
     def reset_sim(self, req):
+        # In case we want to reset to a different world
+        self.sim_seed = rospy.get_param('~seed', None)
+        if self.sim_seed == -1:
+            self.sim_seed = None
+
         self.init_simulation(self.sim_seed, level=1)
         self.worldUpdate()
         return EmptyResponse()

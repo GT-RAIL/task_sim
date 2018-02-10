@@ -2,13 +2,12 @@
 # This implements Q Learning. The learners are all model-free, but vary in their
 # exploration policies
 
-import pickle
 import random
 import numpy as np
 
 from collections import defaultdict
 
-from task_sim.msg import State, Action, Status
+from task_sim.msg import Status
 
 # Base Q-Learning Agent
 
@@ -87,29 +86,18 @@ class QLearningAgent(object):
         """Reset the agent's state"""
         self.s = self.a = self.r = None
 
-    def save(self, filename):
-        """Save the learned agent to filename"""
-        raise NotImplementedError("Don't know how to save agent to file")
-
-    @staticmethod
-    def load(filename):
-        """Load a saved agent from a filename"""
-        agent = None
-        with open(filename, 'rb') as fd:
-            agent = pickle.load(fd)
-        return agent
 
 
 # Different Q Learners
 
-class EpsilonGreedyQTable(QLearningAgent):
+class EpsilonGreedyQTableAgent(QLearningAgent):
     """Uses epsilon greedy to choose actions during explore/exploit. Store the
     Q table as """
 
     def __init__(self, task, gamma, epsilon=None, alpha=None, default_Q=-10.0):
         """Epsilon is also a lambda expression that takes into account the
         training episode"""
-        super(EpsilonGreedyQTable, self).__init__(task, gamma, alpha)
+        super(EpsilonGreedyQTableAgent, self).__init__(task, gamma, alpha)
 
         # Use a Q table
         self.Q = defaultdict(lambda: float(default_Q))
@@ -125,7 +113,7 @@ class EpsilonGreedyQTable(QLearningAgent):
         # Fetch the best action if we are training, or if the current state that
         # we see now has been seen before
         if train or best_action is None:
-            best_action = max(action_candidates, key=lambda a: Q[self.s, a])
+            best_action = max(action_candidates, key=lambda a: self.Q[self.s, a])
 
         # If we're training, use epsilon to decide if we want to explore.
         # Otherwise, pick the best
@@ -159,10 +147,6 @@ class EpsilonGreedyQTable(QLearningAgent):
         # Iterate through the seen states and actions to update the policy
         for (s,a) in self.Q.iterkeys():
             if self.pi.get(s) is None:
-                action = max(self.actions_in_state(s), key=lambda a: Q[s,a])
+                action = max(self.actions_in_state(s), key=lambda a: self.Q[s,a])
                 self.pi[s] = action
         return self.pi
-
-    def save(self, filename):
-        with open(filename, 'wb') as fd:
-            pickle.dump(self, fd)
