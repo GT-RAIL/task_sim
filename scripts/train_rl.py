@@ -30,7 +30,7 @@ class RLAgentTrainer(object):
         self.num_episodes = rospy.get_param('~num_episodes', 10000)
         self.alter_table_sim = rospy.get_param('~alter_table_sim', True)
         self.rate = rospy.get_param('~rate', -1)
-        self.execute_post_episode = rospy.get_param('~execute_post_episode', 100)
+        self.execute_post_episode = rospy.get_param('~execute_post_episode', 1000)
         self.visdom_config = rospy.get_param(
             '~visdom_config',
             {
@@ -63,8 +63,8 @@ class RLAgentTrainer(object):
             rospy.get_param('~task/1/state_vector_args', {}),
             rospy.get_param('~task/1/subgoal_reward', 500.0),
             rospy.get_param('~task/1/time_penalty', -0.5),
-            rospy.get_param('~task/1/fail_penalty', -100.0),
-            rospy.get_param('~task/1/timeout_penalty', -150.0),
+            rospy.get_param('~task/1/fail_penalty', -110.0),
+            rospy.get_param('~task/1/timeout_penalty', -100.0),
             rospy.get_param('~task/1/timeout', 100)
         )
 
