@@ -27,10 +27,10 @@ class RLAgentTrainer(object):
         rospack = rospkg.RosPack()
 
         # Get the params for training RL Agents and tasks
-        self.num_episodes = rospy.get_param('~num_episodes', 500)
+        self.num_episodes = rospy.get_param('~num_episodes', 10000)
         self.alter_table_sim = rospy.get_param('~alter_table_sim', True)
         self.rate = rospy.get_param('~rate', -1)
-        self.execute_post_episode = rospy.get_param('~execute_post_episode', 3)
+        self.execute_post_episode = rospy.get_param('~execute_post_episode', 500)
         self.visdom_config = rospy.get_param(
             '~visdom_config',
             {'config_file': os.path.join(rospack.get_path('task_sim'), 'data', 'visdom_config.json')}
@@ -45,28 +45,28 @@ class RLAgentTrainer(object):
         self.task = tasks.DebugTask1(
             rospy.get_param('~task/debug1/num_to_grab', 2),
             rospy.get_param('~task/debug1/state_vector_args', {}),
-            rospy.get_param('~task/debug1/grab_reward', 1.0),
-            rospy.get_param('~task/debug1/time_penalty', -0.4),
+            rospy.get_param('~task/debug1/grab_reward', 50.0),
+            rospy.get_param('~task/debug1/time_penalty', -0.8),
             rospy.get_param('~task/debug1/fail_penalty', -1.0),
-            rospy.get_param('~task/debug1/timeout', 30)
+            rospy.get_param('~task/debug1/timeout', 50)
         )
 
         # Params for epsilon-greedy agents.
         # Step decay of alpha.
         # Exponential decay of epsilon
-        epsilon_start = rospy.get_param('~agent/epsilon_start', 0.1)
-        epsilon_decay_factor = rospy.get_param('~agent/epsilon_decay_factor', 0.99)
+        epsilon_start = rospy.get_param('~agent/epsilon_start', 0.9)
+        epsilon_decay_factor = rospy.get_param('~agent/epsilon_decay_factor', 0.999)
         self.agent_epsilon = lambda eps: epsilon_start * (epsilon_decay_factor**eps)
-        alpha_decay_factor = rospy.get_param('~agent/alpha_decay_factor', 10)
-        alpha_start = rospy.get_param('~agent/alpha_start', 0.25)
-        self.agent_alpha = lambda eps: alpha_start * alpha_decay_factor / (alpha_decay_factor + eps)
-        # self.agent_alpha = lambda eps: alpha_start / np.ceil((eps+1)/alpha_decay_factor)
+        alpha_decay_factor = rospy.get_param('~agent/alpha_decay_factor', 1000)
+        alpha_start = rospy.get_param('~agent/alpha_start', 0.1)
+        # self.agent_alpha = lambda eps: alpha_start * alpha_decay_factor / (alpha_decay_factor + eps)
+        self.agent_alpha = lambda eps: alpha_start / np.ceil((eps+1)/alpha_decay_factor)
         self.agent = learners.EpsilonGreedyQTableAgent(
             self.task,
-            rospy.get_param('~agent/gamma', 0.9),
+            rospy.get_param('~agent/gamma', 0.5),
             self.agent_epsilon,
             self.agent_alpha,
-            rospy.get_param('~agent/default_Q', -10.0)
+            rospy.get_param('~agent/default_Q', 0.0)
         )
         self.save_prefix = rospy.get_param('~save_prefix', 'egreedy_q_table')
         self.save_suffix = rospy.get_param('~save_suffix', None)
@@ -106,7 +106,7 @@ class RLAgentTrainer(object):
                 self.task.set_world_state(state, action)
                 reward = self.task.reward()
                 action = self.agent((state, reward), episode=eps, train=True)
-                rospy.loginfo("Reward {}, Executing {}".format(reward, action))
+                rospy.logdebug("Reward {}, Executing {}".format(reward, action))
 
                 action_msg = self.task.create_action_msg(action)
                 state = self.execute(action_msg).state
@@ -120,7 +120,7 @@ class RLAgentTrainer(object):
                 # raw_input()
 
             # Completed an episode
-            rospy.loginfo("Episode {}: Status - {}".format(eps, status))
+            rospy.logdebug("Episode {}: Status - {}".format(eps, status))
 
             # Update pi. Execute a policy and get the cumulative reward
             if self.execute_post_episode > 0 and eps % self.execute_post_episode == 0:
@@ -148,6 +148,12 @@ class RLAgentTrainer(object):
                     "Episode {}: Status - {}, Reward - {}"
                     .format(eps, status, cumulative_reward)
                 )
+                if eps > 0:
+                    d1 = np.array(self.agent.Q.values())
+                    d2 = np.unique(d1, return_counts=True)
+                    for d in zip(*d2):
+                        print(d)
+                    # raw_input()
 
                 # If we should plot the learning params, send to visdom
                 if self.visdom_config.get('should_plot', True):

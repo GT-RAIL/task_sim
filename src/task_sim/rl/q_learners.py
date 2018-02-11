@@ -144,7 +144,7 @@ class EpsilonGreedyQTableAgent(QLearningAgent):
         # Fetch the best action if we are training, or if the current state that
         # we see now has been seen before
         if train or best_action is None:
-            best_action = max(action_candidates, key=lambda a: self.Q[self.s, a])
+            best_action = max(action_candidates, key=lambda a: self.Q[self.s,a])
 
         # If we're training, use epsilon to decide if we want to explore.
         # Otherwise, pick the best
@@ -169,7 +169,7 @@ class EpsilonGreedyQTableAgent(QLearningAgent):
             Q[s1, None] = r1
         elif s is not None:
             Q[s, a] += self.alpha(episode) * (
-                r + gamma*max(Q[s1, a1] for a1 in self.actions_in_state(s1)) - Q[s,a]
+                r1 + gamma*max(Q[s1,a1] for a1 in self.actions_in_state(s1)) - Q[s,a]
             )
 
         return Q
