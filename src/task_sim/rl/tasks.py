@@ -37,7 +37,7 @@ class Task(object):
         """
         raise NotImplementedError("Don't know what actions are available")
 
-    def create_action_msg(self, agent_state, action):
+    def create_action_msg(self, action):
         """
         Given the desired state and action, create an action message
         """
@@ -126,7 +126,7 @@ class DebugTask1(Task):
         # All actions are available at a given state
         return DataUtils.get_action_obj_offset_candidates(self.world_state)
 
-    def create_action_msg(self, agent_state, action):
+    def create_action_msg(self, action):
         # This is simply a wrapper to the DataUtils function
         return DataUtils.msg_from_action_obj_offset(self.world_state, action)
 

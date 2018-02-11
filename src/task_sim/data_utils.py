@@ -398,7 +398,7 @@ class DataUtils:
             if not state_positions and position_semantics:
                 vector.extend([int(state.gripper_open)])
 
-        for i in range(history_buffer):
+        for i in xrange(history_buffer):
             vector.append(state.action_history[len(state.action_history) - i - 1])
             if state.result_history[len(state.result_history) - i - 1]:
                 vector.append(1)

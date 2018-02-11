@@ -129,6 +129,12 @@ class EpsilonGreedyQTableAgent(QLearningAgent):
         else:
             self.epsilon = lambda n: 0.1 * (0.9**n)
 
+    def actions_in_state(self, state):
+        # Add another twist - shuffle the actions randomly
+        actions = super(EpsilonGreedyQTableAgent, self).actions_in_state(state)
+        random.shuffle(actions)
+        return actions
+
     def choose_action(self, episode=None, train=True):
         """Use epsilon-greedy to explore. Choose a random action in an unknown
         state (we can also request an intervention?)"""
