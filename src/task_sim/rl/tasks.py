@@ -173,7 +173,7 @@ class DebugTask1(Task):
             # print("Objects so far", self.grabbed_objects)
             return self.success_reward
 
-        # Check for a fail - if an object has fallen off the gripper
+        # Check for a fail - if an object has fallen off the table
         if self._is_fail():
             return self.fail_penalty
 
@@ -195,3 +195,124 @@ class DebugTask1(Task):
 
         # Otherwise, do a timeout check
         return super(DebugTask1, self).status()
+
+# Main task definitions
+
+class Task1(Task):
+    """
+    Goal is to grab put the batteries and the flashlight in the drawer and the
+    apple in the box.
+    """
+
+    def __init__(
+        self, state_vector_args={},
+        subgoal_reward=100.0, time_penalty=-0.4,
+        fail_penalty=-100.0, timeout_penalty=-100.0,
+        timeout=100
+    ):
+        super(Task1, self).__init__(
+            0.0, # Success Reward
+            timeout_penalty,
+            time_penalty, # Default Reward,
+            timeout
+        )
+        self.subgoal_reward = subgoal_reward
+        self.fail_penalty = fail_penalty
+        self.state_vector_args = state_vector_args
+        self._drawer_objective_rewarded = False
+        self._box_objective_rewarded = False
+
+    def _is_fail(self):
+        failed = False
+        for obj in self.world_state.objects:
+            failed = failed or obj.lost
+        return failed
+
+    def _is_drawer_complete(self):
+        for obj in self.world_state.objects:
+            if obj.name.lower() == 'batteries':
+                battery = obj
+            if obj.name.lower() == 'flashlight':
+                flashlight = obj
+
+        return (
+            battery.in_drawer
+            and flashlight.in_drawer
+            and self.world_state.drawer_opening == 0
+        )
+
+    def _is_box_complete(self):
+        for obj in self.world_state.objects:
+            if obj.name.lower() == 'apple':
+                apple = obj
+                break
+
+        return (
+            apple.in_box
+            and self.world_state.box_position.x == self.world_state.lid_position.x
+            and self.world_state.box_position.y == self.world_state.lid_position.y
+        )
+
+
+    def actions(self, agent_state):
+        # All actions are available at a given state
+
+        # Action, Object, Offset
+        # return DataUtils.get_action_obj_offset_candidates(self.world_state)
+
+        # Action, Object, Target
+        return DataUtils.get_semantic_action_candidates(self.world_state)
+
+    def create_action_msg(self, action):
+        # This is simply a wrapper to the DataUtils function
+
+        # Action, Object, Offset
+        # return DataUtils.msg_from_action_obj_offset(self.world_state, action)
+
+        # Action, Object, Target
+        return DataUtils.msg_from_semantic_action(self.world_state, action)
+
+    def get_agent_state(self):
+        return tuple(DataUtils.naive_state_vector(
+            self.world_state,
+            state_positions=self.state_vector_args.get('state_positions', False),
+            state_semantics=self.state_vector_args.get('state_semantics', True),
+            position_semantics=self.state_vector_args.get('position_semantics', True),
+            history_buffer=self.state_vector_args.get('history_buffer', 0),
+        ))
+
+    def reset(self):
+        super(Task1, self).reset()
+        self._drawer_objective_rewarded = self._box_objective_rewarded = False
+
+    def reward(self):
+        # Check for an unrewarded subgoal success
+        if self._is_drawer_complete() and not self._drawer_objective_rewarded:
+            print("Rewarding DRAWER")
+            self._drawer_objective_rewarded = True
+            return self.subgoal_reward
+
+        if self._is_box_complete() and not self._box_objective_rewarded:
+            print("Rewarding BOX")
+            self._box_objective_rewarded = True
+            return self.subgoal_reward
+
+        # Check for a fail
+        if self._is_fail():
+            return self.fail_penalty
+
+        # Check for a timeout
+        return super(Task1, self).reward()
+
+
+    def status(self):
+        # Check if all subgoals are fulfilled at the moment
+        if self._is_drawer_complete() and self._is_box_complete():
+            return Status.COMPLETED
+
+        # Check if we've failed
+        if self._is_fail():
+            return Status.FAILED
+
+        # Otherwise do a timeout check
+        return super(Task1, self).status()

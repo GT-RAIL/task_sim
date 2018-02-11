@@ -17,7 +17,8 @@ import visdom
 class VisdomVisualize():
     def __init__(self, env_name='main', port=8000, server="http://localhost",
                  rewrite_windows=True,
-                 config_file='data/visdom_config.json'):
+                 config_file='data/visdom_config.json',
+                 *args, **kwargs):
         '''
             Initialize a visdom server on $server:$port. If `rewrite_windows`,
             then the window names will be reinitialized before every run
