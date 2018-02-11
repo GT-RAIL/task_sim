@@ -27,10 +27,10 @@ class RLAgentTrainer(object):
         rospack = rospkg.RosPack()
 
         # Get the params for training RL Agents and tasks
-        self.num_episodes = rospy.get_param('~num_episodes', 1000)
+        self.num_episodes = rospy.get_param('~num_episodes', 10000)
         self.alter_table_sim = rospy.get_param('~alter_table_sim', True)
         self.rate = rospy.get_param('~rate', -1)
-        self.execute_post_episode = rospy.get_param('~execute_post_episode', 50)
+        self.execute_post_episode = rospy.get_param('~execute_post_episode', 100)
         self.visdom_config = rospy.get_param(
             '~visdom_config',
             {'config_file': os.path.join(rospack.get_path('task_sim'), 'data', 'visdom_config.json')}
@@ -45,8 +45,8 @@ class RLAgentTrainer(object):
         self.task = tasks.DebugTask1(
             rospy.get_param('~task/debug1/num_to_grab', 2),
             rospy.get_param('~task/debug1/state_vector_args', {}),
-            rospy.get_param('~task/debug1/grab_reward', 10.0),
-            rospy.get_param('~task/debug1/time_penalty', -0.8),
+            rospy.get_param('~task/debug1/grab_reward', 1.0),
+            rospy.get_param('~task/debug1/time_penalty', -0.4),
             rospy.get_param('~task/debug1/fail_penalty', -1.0),
             rospy.get_param('~task/debug1/timeout', 50)
         )
@@ -54,13 +54,14 @@ class RLAgentTrainer(object):
         # Params for epsilon-greedy agents.
         # Step decay of alpha.
         # Exponential decay of epsilon
-        epsilon_start = rospy.get_param('~agent/epsilon_start', 0.5)
-        epsilon_decay_factor = rospy.get_param('~agent/epsilon_decay_factor', 0.99)
-        self.agent_epsilon = lambda eps: epsilon_start * (epsilon_decay_factor**(eps//10))
-        alpha_decay_factor = rospy.get_param('~agent/alpha_decay_factor', 50)
+        epsilon_start = rospy.get_param('~agent/epsilon_start', 0.9)
+        epsilon_decay_factor = rospy.get_param('~agent/epsilon_decay_factor', 0.995)
+        self.agent_epsilon = lambda eps: epsilon_start * (epsilon_decay_factor**(eps//100))
+        alpha_decay_factor = rospy.get_param('~agent/alpha_decay_factor', 100)
         alpha_start = rospy.get_param('~agent/alpha_start', 0.1)
         # self.agent_alpha = lambda eps: alpha_start * alpha_decay_factor / (alpha_decay_factor + eps)
-        self.agent_alpha = lambda eps: alpha_start / np.ceil((eps+1)/alpha_decay_factor)
+        # self.agent_alpha = lambda eps: alpha_start / np.ceil((eps+1)/alpha_decay_factor)
+        self.agent_alpha = lambda eps: alpha_start / ((eps//alpha_decay_factor) + 1)
         self.agent = learners.EpsilonGreedyQTableAgent(
             self.task,
             rospy.get_param('~agent/gamma', 0.9),
@@ -119,8 +120,6 @@ class RLAgentTrainer(object):
                 if self.rate > 0:
                     sleep_rate.sleep()
 
-                # raw_input()
-
             # Completed an episode
             rospy.logdebug("Episode {}: Status - {}".format(eps, status))
 
@@ -171,7 +170,7 @@ class RLAgentTrainer(object):
                     self.viz.append_data(
                         eps, cumulative_reward, 'reward', 'reward', 'Episode'
                     )
-                raw_input()
+                # raw_input()
 
             self.task.reset()
             self.agent.reset()
