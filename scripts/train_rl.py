@@ -16,6 +16,7 @@ from std_srvs.srv import Empty
 from task_sim.msg import State, Action, Status
 from task_sim.srv import Execute, QueryState
 from task_sim.rl import tasks, learners
+from task_sim.visdom_visualize import VisdomVisualize
 
 # Create a node to interface between the agent and the task simulator
 
@@ -30,6 +31,11 @@ class RLAgentTrainer(object):
         self.alter_table_sim = rospy.get_param('~alter_table_sim', True)
         self.rate = rospy.get_param('~rate', -1)
         self.execute_post_episode = rospy.get_param('~execute_post_episode', 3)
+        self.visdom_config = rospy.get_param(
+            '~visdom_config',
+            {'config_file': os.path.join(rospack.get_path('task_sim'), 'data', 'visdom_config.json')}
+        )
+        self.viz = VisdomVisualize(**self.visdom_config)
 
         # Params for the DebugTask1
         self.save_path = rospy.get_param(
@@ -40,7 +46,7 @@ class RLAgentTrainer(object):
             rospy.get_param('~task/debug1/num_to_grab', 2),
             rospy.get_param('~task/debug1/state_vector_args', {}),
             rospy.get_param('~task/debug1/grab_reward', 1.0),
-            rospy.get_param('~task/debug1/time_penalty', -0.04),
+            rospy.get_param('~task/debug1/time_penalty', -0.4),
             rospy.get_param('~task/debug1/fail_penalty', -1.0),
             rospy.get_param('~task/debug1/timeout', 30)
         )
@@ -53,8 +59,8 @@ class RLAgentTrainer(object):
         self.agent_epsilon = lambda eps: epsilon_start * (epsilon_decay_factor**eps)
         alpha_decay_factor = rospy.get_param('~agent/alpha_decay_factor', 10)
         alpha_start = rospy.get_param('~agent/alpha_start', 0.25)
-        # self.agent_alpha = lambda eps: alpha_start * alpha_decay_factor / (alpha_decay_factor + eps)
-        self.agent_alpha = lambda eps: alpha_start / np.ceil(eps/alpha_decay_factor)
+        self.agent_alpha = lambda eps: alpha_start * alpha_decay_factor / (alpha_decay_factor + eps)
+        # self.agent_alpha = lambda eps: alpha_start / np.ceil((eps+1)/alpha_decay_factor)
         self.agent = learners.EpsilonGreedyQTableAgent(
             self.task,
             rospy.get_param('~agent/gamma', 0.9),
@@ -70,12 +76,22 @@ class RLAgentTrainer(object):
         self.query_state = rospy.ServiceProxy('table_sim/query_state', QueryState)
         self.reset_simulation = rospy.ServiceProxy('table_sim/reset_simulation', Empty)
 
+
     def train(self):
         if self.rate > 0:
             sleep_rate = rospy.Rate(self.rate)
 
         # Get through all the training episodes and then save the agent
         for eps in xrange(self.num_episodes):
+
+            # If we should plot the learning params, send to visdom
+            if self.visdom_config.get('should_plot', True):
+                self.viz.append_data(
+                    eps, self.agent_epsilon(eps), 'epsilon', 'epsilon', 'Episode'
+                )
+                self.viz.append_data(
+                    eps, self.agent_alpha(eps), 'alpha', 'alpha', 'Episode'
+                )
 
             # If this node must reset the world after every simulation, then
             if self.alter_table_sim:
@@ -132,8 +148,12 @@ class RLAgentTrainer(object):
                     "Episode {}: Status - {}, Reward - {}"
                     .format(eps, status, cumulative_reward)
                 )
-                raw_input()
 
+                # If we should plot the learning params, send to visdom
+                if self.visdom_config.get('should_plot', True):
+                    self.viz.append_data(
+                        eps, cumulative_reward, 'reward', 'reward', 'Episode'
+                    )
 
             self.task.reset()
             self.agent.reset()
