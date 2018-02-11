@@ -288,12 +288,12 @@ class Task1(Task):
     def reward(self):
         # Check for an unrewarded subgoal success
         if self._is_drawer_complete() and not self._drawer_objective_rewarded:
-            print("Rewarding DRAWER")
+            rospy.logdebug("Rewarding DRAWER")
             self._drawer_objective_rewarded = True
             return self.subgoal_reward
 
         if self._is_box_complete() and not self._box_objective_rewarded:
-            print("Rewarding BOX")
+            rospy.logdebug("Rewarding BOX")
             self._box_objective_rewarded = True
             return self.subgoal_reward
 
