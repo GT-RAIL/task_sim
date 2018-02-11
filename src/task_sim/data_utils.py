@@ -378,7 +378,7 @@ class DataUtils:
         return vec
 
     @staticmethod
-    def naive_state_vector(state, state_positions=True, state_semantics=True, history_buffer=0):
+    def naive_state_vector(state, state_positions=True, state_semantics=True, history_buffer=0, position_semantics=False):
         """Convert a state message into a simple feature vector."""
         vector = []
         for obj in state.objects:
@@ -386,6 +386,8 @@ class DataUtils:
                 vector.extend([obj.position.x, obj.position.y, obj.position.z, int(obj.occluded), int(obj.lost)])
             if state_semantics:
                 vector.extend([int(obj.in_drawer), int(obj.in_box), int(obj.on_lid), int(obj.in_gripper)])
+                if not state_positions and position_semantics:
+                    vector.extend([int(obj.occluded), int(obj.lost)])
         if state_positions:
             vector.extend([state.drawer_position.x, state.drawer_position.y, state.drawer_position.theta,
                            state.drawer_opening, state.box_position.x, state.box_position.y, state.box_position.z,
@@ -393,6 +395,8 @@ class DataUtils:
                            state.gripper_position.y, state.gripper_position.z, int(state.gripper_open)])
         if state_semantics:
             vector.extend([DataUtils.name_to_int(state.object_in_gripper)])
+            if not state_positions and position_semantics:
+                vector.extend([int(state.gripper_open)])
 
         for i in range(history_buffer):
             vector.append(state.action_history[len(state.action_history) - i - 1])
@@ -755,10 +759,14 @@ class DataUtils:
 
             # Update the position in the action object
             action.position.x = (
-                found_pos.x if found_pos else action_obj_offset[2][0]
+                found_pos.x + action_obj_offset[2][0]
+                if found_pos
+                else action_obj_offset[2][0]
             )
             action.position.y = (
-                found_pos.y if found_pos else action_obj_offset[2][1]
+                found_pos.y + action_obj_offset[2][1]
+                if found_pos
+                else action_obj_offset[2][1]
             )
 
         # We're done. Return the action

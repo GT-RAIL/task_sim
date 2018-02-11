@@ -27,15 +27,17 @@ class Task(object):
         self.fail_penalty = fail_penalty
         self.default_reward = default_reward
         self.num_steps = 0
+        self.world_state = None
+        self.action = None
 
-    def actions(self, state):
+    def actions(self, agent_state):
         """
         Return the actions available to the agent at the state. The action
         representation is upto the task specification. Returns a list
         """
         raise NotImplementedError("Don't know what actions are available")
 
-    def create_action_msg(self, state, action):
+    def create_action_msg(self, agent_state, action):
         """
         Given the desired state and action, create an action message
         """
@@ -45,16 +47,25 @@ class Task(object):
         """Explicit call to increment the number of timesteps that occurred"""
         self.num_steps += 1
 
-    def reset_task_state(self):
+    def reset(self):
         """Reset the task state for another iteration"""
         self.num_steps = 0
+        self.world_state = self.action = None
 
-    def R(self, state, action=None):
+    def set_world_state(self, world_state, action):
+        """Set the world state"""
+        self.world_state = world_state
+        self.action = action
+
+    def get_agent_state(self):
+        """Given a world state, returns the agent's observation model. By
+        default the agent has access to the complete world state"""
+        return self.world_state
+
+    def reward(self):
         """
         Reward at state. Optional action makes this into the reward for
-        performing the action at state.
-        state:  some state specification
-        action: some action specification
+        performing the action at state. **MUST `set_world_state` before this**
         return: float
         """
         if self.num_steps >= self.timeout:
@@ -62,7 +73,7 @@ class Task(object):
 
         return self.default_reward
 
-    def status(self, state):
+    def status(self):
         """
         Returns a Status code of whether the task is complete or not
         state:  some state specification
@@ -88,7 +99,8 @@ class DebugTask1(Task):
 
     def __init__(
         self,
-        num_to_grab=2, grab_reward=1, time_penalty=-0.04,
+        num_to_grab=2, state_vector_args={},
+        grab_reward=1, time_penalty=-0.04,
         fail_penalty=-1, timeout=100
     ):
         super(DebugTask1, self).__init__(
@@ -98,65 +110,75 @@ class DebugTask1(Task):
             timeout
         )
 
+        self.state_vector_args = state_vector_args
         self.grabbed_objects = []
         self.num_to_grab = num_to_grab
         self.object_in_gripper = ''
 
-    def _is_fail(self, state):
+    def _is_fail(self):
         """Failure condition if any of the objects is lost"""
         failed = False
-        for obj in state.objects:
+        for obj in self.world_state.objects:
             failed = failed or obj.lost
         return failed
 
-    def actions(self, state):
+    def actions(self, agent_state):
         # All actions are available at a given state
-        return DataUtils.get_action_obj_offset_candidates(state)
+        return DataUtils.get_action_obj_offset_candidates(self.world_state)
 
-    def create_action_msg(self, state, action):
+    def create_action_msg(self, agent_state, action):
         # This is simply a wrapper to the DataUtils function
-        return DataUtils.msg_from_action_obj_offset(state, action)
+        return DataUtils.msg_from_action_obj_offset(self.world_state, action)
 
-    def reset_task_state(self):
-        super(DebugTask1, self).reset_task_state()
+    def get_agent_state(self):
+        return tuple(DataUtils.naive_state_vector(
+            self.world_state,
+            state_positions=self.state_vector_args.get('state_positions', False),
+            state_semantics=self.state_vector_args.get('state_semantics', True),
+            position_semantics=self.state_vector_args.get('position_semantics', True),
+            history_buffer=self.state_vector_args.get('history_buffer', 0),
+        ))
+
+    def reset(self):
+        super(DebugTask1, self).reset()
         self.grabbed_objects = []
         self.object_in_gripper = ''
 
-    def R(self, state, action=None):
+    def reward(self):
         # First check to see if there was an object that we were tracking and
         # if that object has been released. Also make sure that the object in
         # the gripper is a grabbable object and not one we have grabbed before.
         if (
             self.object_in_gripper
-            and not state.object_in_gripper
+            and not self.world_state.object_in_gripper
             and self.object_in_gripper in DebugTask1.GRABBABLE_OBJECTS
             and self.object_in_gripper not in self.grabbed_objects
         ):
             # This is a valid grab that should be rewarded. Update the list of
             # objects that have been grabbed
             self.grabbed_objects.append(self.object_in_gripper)
-            self.object_in_gripper = state.object_in_gripper
+            self.object_in_gripper = self.world_state.object_in_gripper
             return self.success_reward
 
         # Check for a fail - if an object has fallen off the gripper
-        if self._is_fail(state):
+        if self._is_fail():
             return self.fail_penalty
 
         # Update the object in the gripper
-        self.object_in_gripper = state.object_in_gripper
+        self.object_in_gripper = self.world_state.object_in_gripper
 
         # Return the default reward post timeout check
-        return super(DebugTask1, self).R(state, action)
+        return super(DebugTask1, self).reward()
 
-    def status(self, state):
+    def status(self):
         # Check to see if we've picked up the requisite number of grabbable
         # objects.
         if len(self.grabbed_objects) >= self.num_to_grab:
             return Status.COMPLETED
 
         # Check for a fail
-        if self._is_fail(state):
+        if self._is_fail():
             return Status.FAILED
 
         # Otherwise, do a timeout check
-        return super(DebugTask1, self).status(state)
+        return super(DebugTask1, self).status()
