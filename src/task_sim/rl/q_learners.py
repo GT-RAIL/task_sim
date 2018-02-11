@@ -2,6 +2,8 @@
 # This implements Q Learning. The learners are all model-free, but vary in their
 # exploration policies
 
+from __future__ import division, print_function
+
 import copy
 import pickle
 import random

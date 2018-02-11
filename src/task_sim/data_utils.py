@@ -586,9 +586,6 @@ class DataUtils:
 
         return position
 
-
-
-
     @staticmethod
     def create_combined_action(action_type, object, target, state):
         """Combined Action is an integer with the action params specified by the
@@ -716,10 +713,45 @@ class DataUtils:
     @staticmethod
     def get_semantic_action_candidates(state):
         """Given a state, this returns the possible semantic action candidates
-        that can be used by `semantic_action_to_position()`"""
-        # TODO: This should be implemented later depending on performance of the
-        # other action representation
-        pass
+        that can be used by `semantic_action_to_position()`. Parameters are
+        (action, object, target)"""
+        action_candidates = [(Action.NOOP, None, None)]
+
+        # Open, Close Gripper
+        action_candidates.extend([
+            (Action.OPEN_GRIPPER, None, None,),
+            (Action.CLOSE_GRIPPER, None, None),
+        ])
+
+        # Raise, Lower, Reset Arm
+        action_candidates.extend([
+            (Action.RAISE_ARM, None, None),
+            (Action.LOWER_ARM, None, None),
+            (Action.RESET_ARM, None, None),
+        ])
+
+        # Grasp
+        for object_key in DataUtils.object_to_int_map.iterkeys():
+            if not object_key: # Table/Empty object name
+                continue
+
+            # Do not allow a grasp on 'Handle' because it's the same as 'Drawer'
+            if object_key == 'handle':
+                continue
+
+            # Allow the box as a candidate, this should fail
+            action_candidates.append(
+                (Action.GRASP, DataUtils.object_name_from_key(object_key), None)
+            )
+
+        # Move, Place
+        for object_key in DataUtils.object_to_int_map.iterkeys():
+            action_candidates.extend([
+                (Action.PLACE, None, DataUtils.object_name_from_key(object_key)),
+                (Action.MOVE_ARM, None, DataUtils.object_name_from_key(object_key)),
+            ])
+
+        return action_candidates
 
     @staticmethod
     def msg_from_action_obj_offset(state, action_obj_offset):
@@ -770,4 +802,25 @@ class DataUtils:
             )
 
         # We're done. Return the action
+        return action
+
+    @staticmethod
+    def msg_from_semantic_action(state, semantic_action):
+        """Takes an action parameterization from
+        `get_semantic_action_candidates` and creates and Action message"""
+        action = Action()
+        action.action_type = semantic_action[0]
+
+        # Grab the object if it's a grasp
+        if action.action_type in [Action.GRASP]:
+            action.object = semantic_action[1]
+
+        # Use the semantic_action_to_position to get a position for MOVE, PLACE
+        if action.action_type in [Action.MOVE_ARM, Action.PLACE]:
+            position = DataUtils.semantic_action_to_position(
+                state, semantic_action[2]
+            )
+            action.position.x = position.x
+            action.position.y = position.y
+
         return action

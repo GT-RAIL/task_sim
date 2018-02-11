@@ -27,10 +27,10 @@ class RLAgentTrainer(object):
         rospack = rospkg.RosPack()
 
         # Get the params for training RL Agents and tasks
-        self.num_episodes = rospy.get_param('~num_episodes', 10000)
+        self.num_episodes = rospy.get_param('~num_episodes', 1000)
         self.alter_table_sim = rospy.get_param('~alter_table_sim', True)
         self.rate = rospy.get_param('~rate', -1)
-        self.execute_post_episode = rospy.get_param('~execute_post_episode', 100)
+        self.execute_post_episode = rospy.get_param('~execute_post_episode', 50)
         self.visdom_config = rospy.get_param(
             '~visdom_config',
             {'config_file': os.path.join(rospack.get_path('task_sim'), 'data', 'visdom_config.json')}
@@ -46,7 +46,7 @@ class RLAgentTrainer(object):
             rospy.get_param('~task/debug1/num_to_grab', 2),
             rospy.get_param('~task/debug1/state_vector_args', {}),
             rospy.get_param('~task/debug1/grab_reward', 10.0),
-            rospy.get_param('~task/debug1/time_penalty', -0.4),
+            rospy.get_param('~task/debug1/time_penalty', -0.8),
             rospy.get_param('~task/debug1/fail_penalty', -1.0),
             rospy.get_param('~task/debug1/timeout', 50)
         )
@@ -54,10 +54,10 @@ class RLAgentTrainer(object):
         # Params for epsilon-greedy agents.
         # Step decay of alpha.
         # Exponential decay of epsilon
-        epsilon_start = rospy.get_param('~agent/epsilon_start', 0.9)
-        epsilon_decay_factor = rospy.get_param('~agent/epsilon_decay_factor', 0.999)
-        self.agent_epsilon = lambda eps: epsilon_start * (epsilon_decay_factor**eps)
-        alpha_decay_factor = rospy.get_param('~agent/alpha_decay_factor', 1000)
+        epsilon_start = rospy.get_param('~agent/epsilon_start', 0.5)
+        epsilon_decay_factor = rospy.get_param('~agent/epsilon_decay_factor', 0.99)
+        self.agent_epsilon = lambda eps: epsilon_start * (epsilon_decay_factor**(eps//10))
+        alpha_decay_factor = rospy.get_param('~agent/alpha_decay_factor', 50)
         alpha_start = rospy.get_param('~agent/alpha_start', 0.1)
         # self.agent_alpha = lambda eps: alpha_start * alpha_decay_factor / (alpha_decay_factor + eps)
         self.agent_alpha = lambda eps: alpha_start / np.ceil((eps+1)/alpha_decay_factor)
@@ -99,13 +99,11 @@ class RLAgentTrainer(object):
             self.reset_simulation()
 
             # Start the process of training the agent
-            status = Status.IN_PROGRESS
             action = action_msg = None
             state = self.query_state().state
+            self.task.set_world_state(state, action)
+            status = self.task.status()
             while status == Status.IN_PROGRESS:
-                self.task.set_world_state(state, action)
-                status = self.task.status()
-
                 reward = self.task.reward()
                 action = self.agent((state, reward), episode=eps, train=True)
                 rospy.logdebug("Reward {}, Executing {}".format(reward, action))
@@ -114,6 +112,9 @@ class RLAgentTrainer(object):
                     action_msg = self.task.create_action_msg(action)
                     state = self.execute(action_msg).state
                     self.task.increment_steps()
+                    self.task.set_world_state(state, action)
+
+                status = self.task.status()
 
                 if self.rate > 0:
                     sleep_rate.sleep()
@@ -124,7 +125,8 @@ class RLAgentTrainer(object):
             rospy.logdebug("Episode {}: Status - {}".format(eps, status))
 
             # Update pi. Execute a policy and get the cumulative reward
-            if self.execute_post_episode > 0 and eps % self.execute_post_episode == 0:
+            if self.execute_post_episode > 0 \
+            and (eps+1) % self.execute_post_episode == 0:
                 self.agent.update_pi()
 
                 self.task.reset()
@@ -132,12 +134,12 @@ class RLAgentTrainer(object):
                 self.reset_simulation()
 
                 cumulative_reward = 0.0
-                status = Status.IN_PROGRESS
                 state = self.query_state().state
+                prev_state = None
                 action = None
+                self.task.set_world_state(state, action)
+                status = self.task.status()
                 while status == Status.IN_PROGRESS:
-                    self.task.set_world_state(state, action)
-                    status = self.task.status()
                     reward = self.task.reward()
                     cumulative_reward += reward
                     action = self.agent((state, reward), train=False)
@@ -145,8 +147,12 @@ class RLAgentTrainer(object):
 
                     if action is not None:
                         action_msg = self.task.create_action_msg(action)
+                        prev_state = state
                         state = self.execute(action_msg).state
+                        self.task.set_world_state(state, action)
                         self.task.increment_steps()
+
+                    status = self.task.status()
 
                 rospy.loginfo(
                     "Episode {}: Status - {}, Reward - {}"
@@ -165,6 +171,7 @@ class RLAgentTrainer(object):
                     self.viz.append_data(
                         eps, cumulative_reward, 'reward', 'reward', 'Episode'
                     )
+                raw_input()
 
             self.task.reset()
             self.agent.reset()

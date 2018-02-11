@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # Stores the tasks for each of the learners
 
+from __future__ import division, print_function
+
 import sys
 import os
 import numpy as np
@@ -124,11 +126,21 @@ class DebugTask1(Task):
 
     def actions(self, agent_state):
         # All actions are available at a given state
-        return DataUtils.get_action_obj_offset_candidates(self.world_state)
+
+        # Action, Object, Offset
+        # return DataUtils.get_action_obj_offset_candidates(self.world_state)
+
+        # Action, Object, Target
+        return DataUtils.get_semantic_action_candidates(self.world_state)
 
     def create_action_msg(self, action):
         # This is simply a wrapper to the DataUtils function
-        return DataUtils.msg_from_action_obj_offset(self.world_state, action)
+
+        # Action, Object, Offset
+        # return DataUtils.msg_from_action_obj_offset(self.world_state, action)
+
+        # Action, Object, Target
+        return DataUtils.msg_from_semantic_action(self.world_state, action)
 
     def get_agent_state(self):
         return tuple(DataUtils.naive_state_vector(
@@ -158,7 +170,7 @@ class DebugTask1(Task):
             # objects that have been grabbed
             self.grabbed_objects.append(self.object_in_gripper)
             self.object_in_gripper = self.world_state.object_in_gripper
-            print("Objects so far", self.grabbed_objects)
+            # print("Objects so far", self.grabbed_objects)
             return self.success_reward
 
         # Check for a fail - if an object has fallen off the gripper
