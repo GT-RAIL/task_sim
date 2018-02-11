@@ -132,12 +132,18 @@ class EpsilonGreedyQTableAgent(QLearningAgent):
     def actions_in_state(self, state):
         # Add another twist - shuffle the actions randomly
         actions = super(EpsilonGreedyQTableAgent, self).actions_in_state(state)
-        random.shuffle(actions)
+        # random.shuffle(actions)
         return actions
 
     def choose_action(self, episode=None, train=True):
         """Use epsilon-greedy to explore. Choose a random action in an unknown
         state (we can also request an intervention?)"""
+
+        # Don't choose an action if we are done
+        if self.task.status() != Status.IN_PROGRESS:
+            return None
+
+        # Otherwise, choose the best action unless we want to explore
         action = best_action = self.pi.get(self.s, None)
         action_candidates = self.actions_in_state(self.s)
 
@@ -167,19 +173,23 @@ class EpsilonGreedyQTableAgent(QLearningAgent):
         # Check to see if this is the end. Else update the Q value
         if self.task.status() != Status.IN_PROGRESS:
             Q[s1, None] = r1
+            Q[s,a] = self.alpha(episode) * (r + gamma*Q[s1,None] - Q[s,a])
         elif s is not None:
             Q[s, a] += self.alpha(episode) * (
-                r1 + gamma*max(Q[s1,a1] for a1 in self.actions_in_state(s1)) - Q[s,a]
+                r + gamma*max(Q[s1,a1] for a1 in self.actions_in_state(s1)) - Q[s,a]
             )
 
         return Q
 
     def update_pi(self):
         # Iterate through the seen states and actions to update the policy
+        known_sa = defaultdict(list)
         for (s,a) in self.Q.iterkeys():
-            if self.pi.get(s) is None:
-                action = max(self.actions_in_state(s), key=lambda a: self.Q[s,a])
-                self.pi[s] = action
+            known_sa[s].append(a)
+
+        for s in known_sa.iterkeys():
+            action = max(known_sa[s], key=lambda a: self.Q[s,a])
+            self.pi[s] = action
         return self.pi
 
     def save(self, filename):

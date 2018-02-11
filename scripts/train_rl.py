@@ -30,7 +30,7 @@ class RLAgentTrainer(object):
         self.num_episodes = rospy.get_param('~num_episodes', 10000)
         self.alter_table_sim = rospy.get_param('~alter_table_sim', True)
         self.rate = rospy.get_param('~rate', -1)
-        self.execute_post_episode = rospy.get_param('~execute_post_episode', 500)
+        self.execute_post_episode = rospy.get_param('~execute_post_episode', 100)
         self.visdom_config = rospy.get_param(
             '~visdom_config',
             {'config_file': os.path.join(rospack.get_path('task_sim'), 'data', 'visdom_config.json')}
@@ -45,8 +45,8 @@ class RLAgentTrainer(object):
         self.task = tasks.DebugTask1(
             rospy.get_param('~task/debug1/num_to_grab', 2),
             rospy.get_param('~task/debug1/state_vector_args', {}),
-            rospy.get_param('~task/debug1/grab_reward', 50.0),
-            rospy.get_param('~task/debug1/time_penalty', -0.8),
+            rospy.get_param('~task/debug1/grab_reward', 10.0),
+            rospy.get_param('~task/debug1/time_penalty', -0.4),
             rospy.get_param('~task/debug1/fail_penalty', -1.0),
             rospy.get_param('~task/debug1/timeout', 50)
         )
@@ -63,7 +63,7 @@ class RLAgentTrainer(object):
         self.agent_alpha = lambda eps: alpha_start / np.ceil((eps+1)/alpha_decay_factor)
         self.agent = learners.EpsilonGreedyQTableAgent(
             self.task,
-            rospy.get_param('~agent/gamma', 0.5),
+            rospy.get_param('~agent/gamma', 0.9),
             self.agent_epsilon,
             self.agent_alpha,
             rospy.get_param('~agent/default_Q', 0.0)
@@ -104,15 +104,16 @@ class RLAgentTrainer(object):
             state = self.query_state().state
             while status == Status.IN_PROGRESS:
                 self.task.set_world_state(state, action)
+                status = self.task.status()
+
                 reward = self.task.reward()
                 action = self.agent((state, reward), episode=eps, train=True)
                 rospy.logdebug("Reward {}, Executing {}".format(reward, action))
 
-                action_msg = self.task.create_action_msg(action)
-                state = self.execute(action_msg).state
-
-                status = self.task.status()
-                self.task.increment_steps()
+                if action is not None:
+                    action_msg = self.task.create_action_msg(action)
+                    state = self.execute(action_msg).state
+                    self.task.increment_steps()
 
                 if self.rate > 0:
                     sleep_rate.sleep()
@@ -136,24 +137,28 @@ class RLAgentTrainer(object):
                 action = None
                 while status == Status.IN_PROGRESS:
                     self.task.set_world_state(state, action)
+                    status = self.task.status()
                     reward = self.task.reward()
                     cumulative_reward += reward
                     action = self.agent((state, reward), train=False)
-                    action_msg = self.task.create_action_msg(action)
-                    state = self.execute(action_msg).state
-                    status = self.task.status()
-                    self.task.increment_steps()
+                    rospy.loginfo("\tExecuting {}".format(action))
+
+                    if action is not None:
+                        action_msg = self.task.create_action_msg(action)
+                        state = self.execute(action_msg).state
+                        self.task.increment_steps()
 
                 rospy.loginfo(
                     "Episode {}: Status - {}, Reward - {}"
                     .format(eps, status, cumulative_reward)
                 )
-                if eps > 0:
-                    d1 = np.array(self.agent.Q.values())
-                    d2 = np.unique(d1, return_counts=True)
-                    for d in zip(*d2):
-                        print(d)
-                    # raw_input()
+                # DEBUG Q Table
+                # if eps > 0:
+                #     d1 = np.array(self.agent.Q.values())
+                #     d2 = np.unique(d1, return_counts=True)
+                #     for d in zip(*d2):
+                #         print(d)
+                #     raw_input()
 
                 # If we should plot the learning params, send to visdom
                 if self.visdom_config.get('should_plot', True):

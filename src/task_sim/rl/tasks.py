@@ -158,6 +158,7 @@ class DebugTask1(Task):
             # objects that have been grabbed
             self.grabbed_objects.append(self.object_in_gripper)
             self.object_in_gripper = self.world_state.object_in_gripper
+            print("Objects so far", self.grabbed_objects)
             return self.success_reward
 
         # Check for a fail - if an object has fallen off the gripper

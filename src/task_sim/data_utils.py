@@ -660,7 +660,7 @@ class DataUtils:
 
         Input state is of type task_sim.State
         """
-        action_candidates = []
+        action_candidates = [(Action.NOOP, None, None)]
 
         # Open, Close Gripper
         action_candidates.extend([
@@ -699,12 +699,12 @@ class DataUtils:
 
             # Iterate through the offsets and add the move and place options
             for x in range(
-                -offset_limits[0] if offset_limits[2] else 0,
-                offset_limits[0]+1 if offset_limits[2] else offset_limits[0]
+                -offset_limits[0] if offset_limits[-1] else 0,
+                offset_limits[0]+1 if offset_limits[-1] else offset_limits[0]
             ):
                 for y in range(
-                    -offset_limits[1] if offset_limits[2] else 0,
-                    offset_limits[1]+1 if offset_limits[2] else offset_limits[1]
+                    -offset_limits[1] if offset_limits[-1] else 0,
+                    offset_limits[1]+1 if offset_limits[-1] else offset_limits[1]
                 ):
                     action_candidates.extend([
                         (Action.PLACE, DataUtils.object_name_from_key(object_key), (x,y)),
