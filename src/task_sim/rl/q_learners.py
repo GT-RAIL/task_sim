@@ -26,12 +26,13 @@ class QLearningAgent(object):
     function.
     """
 
-    def __init__(self, task, gamma, alpha=None):
+    def __init__(self, task, gamma, alpha=None, viz=None, *args, **kwargs):
         """
         Arguments:
         :task: Task definition in `tasks.py`
         :gamma: Float for the discount factor of the agent
         :alpha: Lambda expression for a learning rate.
+        :viz: Visdom object to visualize data
 
         Other Effects:
         :Q: Default - None. Q values for states. Either parameterized or a table
@@ -51,6 +52,8 @@ class QLearningAgent(object):
             self.alpha = alpha
         else:
             self.alpha = lambda n: 1./(1+n)  # udacity video
+
+        self.viz = viz
 
     def choose_action(self, episode=None, train=True):
         """
@@ -116,10 +119,14 @@ class EpsilonGreedyQTableAgent(QLearningAgent):
     """Uses epsilon greedy to choose actions during explore/exploit. Store the
     Q table as """
 
-    def __init__(self, task, gamma, epsilon=None, alpha=None, default_Q=-10.0):
+    def __init__(
+        self, task, gamma,
+        epsilon=None, alpha=None, default_Q=-10.0, viz=None,
+        *args, **kwargs
+    ):
         """Epsilon is also a lambda expression that takes into account the
         training episode"""
-        super(EpsilonGreedyQTableAgent, self).__init__(task, gamma, alpha)
+        super(EpsilonGreedyQTableAgent, self).__init__(task, gamma, alpha, viz)
 
         # Use a Q table
         self.Q = defaultdict(lambda: float(default_Q))

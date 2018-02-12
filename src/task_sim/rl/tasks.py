@@ -22,12 +22,15 @@ class Task(object):
         success_reward=1,
         fail_penalty=-1,
         default_reward=0,
-        timeout=100
+        timeout=100,
+        viz=None,
+        *args, **kwargs
     ):
         self.timeout = timeout
         self.success_reward = success_reward
         self.fail_penalty = fail_penalty
         self.default_reward = default_reward
+        self.viz = viz
         self.num_steps = 0
         self.world_state = None
         self.action = None
@@ -103,13 +106,17 @@ class DebugTask1(Task):
         self,
         num_to_grab=2, state_vector_args={},
         grab_reward=1, time_penalty=-0.04,
-        fail_penalty=-1, timeout=100
+        fail_penalty=-1, timeout=100,
+        viz=None,
+        *args, **kwargs
     ):
         super(DebugTask1, self).__init__(
             grab_reward,  # Success reward
             fail_penalty,
             time_penalty, # Default reward
-            timeout
+            timeout,
+            viz,
+            *args, **kwargs
         )
 
         self.state_vector_args = state_vector_args
@@ -208,19 +215,34 @@ class Task1(Task):
         self, state_vector_args={},
         subgoal_reward=100.0, time_penalty=-0.4,
         fail_penalty=-100.0, timeout_penalty=-100.0,
-        timeout=100
+        timeout=100,
+        viz=None,
+        *args, **kwargs
     ):
         super(Task1, self).__init__(
             0.0, # Success Reward
             timeout_penalty,
             time_penalty, # Default Reward,
-            timeout
+            timeout,
+            viz,
+            *args, **kwargs
         )
         self.subgoal_reward = subgoal_reward
         self.fail_penalty = fail_penalty
         self.state_vector_args = state_vector_args
         self._drawer_objective_rewarded = False
         self._box_objective_rewarded = False
+
+        # Initialize the counts of rewards. These are not reset by default
+        self.reward_counts = { "Box": 0, "Drawer": 0 }
+        self.reward_bar_window_name = "reward_counts"
+        self._update_viz()
+
+    def _update_viz(self):
+        self.viz.update_bar(
+            self.reward_counts.values(), self.reward_bar_window_name,
+            rownames=self.reward_counts.keys()
+        )
 
     def _is_fail(self):
         failed = False
@@ -281,19 +303,23 @@ class Task1(Task):
             history_buffer=self.state_vector_args.get('history_buffer', 0),
         ))
 
-    def reset(self):
+    def reset(self, reset_counts=False):
         super(Task1, self).reset()
         self._drawer_objective_rewarded = self._box_objective_rewarded = False
+        if reset_counts:
+            self.reward_counts = { "Box": 0, "Drawer": 0 }
 
     def reward(self):
         # Check for an unrewarded subgoal success
         if self._is_drawer_complete() and not self._drawer_objective_rewarded:
             rospy.logdebug("Rewarding DRAWER")
+            self.reward_counts["Drawer"] += 1
             self._drawer_objective_rewarded = True
             return self.subgoal_reward
 
         if self._is_box_complete() and not self._box_objective_rewarded:
             rospy.logdebug("Rewarding BOX")
+            self.reward_counts["Box"] += 1
             self._box_objective_rewarded = True
             return self.subgoal_reward
 
@@ -306,6 +332,9 @@ class Task1(Task):
 
 
     def status(self):
+        # Update the visulization
+        self._update_viz()
+
         # Check if all subgoals are fulfilled at the moment
         if self._is_drawer_complete() and self._is_box_complete():
             return Status.COMPLETED

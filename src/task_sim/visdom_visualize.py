@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # Helper file to visualize in visdom from Nirbhay. Modified to also save windows
-# between runs if desired. WARNING: updateTrace will be deprecated in future
-# releases of visdom.
+# between runs if desired.
 #
 # Usage:
 # ```
@@ -57,25 +56,26 @@ class VisdomVisualize():
         with open(self.config_file, 'w') as fd:
             json.dump(config, fd)
 
-    def append_data(self, x, y, key, line_name, xlabel="Iterations"):
+    def update_line(self, x, y, key, line_name, xlabel="Iterations"):
         '''
-            Add or update a plot on the visdom server self.viz
-            Argumens:
+            Add or update a line plot on the visdom server self.viz
+            Arguments:
                 x : Scalar -> X-coordinate on plot
                 y : Scalar -> Value at x
                 key : Name of plot/graph
                 line_name : Name of line within plot/graph
                 xlabel : Label for x-axis (default: # Iterations)
 
-            Plots and lines are created if they don't exist, otherwise
+            Plots are created if they don't exist, otherwise
             they are updated.
         '''
         if key in self.wins.keys():
-            self.viz.updateTrace(
+            self.viz.line(
                 X = np.array([x]),
                 Y = np.array([y]),
                 win = self.wins[key],
-                name = line_name
+                name = line_name,
+                update = 'append'
             )
         else:
             self.wins[key] = self.viz.line(
@@ -91,4 +91,40 @@ class VisdomVisualize():
                     margintop    = 30,
                     legend = [line_name]
                 )
+            )
+
+    def update_bar(self, x, key, rownames=None, legend=None, stacked=False):
+        '''
+            Add or update a bar plot on the visdom server self.viz
+            Arguments:
+                x : Vector -> X-coordinate on plot. 2nd dimension specifies the
+                    groups
+                key : Name of plot/graph
+                rownames: Array -> Name of the X coordinates (default: None)
+                legend: Names of the groups in X (default: None)
+                stacked : Whether to stack the groups in X (default: False)
+
+            Plots are created if they don't exist, otherwise
+            they are updated.
+        '''
+        opts = dict(
+            title = key,
+            stacked = stacked,
+            legend = legend,
+            rownames = rownames,
+            marginleft   = 30,
+            marginright  = 30,
+            marginbottom = 30,
+            margintop    = 30,
+        )
+        if key in self.wins.keys():
+            self.viz.bar(
+                X = np.array(x),
+                win = self.wins[key],
+                opts = opts
+            )
+        else:
+            self.wins[key] = self.viz.bar(
+                X = np.array(x),
+                opts = opts
             )

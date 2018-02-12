@@ -65,7 +65,8 @@ class RLAgentTrainer(object):
             rospy.get_param('~task/1/time_penalty', -0.5),
             rospy.get_param('~task/1/fail_penalty', -110.0),
             rospy.get_param('~task/1/timeout_penalty', -100.0),
-            rospy.get_param('~task/1/timeout', 100)
+            rospy.get_param('~task/1/timeout', 100),
+            self.viz
         )
 
         # Params for epsilon-greedy agents.
@@ -86,7 +87,8 @@ class RLAgentTrainer(object):
             rospy.get_param('~agent/gamma', 0.99),
             self.agent_epsilon,
             self.agent_alpha,
-            rospy.get_param('~agent/default_Q', 0.0)
+            rospy.get_param('~agent/default_Q', 0.0),
+            self.viz
         )
         self.save_prefix = rospy.get_param('~save_prefix', 'egreedy_q_table')
         self.save_suffix = rospy.get_param('~save_suffix', None)
@@ -127,13 +129,13 @@ class RLAgentTrainer(object):
         )
         # If we should plot the learning params, send to visdom
         if (eps+1) % self.visdom_config.get('plot_frequency', eps+2) == 0:
-            # self.viz.append_data(
+            # self.viz.update_line(
             #     eps, status, 'status' if train else 'test_status', 'status', 'Episode'
             # )
-            self.viz.append_data(
+            self.viz.update_line(
                 eps, self.task.num_steps, 'steps' if train else 'test_steps', 'steps', 'Episode'
             )
-            self.viz.append_data(
+            self.viz.update_line(
                 eps, cumulative_reward, 'reward' if train else 'test_reward', 'reward', 'Episode'
             )
 
@@ -149,10 +151,10 @@ class RLAgentTrainer(object):
 
             # If we should plot the learning params, send to visdom
             # if (eps+1) % self.visdom_config.get('plot_frequency', eps+2) == 0:
-            #     self.viz.append_data(
+            #     self.viz.update_line(
             #         eps, self.agent_epsilon(eps), 'epsilon', 'epsilon', 'Episode'
             #     )
-            #     self.viz.append_data(
+            #     self.viz.update_line(
             #         eps, self.agent_alpha(eps), 'alpha', 'alpha', 'Episode'
             #     )
 
