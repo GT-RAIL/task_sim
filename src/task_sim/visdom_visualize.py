@@ -4,11 +4,13 @@
 #
 # Usage:
 # ```
-#   viz.append_data(iterId, loss.data[0], 'loss', 'loss')
-#   viz.append_data(iterId, runningLoss, 'loss', 'running loss')
+#   viz.update_line(iterId, loss.data[0], 'loss', 'loss')
+#   viz.update_line(iterId, runningLoss, 'loss', 'running loss')
 # ```
 
-import os.path as pth
+from __future__ import print_function, division
+
+import os
 import json
 import numpy as np
 import visdom
@@ -30,7 +32,7 @@ class VisdomVisualize():
         wins = None
 
         self.config_file = config_file
-        if pth.exists(self.config_file):
+        if os.path.exists(self.config_file):
             with open(self.config_file, 'r') as f:
                 config = json.load(f)
                 if 'server' in config:

@@ -107,7 +107,6 @@ class DebugTask1(Task):
         num_to_grab=2, state_vector_args={},
         grab_reward=1, time_penalty=-0.04,
         fail_penalty=-1, timeout=100,
-        viz=None,
         *args, **kwargs
     ):
         super(DebugTask1, self).__init__(
@@ -115,7 +114,6 @@ class DebugTask1(Task):
             fail_penalty,
             time_penalty, # Default reward
             timeout,
-            viz,
             *args, **kwargs
         )
 
@@ -216,7 +214,6 @@ class Task1(Task):
         subgoal_reward=100.0, time_penalty=-0.4,
         fail_penalty=-100.0, timeout_penalty=-100.0,
         timeout=100,
-        viz=None,
         *args, **kwargs
     ):
         super(Task1, self).__init__(
@@ -224,7 +221,6 @@ class Task1(Task):
             timeout_penalty,
             time_penalty, # Default Reward,
             timeout,
-            viz,
             *args, **kwargs
         )
         self.subgoal_reward = subgoal_reward
@@ -239,10 +235,11 @@ class Task1(Task):
         self._update_viz()
 
     def _update_viz(self):
-        self.viz.update_bar(
-            self.reward_counts.values(), self.reward_bar_window_name,
-            rownames=self.reward_counts.keys()
-        )
+        if self.viz is not None:
+            self.viz.update_bar(
+                self.reward_counts.values(), self.reward_bar_window_name,
+                rownames=self.reward_counts.keys()
+            )
 
     def _is_fail(self):
         failed = False

@@ -18,14 +18,21 @@ from task_sim.srv import Execute, QueryState
 from task_sim.rl import tasks, learners
 from task_sim.visdom_visualize import VisdomVisualize
 
+# Helper functions
+
+def get_path(path):
+    """Takes a path relative to top level package and gets absolute path"""
+    rospack = rospkg.RosPack()
+    if not os.path.exists(path):
+        path = os.path.join(rospack.get_path('task_sim'), path)
+    return path
+
 # Create a node to interface between the agent and the task simulator
 
 class RLAgentTrainer(object):
     """Trains an RL Agent"""
 
     def __init__(self):
-        rospack = rospkg.RosPack()
-
         # Get the params for training RL Agents and tasks
         self.num_episodes = rospy.get_param('~num_episodes', 10000)
         self.alter_table_sim = rospy.get_param('~alter_table_sim', True)
@@ -34,64 +41,60 @@ class RLAgentTrainer(object):
         self.visdom_config = rospy.get_param(
             '~visdom_config',
             {
-                'config_file': os.path.join(rospack.get_path('task_sim'), 'data', 'visdom_config.json'),
+                'config_file': 'visdom_config.json',
                 'plot_frequency': 1,
             }
         )
-        self.viz = VisdomVisualize(**self.visdom_config)
+        self.visdom_config['config_file'] = get_path( # Get the full path
+            self.visdom_config.get('config_file', '')
+        )
 
-        # # Params for the DebugTask1
-        # self.save_path = rospy.get_param(
-        #     '~save_path',
-        #     os.path.join(rospack.get_path('task_sim'), 'data', 'task3', 'models')
-        # )
-        # self.task = tasks.DebugTask1(
-        #     rospy.get_param('~task/debug1/num_to_grab', 2),
-        #     rospy.get_param('~task/debug1/state_vector_args', {}),
-        #     rospy.get_param('~task/debug1/grab_reward', 1.0),
-        #     rospy.get_param('~task/debug1/time_penalty', -0.4),
-        #     rospy.get_param('~task/debug1/fail_penalty', -1.0),
-        #     rospy.get_param('~task/debug1/timeout', 50)
-        # )
+        # If the visualize option is OFF, then make sure that we are not going
+        # to try to visualize later in the code
+        if self.visdom_config.get("visualize", True):
+            self.viz = VisdomVisualize(**self.visdom_config)
+        else:
+            self.viz = None
+            if self.visdom_config.has_key('plot_frequency'):
+                del self.visdom_config['plot_frequency']
 
-        # Params for the Task1
+        # Set the parameters to save the agent
         self.save_path = rospy.get_param(
             '~save_path',
-            os.path.join(rospack.get_path('task_sim'), 'data', 'task1', 'models')
-        )
-        self.task = tasks.Task1(
-            rospy.get_param('~task/1/state_vector_args', {}),
-            rospy.get_param('~task/1/subgoal_reward', 500.0),
-            rospy.get_param('~task/1/time_penalty', -0.5),
-            rospy.get_param('~task/1/fail_penalty', -110.0),
-            rospy.get_param('~task/1/timeout_penalty', -100.0),
-            rospy.get_param('~task/1/timeout', 100),
-            self.viz
-        )
-
-        # Params for epsilon-greedy agents.
-        # Step decay of alpha.
-        # Exponential decay of epsilon
-        epsilon_start = rospy.get_param('~agent/epsilon_start', 0.15)
-        epsilon_decay_factor = rospy.get_param('~agent/epsilon_decay_factor', 0.9995)
-        # self.agent_epsilon = lambda eps: epsilon_start * (epsilon_decay_factor**eps)
-        self.agent_epsilon = lambda eps: epsilon_start
-        alpha_decay_factor = rospy.get_param('~agent/alpha_decay_factor', 1000)
-        alpha_start = rospy.get_param('~agent/alpha_start', 0.1)
-        # self.agent_alpha = lambda eps: alpha_start * alpha_decay_factor / (alpha_decay_factor + eps)
-        # self.agent_alpha = lambda eps: alpha_start / np.ceil((eps+1)/alpha_decay_factor)
-        # self.agent_alpha = lambda eps: alpha_start / ((eps//alpha_decay_factor) + 1)
-        self.agent_alpha = lambda eps: alpha_start
-        self.agent = learners.EpsilonGreedyQTableAgent(
-            self.task,
-            rospy.get_param('~agent/gamma', 0.99),
-            self.agent_epsilon,
-            self.agent_alpha,
-            rospy.get_param('~agent/default_Q', 0.0),
-            self.viz
+            os.path.join('data', 'task1', 'models')
         )
         self.save_prefix = rospy.get_param('~save_prefix', 'egreedy_q_table')
         self.save_suffix = rospy.get_param('~save_suffix', None)
+        self.save_path = get_path(self.save_path)
+
+
+        # Params and initialization for the Task
+        self.task_params = rospy.get_param('~task', {})
+        self.task_params['viz'] = self.viz
+        self.task = tasks.Task1(**self.task_params)
+
+        # Params for the agent
+        self.agent_params = rospy.get_param('~agent', {})
+        self.agent_params['task'] = self.task
+        self.agent_params['viz'] = self.viz
+
+        # Processing for epsilon-greedy agents.
+        epsilon_start = self.agent_params.get('epsilon_start', 0.15)
+        epsilon_decay_factor = self.agent_params.get('epsilon_decay_factor', 0.9995)
+        # epsilon = lambda eps: epsilon_start * (epsilon_decay_factor**eps)
+        epsilon = lambda eps: epsilon_start
+        self.agent_params['epsilon'] = epsilon
+
+        alpha_decay_factor = agent_params.get('alpha_decay_factor', 1000)
+        alpha_start = agent_params.get('alpha_start', 0.1)
+        # alpha = lambda eps: alpha_start * alpha_decay_factor / (alpha_decay_factor + eps)
+        # alpha = lambda eps: alpha_start / np.ceil((eps+1)/alpha_decay_factor)
+        # alpha = lambda eps: alpha_start / ((eps//alpha_decay_factor) + 1)
+        alpha = lambda eps: alpha_start
+        self.agent_params['alpha'] = alpha
+
+        # Initialize the agent
+        self.agent = learners.EpsilonGreedyQTableAgent(**self.agent_params)
 
         # Create services for communicating with table_sim
         self.execute = rospy.ServiceProxy('table_sim/execute_action', Execute)
@@ -130,13 +133,16 @@ class RLAgentTrainer(object):
         # If we should plot the learning params, send to visdom
         if (eps+1) % self.visdom_config.get('plot_frequency', eps+2) == 0:
             # self.viz.update_line(
-            #     eps, status, 'status' if train else 'test_status', 'status', 'Episode'
+            #     eps, status,
+            #     'status' if train else 'test_status', 'status', 'Episode'
             # )
             self.viz.update_line(
-                eps, self.task.num_steps, 'steps' if train else 'test_steps', 'steps', 'Episode'
+                eps, self.task.num_steps,
+                'steps' if train else 'test_steps', 'steps', 'Episode'
             )
             self.viz.update_line(
-                eps, cumulative_reward, 'reward' if train else 'test_reward', 'reward', 'Episode'
+                eps, cumulative_reward,
+                'reward' if train else 'test_reward', 'reward', 'Episode'
             )
 
         # Return the accummulated reward if anyone is interested
@@ -152,10 +158,12 @@ class RLAgentTrainer(object):
             # If we should plot the learning params, send to visdom
             # if (eps+1) % self.visdom_config.get('plot_frequency', eps+2) == 0:
             #     self.viz.update_line(
-            #         eps, self.agent_epsilon(eps), 'epsilon', 'epsilon', 'Episode'
+            #         eps, self.agent_params['epsilon'](eps),
+            #         'epsilon', 'epsilon', 'Episode'
             #     )
             #     self.viz.update_line(
-            #         eps, self.agent_alpha(eps), 'alpha', 'alpha', 'Episode'
+            #         eps, self.agent_params['alpha'](eps),
+            #         'alpha', 'alpha', 'Episode'
             #     )
 
             # If this node must reset the world after every simulation, then
@@ -194,7 +202,7 @@ class RLAgentTrainer(object):
             self.save_path,
             "{}_{}.pkl".format(
                 self.save_prefix,
-                self.save_suffix or datetime.date.today().strftime("%Y-%m-%d")
+                self.save_suffix or datetime.date.now().strftime("%Y-%m-%dT%H-%M-%S")
             )
         )
         self.agent.save(agent_filename)
@@ -203,4 +211,5 @@ class RLAgentTrainer(object):
 if __name__ == '__main__':
     rospy.init_node('train_rl')
     trainer = RLAgentTrainer()
+    rospy.sleep(3.0) # Allow the table_sim to setup
     trainer.train()

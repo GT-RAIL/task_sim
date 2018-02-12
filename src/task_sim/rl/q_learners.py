@@ -121,12 +121,15 @@ class EpsilonGreedyQTableAgent(QLearningAgent):
 
     def __init__(
         self, task, gamma,
-        epsilon=None, alpha=None, default_Q=-10.0, viz=None,
+        epsilon=None, alpha=None, default_Q=-10.0,
         *args, **kwargs
     ):
         """Epsilon is also a lambda expression that takes into account the
         training episode"""
-        super(EpsilonGreedyQTableAgent, self).__init__(task, gamma, alpha, viz)
+        super(EpsilonGreedyQTableAgent, self).__init__(
+            task, gamma, alpha,
+            *args, **kwargs
+        )
 
         # Use a Q table
         self.Q = defaultdict(lambda: float(default_Q))
@@ -139,9 +142,7 @@ class EpsilonGreedyQTableAgent(QLearningAgent):
             self.epsilon = lambda n: 0.1 * (0.9**n)
 
     def actions_in_state(self, state):
-        # Add another twist - shuffle the actions randomly
         actions = super(EpsilonGreedyQTableAgent, self).actions_in_state(state)
-        # random.shuffle(actions)
         return actions
 
     def choose_action(self, episode=None, train=True):
