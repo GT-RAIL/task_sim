@@ -142,7 +142,8 @@ class PlanNetworkNode:
             self.prev_state = copy.deepcopy(req.state)
             self.intervention_requested = True
 
-        print 'Action:\n' + str(action.action_type) + ', ' + selected_action[1] + ', ' + selected_action[2]
+        if action.action_type != Action.NOOP:
+            print 'Action:\n' + str(action.action_type) + ', ' + selected_action[1] + ', ' + selected_action[2]
 
         return action
 
