@@ -2,7 +2,7 @@ visdom_config:
   visualize: true
   plot_frequency: 1
   config_file: "config/rl/docker_visdom.json"
-  env_name: "egreedy_qtable_rspecific"
+  env_name: "egreedy_qtable_rspecific_sneg"
   rewrite_windows: true
 
 execute_post_episode: 500
@@ -10,7 +10,7 @@ num_episodes: 10000
 change_seeds: [1,2,3,4,5,6,7,8,9,10]
 rate: -1
 save_path: "data/task1/models"
-save_prefix: "egreedy_qtable_rspecific"
+save_prefix: "egreedy_qtable_rspecific_sneg"
 save_suffix: ''
 
 task:
@@ -20,20 +20,22 @@ task:
     position_semantics: true
     history_buffer: 0
   rewards:
-    drawer: 300.0
-    box: 300.0
-    batteries: 100.0
-    flashlight: 100.0
-    apple: 50.0
-    time_penalty: -1
+    drawer: 3000.0
+    box: 2000.0
+    batteries: 1000.0
+    flashlight: 1000.0
+    apple: 500.0
+    time_penalty: -0.01
     fail_penalty: -110.0
     timeout_penalty: -100.0
-  timeout: 200
+  timeout: 1000
 
 agent:
-  epsilon_start: 0.15
-  epsilon_decay_factor: 0.9995
+  epsilon_start: 0.14
+  epsilon_decay_factor: 0.9997
+  epsilon_bias: 0.01
   alpha_start: 0.1
   alpha_decay_factor: 1000
+  alpha_bias: 0.0
   gamma: 0.9
   default_Q: 0.0

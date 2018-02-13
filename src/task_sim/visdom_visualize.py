@@ -47,6 +47,7 @@ class VisdomVisualize():
             env = env_name,
             server = server,
         )
+        self.env_name = env_name
         self.wins = (wins if rewrite_windows else {}) or {}
 
     def save_config(self):
@@ -75,6 +76,7 @@ class VisdomVisualize():
             self.viz.line(
                 X = np.array([x]),
                 Y = np.array([y]),
+                env = self.env_name,
                 win = self.wins[key],
                 name = line_name,
                 update = 'append'
@@ -83,6 +85,7 @@ class VisdomVisualize():
             self.wins[key] = self.viz.line(
                 X = np.array([x]),
                 Y = np.array([y]),
+                env = self.env_name,
                 opts = dict(
                     xlabel = xlabel,
                     ylabel = key,
@@ -122,11 +125,13 @@ class VisdomVisualize():
         if key in self.wins.keys():
             self.viz.bar(
                 X = np.array(x),
+                env = self.env_name,
                 win = self.wins[key],
                 opts = opts
             )
         else:
             self.wins[key] = self.viz.bar(
                 X = np.array(x),
+                env = self.env_name,
                 opts = opts
             )

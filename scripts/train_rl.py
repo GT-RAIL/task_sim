@@ -81,12 +81,15 @@ class RLAgentTrainer(object):
         # Processing for epsilon-greedy agents.
         epsilon_start = self.agent_params.get('epsilon_start', 0.15)
         epsilon_decay_factor = self.agent_params.get('epsilon_decay_factor', 0.9995)
+        epsilon_bias = self.agent_params.get('epsilon_bias', 0.0)
         # epsilon = lambda eps: epsilon_start * (epsilon_decay_factor**eps)
-        epsilon = lambda eps: epsilon_start
+        epsilon = lambda eps: epsilon_start * (epsilon_decay_factor**eps) + epsilon_bias
+        # epsilon = lambda eps: epsilon_start
         self.agent_params['epsilon'] = epsilon
 
-        alpha_decay_factor = self.agent_params.get('alpha_decay_factor', 1000)
         alpha_start = self.agent_params.get('alpha_start', 0.1)
+        alpha_decay_factor = self.agent_params.get('alpha_decay_factor', 1000)
+        alpha_bias = self.agent_params.get('alpha_bias', 0.0)
         # alpha = lambda eps: alpha_start * alpha_decay_factor / (alpha_decay_factor + eps)
         # alpha = lambda eps: alpha_start / np.ceil((eps+1)/alpha_decay_factor)
         # alpha = lambda eps: alpha_start / ((eps//alpha_decay_factor) + 1)
@@ -163,11 +166,11 @@ class RLAgentTrainer(object):
         for eps in xrange(self.num_episodes):
 
             # If we should plot the learning params, send to visdom
-            # if (eps+1) % self.visdom_config.get('plot_frequency', eps+2) == 0:
-            #     self.viz.update_line(
-            #         eps, self.agent_params['epsilon'](eps),
-            #         'epsilon', 'epsilon', 'Episode'
-            #     )
+            if (eps+1) % self.visdom_config.get('plot_frequency', eps+2) == 0:
+                self.viz.update_line(
+                    eps, self.agent_params['epsilon'](eps),
+                    'epsilon', 'epsilon', 'Episode'
+                )
             #     self.viz.update_line(
             #         eps, self.agent_params['alpha'](eps),
             #         'alpha', 'alpha', 'Episode'
