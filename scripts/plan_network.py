@@ -16,9 +16,9 @@ import networkx as nx
 import rosbag
 import rospkg
 import rospy
-from task_sim.msg import Action
 
-from plan_action import PlanAction
+from task_sim.msg import Action
+from task_sim.plan_action import PlanAction
 
 
 class PlanNetwork:

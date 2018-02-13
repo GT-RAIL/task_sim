@@ -1,0 +1,22 @@
+<!-- Script to train RL agents -->
+<launch>
+    <!-- Train RL config file (Required) -->
+    <arg name="config_file" />
+
+    <!-- Table Sim args -->
+    <arg name="sim_quiet_mode" default="true" />
+    <arg name="sim_terminal_input" default="false" />
+    <arg name="sim_seed" default="0" />
+
+    <!-- Table sim node -->
+    <node name="table_sim" pkg="task_sim" type="table_sim.py" clear_params="true">
+        <param name="quiet_mode" value="$(arg sim_quiet_mode)" />
+        <param name="terminal_input" value="$(arg sim_terminal_input)" />
+        <param name="seed" value="$(arg sim_seed)" />
+    </node>
+
+    <!-- Trainer node -->
+    <node name="train_rl" pkg="task_sim" type="train_rl.py" clear_params="true" required="true" output="screen">
+        <rosparam command="load" file="$(arg config_file)" />
+    </node>
+</launch>
