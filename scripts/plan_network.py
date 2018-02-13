@@ -23,7 +23,7 @@ from plan_action import PlanAction
 
 class PlanNetwork:
 
-    def __init__(self):
+    def __init__(self, construct=False):
         # data structures to store parsed information (used in graph construction)
         self.action_list = []
         self.edges = []
@@ -44,8 +44,9 @@ class PlanNetwork:
         self.object_to_cluster = {}  # object -> cluster mapping
         self.cluster_to_objects = {}  # cluster -> [obj_1, obj_2, ..., obj_n] mapping
 
-        # self.construct_network()
-        # self.test_output()
+        if construct:
+            self.construct_network()
+            self.test_output()
 
     def construct_network(self, task='task1', affordance_threshold=0.5, output_suffix=None):
         demo_list = glob.glob(rospkg.RosPack().get_path('task_sim') + '/data/' + task + "/demos/*.bag")
@@ -54,6 +55,11 @@ class PlanNetwork:
         print 'Found ' + str(len(demo_list)) + ' demonstrations.'
 
         self.parse_actions(demo_list)
+
+        print 'Saving action list (for planners)'
+        path = rospkg.RosPack().get_path('task_sim') + '/data/' + task + '/models/'
+        pickle.dump(self.action_list, open(path + 'plan_action_list' + output_suffix + '.pkl', 'w'))
+        print 'Action list saved to data/' + task + '/models directory'
 
         self.cluster_objects(affordance_threshold)
 
@@ -533,4 +539,4 @@ class TaskObject:
 
 if __name__ == '__main__':
     rospy.init_node('plan_network')
-    plan_network = PlanNetwork()
+    plan_network = PlanNetwork(construct=True)

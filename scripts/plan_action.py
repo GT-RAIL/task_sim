@@ -5,12 +5,11 @@ from math import sqrt
 
 # ROS
 import copy
-from geometry_msgs.msg import Point
 from task_sim.msg import Action
 
 from data_utils import DataUtils
 
-class PlanAction():
+class PlanAction:
 
     def __init__(self, s0, a, s1=None):
         self.action = a.action_type
