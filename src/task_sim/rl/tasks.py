@@ -210,35 +210,40 @@ class Task1(Task):
     """
 
     def __init__(
-        self, state_vector_args={},
-        subgoal_reward=100.0, time_penalty=-0.4,
-        fail_penalty=-100.0, timeout_penalty=-100.0,
+        self, state_vector_args={}, rewards={},
         timeout=100,
         *args, **kwargs
     ):
         super(Task1, self).__init__(
-            0.0, # Success Reward
-            timeout_penalty,
-            time_penalty, # Default Reward,
+            rewards.get('success_reward', 0.0), # Success Reward
+            rewards.get('timeout_penalty', -100.0),
+            rewards.get('time_penalty', -0.4), # Default Reward,
             timeout,
             *args, **kwargs
         )
-        self.subgoal_reward = subgoal_reward
-        self.fail_penalty = fail_penalty
         self.state_vector_args = state_vector_args
-        self._drawer_objective_rewarded = False
-        self._box_objective_rewarded = False
 
-        # Initialize the counts of rewards. These are not reset by default
-        self.reward_counts = { "Box": 0, "Drawer": 0 }
-        self.reward_bar_window_name = "reward_counts"
+        # Setup the rewards
+        self.reward_tests = {
+            "drawer": self._is_drawer_complete,
+            "box": self._is_box_complete,
+            "batteries": self._is_batteries_complete,
+            "flashlight": self._is_flashlight_complete,
+            "apple": self._is_apple_complete,
+        }
+        self.reward_keys = self.reward_tests.keys()
+        self.rewards = rewards
+        self.rewards_awarded = { x: False for x in self.reward_keys }
+        self.reward_counts = { x: 0 for x in self.reward_keys } # Not reset by default
+
         self._update_viz()
 
     def _update_viz(self):
         if self.viz is not None:
             self.viz.update_bar(
-                self.reward_counts.values(), self.reward_bar_window_name,
-                rownames=self.reward_counts.keys()
+                [self.reward_counts[x] for x in self.reward_keys],
+                "reward_counts",
+                rownames=self.reward_keys
             )
 
     def _is_fail(self):
@@ -250,14 +255,14 @@ class Task1(Task):
     def _is_drawer_complete(self):
         for obj in self.world_state.objects:
             if obj.name.lower() == 'batteries':
-                battery = obj
+                batteries = obj
             if obj.name.lower() == 'flashlight':
                 flashlight = obj
 
         return (
-            battery.in_drawer
+            batteries.in_drawer
             and flashlight.in_drawer
-            and self.world_state.drawer_opening == 0
+            and self.world_state.drawer_opening < 1
         )
 
     def _is_box_complete(self):
@@ -272,6 +277,20 @@ class Task1(Task):
             and self.world_state.box_position.y == self.world_state.lid_position.y
         )
 
+    def _is_apple_complete(self):
+        for obj in self.world_state.objects:
+            if obj.name.lower() == 'apple':
+                return obj.in_box
+
+    def _is_flashlight_complete(self):
+        for obj in self.world_state.objects:
+            if obj.name.lower() == 'flashlight':
+                return obj.in_drawer
+
+    def _is_batteries_complete(self):
+        for obj in self.world_state.objects:
+            if obj.name.lower() == 'batteries':
+                return obj.in_drawer
 
     def actions(self, agent_state):
         # All actions are available at a given state
@@ -302,27 +321,22 @@ class Task1(Task):
 
     def reset(self, reset_counts=False):
         super(Task1, self).reset()
-        self._drawer_objective_rewarded = self._box_objective_rewarded = False
+        self.rewards_awarded = { x: False for x in self.reward_keys }
         if reset_counts:
-            self.reward_counts = { "Box": 0, "Drawer": 0 }
+            self.reward_counts = { x: 0 for x in self.reward_keys }
 
     def reward(self):
         # Check for an unrewarded subgoal success
-        if self._is_drawer_complete() and not self._drawer_objective_rewarded:
-            rospy.logdebug("Rewarding DRAWER")
-            self.reward_counts["Drawer"] += 1
-            self._drawer_objective_rewarded = True
-            return self.subgoal_reward
-
-        if self._is_box_complete() and not self._box_objective_rewarded:
-            rospy.logdebug("Rewarding BOX")
-            self.reward_counts["Box"] += 1
-            self._box_objective_rewarded = True
-            return self.subgoal_reward
+        for goal in self.reward_keys:
+            if self.reward_tests[goal]() and not self.rewards_awarded[goal]:
+                rospy.loginfo("Rewarding: " + goal)
+                self.reward_counts[goal] += 1
+                self.rewards_awarded[goal] = True
+                return self.rewards.get(goal, 0.0)
 
         # Check for a fail
         if self._is_fail():
-            return self.fail_penalty
+            return self.rewards.get('fail_penalty', -100.0)
 
         # Check for a timeout
         return super(Task1, self).reward()

@@ -55,7 +55,8 @@ visdom_config: Dictionary of configs for the visdom interface
 
 execute_post_episode: Test policy after these many episodes
 num_episodes: Number of training episodes to run
-alter_table_sim: Flag to randomize the table_sim between episodes
+change_seeds: Flag to randomize the table_sim between episodes, or list of seeds
+rate: The rate of executing actions, in case you want to follow along
 save_path: Folder to save the trained agent at. Relative to `task_sim` folder
 save_prefix: Filename to use when saving the agent
 save_suffix: More filename options. If empty (cannot be NULL), use the datetime

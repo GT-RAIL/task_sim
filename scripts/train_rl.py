@@ -35,7 +35,7 @@ class RLAgentTrainer(object):
     def __init__(self):
         # Get the params for training RL Agents and tasks
         self.num_episodes = rospy.get_param('~num_episodes', 10000)
-        self.alter_table_sim = rospy.get_param('~alter_table_sim', True)
+        self.change_seeds = rospy.get_param('~change_seeds', True)
         self.rate = rospy.get_param('~rate', -1)
         self.execute_post_episode = rospy.get_param('~execute_post_episode', 1000)
         self.visdom_config = rospy.get_param(
@@ -85,8 +85,8 @@ class RLAgentTrainer(object):
         epsilon = lambda eps: epsilon_start
         self.agent_params['epsilon'] = epsilon
 
-        alpha_decay_factor = agent_params.get('alpha_decay_factor', 1000)
-        alpha_start = agent_params.get('alpha_start', 0.1)
+        alpha_decay_factor = self.agent_params.get('alpha_decay_factor', 1000)
+        alpha_start = self.agent_params.get('alpha_start', 0.1)
         # alpha = lambda eps: alpha_start * alpha_decay_factor / (alpha_decay_factor + eps)
         # alpha = lambda eps: alpha_start / np.ceil((eps+1)/alpha_decay_factor)
         # alpha = lambda eps: alpha_start / ((eps//alpha_decay_factor) + 1)
@@ -149,8 +149,15 @@ class RLAgentTrainer(object):
         return status, self.task.num_steps, cumulative_reward
 
     def train(self):
+        # Set a rate if so desired
         if self.rate > 0:
             sleep_rate = rospy.Rate(self.rate)
+
+        # Create a variable for the last seed
+        should_update_seed = not (not self.change_seeds)
+        seed_idx = (
+            0 if should_update_seed and type(self.change_seeds) == list else None
+        )
 
         # Get through all the training episodes and then save the agent
         for eps in xrange(self.num_episodes):
@@ -167,8 +174,12 @@ class RLAgentTrainer(object):
             #     )
 
             # If this node must reset the world after every simulation, then
-            if self.alter_table_sim:
-                rospy.set_param('table_sim/seed', random.random())
+            if should_update_seed:
+                if seed_idx is None:
+                    rospy.set_param('table_sim/seed', random.random())
+                else:
+                    rospy.set_param('table_sim/seed', self.change_seeds[seed_idx])
+                    seed_idx = (seed_idx+1) % len(self.change_seeds)
             self.reset_simulation()
 
             # Run the training episode

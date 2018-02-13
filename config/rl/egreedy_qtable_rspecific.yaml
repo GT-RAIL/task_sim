@@ -2,15 +2,15 @@ visdom_config:
   visualize: true
   plot_frequency: 1
   config_file: "config/rl/docker_visdom.json"
-  env_name: "main"
+  env_name: "egreedy_qtable_rspecific"
   rewrite_windows: true
 
 execute_post_episode: 500
 num_episodes: 10000
-change_seed: true
+change_seeds: [1,2,3,4,5,6,7,8,9,10]
 rate: -1
 save_path: "data/task1/models"
-save_prefix: "template"
+save_prefix: "egreedy_qtable_rspecific"
 save_suffix: ''
 
 task:
@@ -19,10 +19,15 @@ task:
     state_semantics: true
     position_semantics: true
     history_buffer: 0
-  subgoal_reward: 500.0
-  time_penalty: -0.5
-  fail_penalty: -110.0
-  timeout_penalty: -100.0
+  rewards:
+    drawer: 200.0
+    box: 200.0
+    batteries: 100.0
+    flashlight: 100.0
+    apple: 100.0
+    time_penalty: -0.5
+    fail_penalty: -100.0
+    timeout_penalty: -100.0
   timeout: 100
 
 agent:
