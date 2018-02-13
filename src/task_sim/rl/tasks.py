@@ -329,7 +329,7 @@ class Task1(Task):
         # Check for an unrewarded subgoal success
         for goal in self.reward_keys:
             if self.reward_tests[goal]() and not self.rewards_awarded[goal]:
-                rospy.loginfo("Rewarding: " + goal)
+                rospy.logdebug("Rewarding: " + goal)
                 self.reward_counts[goal] += 1
                 self.rewards_awarded[goal] = True
                 return self.rewards.get(goal, 0.0)
