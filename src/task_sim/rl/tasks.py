@@ -5,6 +5,7 @@ from __future__ import division, print_function
 
 import sys
 import os
+import pickle
 import numpy as np
 
 import rospy
@@ -26,6 +27,7 @@ class Task(object):
         viz=None,
         *args, **kwargs
     ):
+        self.name = self.__class__.__name__
         self.timeout = timeout
         self.success_reward = success_reward
         self.fail_penalty = fail_penalty
@@ -88,6 +90,45 @@ class Task(object):
             return Status.TIMEOUT
 
         return Status.IN_PROGRESS
+
+    def _save(self):
+        """
+        Create the data structure to save the task
+        """
+        raise NotImplementedError("Don't know how to save the task")
+
+    def save(self, filename=None):
+        """
+        Save the task. If filename is None, then simply return the parameters
+        of the task to save. Internally calls _save
+        :filename: location to save the task. Default: None
+        """
+        data = self._save()
+        if filename is not None:
+            with open(filename, 'wb') as fd:
+                pickle.dump(data, fd)
+        return data
+
+    def _load(self, data):
+        """
+        Load the task from the data dictionary
+        """
+        raise NotImplementedError("Don't know how to load the task")
+
+    def load(self, filename=None, data=None):
+        """
+        Load the task from a filename or from a data dictionary. One of the two
+        MUST be specified. Internally calls _load. Returns the loaded object
+        """
+        if filename is not None and data is None:
+            with open(filename, 'rb') as fd:
+                data = pickle.load(fd)
+        elif filename is None and data is not None:
+            pass
+        else:
+            raise ValueError("Exactly one of filename and data must be specified")
+
+        return self._load(data)
 
 
 # Debug task definitions
@@ -201,6 +242,24 @@ class DebugTask1(Task):
         # Otherwise, do a timeout check
         return super(DebugTask1, self).status()
 
+    def _save(self):
+        return {
+            "name": self.name,
+            "state_vector_args": self.state_vector_args,
+            "grab_reward": self.success_reward,
+            "fail_penalty": self.fail_penalty,
+            "time_penalty": self.default_reward,
+            "timeout": self.timeout,
+        }
+
+    def _load(self, data):
+        self.state_vector_args = data['state_vector_args']
+        self.success_reward = data['grab_reward']
+        self.fail_penalty = data['fail_penalty']
+        self.time_penalty = data['time_penalty']
+        self.timeout = data['timeout']
+        return self
+
 # Main task definitions
 
 class Task1(Task):
@@ -216,7 +275,7 @@ class Task1(Task):
     ):
         super(Task1, self).__init__(
             rewards.get('success_reward', 0.0), # Success Reward
-            rewards.get('timeout_penalty', -100.0),
+            rewards.get('timeout_penalty', -100.0), # Fail Penalty
             rewards.get('time_penalty', -0.4), # Default Reward,
             timeout,
             *args, **kwargs
@@ -237,6 +296,23 @@ class Task1(Task):
         self.reward_counts = { x: 0 for x in self.reward_keys } # Not reset by default
 
         self._update_viz()
+
+    def _save(self):
+        return {
+            'name': self.name,
+            'rewards': self.rewards,
+            'state_vector_args': self.state_vector_args,
+            'timeout': self.timeout
+        }
+
+    def _load(self, data):
+        self.state_vector_args = data['state_vector_args']
+        self.rewards = data['rewards']
+        self.success_reward = data['rewards'].get('success_reward', 0.0)
+        self.fail_penalty = data['rewards']['timeout_penalty']
+        self.default_reward = data['rewards']['time_penalty']
+        self.timeout = data['timeout']
+        return self
 
     def _update_viz(self):
         if self.viz is not None:
