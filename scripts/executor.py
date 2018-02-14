@@ -22,6 +22,8 @@ class Executor:
         self.last_action = Action()
         self.last_action.action_type = Action.NOOP
 
+        self.terminal_action_counts = {}
+
         if self.trials > 1:
             self.interventions = []
             self.action_counts = []
@@ -92,6 +94,25 @@ class Executor:
         if self.trial < self.trials:
             print 'Starting trial ' + str(self.trial + 1) + '...'
 
+def to_action_string(a):
+    if a == Action.GRASP:
+        return 'Grasp'
+    elif a == Action.PLACE:
+        return 'Place'
+    elif a == Action.OPEN_GRIPPER:
+        return 'Open Gripper'
+    elif a == Action.CLOSE_GRIPPER:
+        return 'Close Gripper'
+    elif a == Action.MOVE_ARM:
+        return 'Move Arm'
+    elif a == Action.RAISE_ARM:
+        return 'Raise Arm'
+    elif a == Action.LOWER_ARM:
+        return 'Lower Arm'
+    elif a == Action.RESET_ARM:
+        return 'Reset Arm'
+    elif a == Action.NOOP:
+        return 'No Op'
 
 if __name__ == '__main__':
     rospy.init_node('executor')
@@ -111,6 +132,7 @@ if __name__ == '__main__':
         print 'Execution complete.  Results:'
         if status_code == Status.FAILED:
             print '\n\tTask failed.'
+            print '\n\tTerminal action: ' + str(executor.last_action.action_type)
         elif status_code == Status.TIMEOUT:
             print '\n\tTask failed (Timeout).'
         else:
@@ -138,6 +160,10 @@ if __name__ == '__main__':
                 print '\tTask failed.'
                 executor.failures += 1
                 executor.failed_action_counts.append(executor.temp_action_counts)
+                if executor.last_action.action_type in executor.terminal_action_counts:
+                    executor.terminal_action_counts[executor.last_action.action_type] += 1
+                else:
+                    executor.terminal_action_counts[executor.last_action.action_type] = 1
             elif status_code == Status.TIMEOUT:
                 print '\tTask failed (Timeout).'
                 executor.timeouts += 1
@@ -168,6 +194,11 @@ if __name__ == '__main__':
         print '\t\t' + str(action_means[5]) + ' +/- ' + str(action_stds[5]) + '\t- raise arm'
         print '\t\t' + str(action_means[6]) + ' +/- ' + str(action_stds[6]) + '\t- lower arm'
         print '\t\t' + str(action_means[7]) + ' +/- ' + str(action_stds[7]) + '\t- reset arm'
+
+        if executor.failures > 0:
+            print '\n\tTerminal actions in failure trials: '
+            for a in executor.terminal_action_counts:
+                print '\t\t' + to_action_string(a) + ': ' + str(executor.terminal_action_counts[a])
 
         if len(executor.successful_action_counts) > 0:
             print '\n\tAction counts (successful executions, n=' + str(executor.successes) + '):'

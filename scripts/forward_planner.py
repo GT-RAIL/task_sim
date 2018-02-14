@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
+import copy
 import heapq
+from random import shuffle
 
 from plan_action import PlanAction
 from plan_state import PlanState
@@ -52,7 +54,11 @@ class ForwardPlanner:
                 print '\n--------------------------------------------------------------------------\n'
                 return self.node.path
             self.explored.append(self.node.state)
-            for action in self.actions:
+
+            # TEST!
+            random_actions = copy.deepcopy(self.actions)
+            shuffle(random_actions)
+            for action in random_actions:
                 if self.node.state.check_action(action):
                     child_state = self.node.state.apply_action(action)
                     child_path = []
@@ -123,6 +129,8 @@ def goal_distance(state):
         if state.containers['box'].open:
             dst += 1
 
-    dst /= 2.0
+    # dst /= 2.0
+    if dst > 0:
+        dst = 1
 
     return dst

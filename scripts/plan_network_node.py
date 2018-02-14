@@ -34,6 +34,7 @@ class PlanNetworkNode:
 
         self.intervention_requested = False
         self.handle_intervention_action = False
+        self.noop_count = 0
 
         self.state_history = []
 
@@ -88,6 +89,7 @@ class PlanNetworkNode:
 
         if self.current_node is None:
             action.action_type = Action.NOOP
+            self.noop_count += 1
             self.prev_state = copy.deepcopy(req.state)
             self.intervention_requested = True
             return action
@@ -99,6 +101,7 @@ class PlanNetworkNode:
             self.current_node = self.network.find_suitable_node(req.state)
             if self.current_node is None:
                 action.action_type = Action.NOOP
+                self.noop_count += 1
                 self.prev_state = copy.deepcopy(req.state)
                 self.intervention_requested = True
                 return action
@@ -144,6 +147,9 @@ class PlanNetworkNode:
 
         if action.action_type != Action.NOOP:
             print 'Action:\n' + str(action.action_type) + ', ' + selected_action[1] + ', ' + selected_action[2]
+            self.noop_count = 0
+        else:
+            self.noop_count += 1
 
         return action
 
@@ -195,6 +201,11 @@ class PlanNetworkNode:
             return status
         if completed:
             status.status_code = Status.COMPLETED
+            return status
+
+        # Check if we're stuck
+        if self.noop_count >= 8:
+            status.status_code = Status.FAILED
             return status
 
         # Check if intervention is required (state repeated 8 times in last 50 actions)
