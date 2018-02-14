@@ -70,7 +70,7 @@ class RLAgentTrainer(object):
             save_path,
             "{}_{}.pkl".format(
                 save_prefix,
-                save_suffix or datetime.date.now().strftime("%Y-%m-%dT%H-%M-%S")
+                save_suffix or datetime.datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
             )
         )
 
@@ -159,6 +159,9 @@ class RLAgentTrainer(object):
         return status, self.task.num_steps, cumulative_reward
 
     def train(self):
+        self.agent.save(self.save_filename)
+        rospy.loginfo("Agent saved to file {}".format(self.save_filename))
+
         # Set a rate if so desired
         if self.rate > 0:
             sleep_rate = rospy.Rate(self.rate)
@@ -219,12 +222,12 @@ class RLAgentTrainer(object):
             self.agent.reset()
 
             if self.save_every > 0 and (eps+1) % self.save_every == 0:
-                rospy.loginfo("Saving agent to file")
                 self.agent.save(self.save_filename)
+                rospy.loginfo("Agent saved to file {}".format(self.save_filename))
 
         # Completed training. Save the agent
         self.agent.save(self.save_filename)
-        rospy.loginfo("Training Complete. Agent Saved")
+        rospy.loginfo("Training Complete. Agent saved to file {}".format(self.save_filename))
 
 
 if __name__ == '__main__':

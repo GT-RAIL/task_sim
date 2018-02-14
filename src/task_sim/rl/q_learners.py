@@ -13,6 +13,7 @@ from collections import defaultdict
 
 from task_sim.msg import Status
 from task_sim.data_utils import DataUtils
+from task_sim.rl import tasks
 
 # Base Q-Learning Agent
 
@@ -207,15 +208,15 @@ class EpsilonGreedyQTableAgent(QLearningAgent):
         # need to be reloaded separately
 
         # Reset the task before saving
-        task = copy.deepcopy(self.task)
-        task.reset()
+        # task = copy.deepcopy(self.task)
+        # task.reset()
 
         data = {
             'Q': dict(self.Q),
             'pi': self.pi,
             'gamma': self.gamma,
             'default_Q': self.default_Q,
-            'task': task,
+            'task': self.task.save(),
         }
         with open(filename, 'wb') as fd:
             pickle.dump(data, fd)
@@ -225,7 +226,12 @@ class EpsilonGreedyQTableAgent(QLearningAgent):
         with open(filename, 'rb') as fd:
             data = pickle.load(fd)
 
-        self.task = data['task']
+        try:
+            task_name = data['task']['name']
+            task = getattr(tasks, task_name)(**data['task'])
+            self.task = task
+        except Exception as e:
+            rospy.logerror("Error loading task: {}".format(e))
         self.default_Q = data['default_Q']
         self.gamma = data['gamma']
         self.pi = data['pi']
