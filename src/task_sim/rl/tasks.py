@@ -10,8 +10,8 @@ import numpy as np
 
 import rospy
 
+from task_sim import data_utils as DataUtils
 from task_sim.msg import State, Action, Status
-from task_sim.data_utils import DataUtils
 
 # Class definitions
 

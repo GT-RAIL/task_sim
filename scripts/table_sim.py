@@ -15,10 +15,10 @@ from numpy import sign
 from geometry_msgs.msg import Point
 from std_srvs.srv import Empty, EmptyResponse
 
+from task_sim import data_utils as DataUtils
 from task_sim.srv import Execute, ExecuteResponse, QueryState, RequestIntervention, RequestInterventionResponse
 from task_sim.msg import Action, State, Object, Log
 from task_sim.grasp_state import GraspState
-from task_sim.data_utils import DataUtils
 from task_sim.plan_action import PlanAction
 
 class TableSim:
@@ -83,7 +83,7 @@ class TableSim:
         seed -- random seed for consistent starting situations
         level -- level of randomization, as follows:
             0 : randomize objects only
-            1 : randomize objects and drawer/box positions
+            1 : randomize objects and drawer/box positions, but not drawer theta
             2 : randomize objects, drawer and box dimensions and positions
         """
         seed(rand_seed)
@@ -125,7 +125,7 @@ class TableSim:
                                                         self.tableWidth - (self.drawerWidth/2 + 1))
                 self.state_.drawer_position.y = randint(self.drawerDepth/2 + 1,
                                                         self.tableDepth - (self.drawerDepth/2 + 1))
-                self.state_.drawer_position.theta = randint(0, 3)*90
+                self.state_.drawer_position.theta = randint(0, 3)*90 if level >= 2 else 0
 
                 xmin, xmax, ymin, ymax, xminDrawer, xmaxDrawer, yminDrawer, ymaxDrawer = self.getDrawerBounds()
                 drawer_set = self.onTable(Point(xmin, ymin, self.drawerHeight)) \
@@ -391,7 +391,7 @@ class TableSim:
             if not self.motionPlanChance(self.state_.lid_position):
                 self.error = 'Motion planner failed.'
                 return False
-            if self.getObjectAt(self.state_.lid_position):
+            if DataUtils.get_object_at(self.state_, self.state_.lid_position):
                 self.error = 'Lid is occluded and cannot be grasped.'
                 return False
             self.state_.gripper_position = self.copyPoint(self.state_.lid_position)
@@ -407,7 +407,7 @@ class TableSim:
             self.state_.object_in_gripper = 'Drawer'
             return True
 
-        target = self.getObject(object)
+        target = DataUtils.get_object_by_name(self.state_, object)
         if target:
             if target.lost:
                 self.error = target.name + ' is lost.'
@@ -526,7 +526,7 @@ class TableSim:
             elif self.state_.object_in_gripper == 'Drawer':
                 self.state_.object_in_gripper = ''
             else:
-                object = self.getObject(self.state_.object_in_gripper)
+                object = DataUtils.get_object_by_name(self.state_, self.state_.object_in_gripper)
                 self.state_.object_in_gripper = ''
                 self.gravity(object)
         return True
@@ -536,7 +536,7 @@ class TableSim:
         """Close the gripper, grasping anything at its current location"""
         if self.state_.gripper_open:
             self.state_.gripper_open = False
-            o = self.getObjectAt(self.state_.gripper_position)
+            o = DataUtils.get_object_at(self.state_, self.state_.gripper_position)
             if o:
                 self.state_.object_in_gripper = o.name
             else:
@@ -916,7 +916,7 @@ class TableSim:
             elif self.state_.object_in_gripper == 'Drawer':
                 self.updateDrawerOffset(position)
             else:
-                self.getObject(self.state_.object_in_gripper).position = self.copyPoint(position)
+                DataUtils.get_object_by_name(self.state_, self.state_.object_in_gripper).position = self.copyPoint(position)
 
 
     def copyPoint(self, point):
@@ -928,42 +928,43 @@ class TableSim:
         return copy
 
 
-    def getObject(self, name):
-        """Find an object given an object name"""
-        for object in self.state_.objects:
-            if object.name == name:
-                return object
-        return None
-
-
-    def getObjectAt(self, position):
-        """Return the object at a given position"""
-        for object in self.state_.objects:
-            if object.position == position:
-                return object
-        return None
-
-
     def updateObjectStates(self):
         """Update the semantic portions of each object state"""
         for object in self.state_.objects:
             object.in_drawer = self.inDrawer(object)
             object.in_box = self.inBox(object)
             object.on_lid = self.onLid(object)
-
+            object.on_stack = self.onStack(object)
 
     def inDrawer(self, object):
         xmin, xmax, ymin, ymax, xminDrawer, xmaxDrawer, yminDrawer, ymaxDrawer = self.getDrawerBounds()
-        return self.inVolume(object.position, xminDrawer + 1, xmaxDrawer - 1, yminDrawer + 1, ymaxDrawer - 1,
-                             self.drawerHeight, self.drawerHeight)
+        return self.inVolume(
+            object.position,
+            xminDrawer + 1, xmaxDrawer - 1,
+            yminDrawer + 1, ymaxDrawer - 1,
+            self.drawerHeight, self.drawerHeight
+        )
 
 
     def onLid(self, object):
-        return self.inVolume(object.position, self.state_.lid_position.x - self.boxRadius,
-                             self.state_.lid_position.x + self.boxRadius, self.state_.lid_position.y - self.boxRadius,
-                             self.state_.lid_position.y + self.boxRadius, self.state_.lid_position.z + 1,
-                             self.state_.lid_position.z + 1)
+        return self.inVolume(
+            object.position,
+            self.state_.lid_position.x - self.boxRadius,
+            self.state_.lid_position.x + self.boxRadius,
+            self.state_.lid_position.y - self.boxRadius,
+            self.state_.lid_position.y + self.boxRadius,
+            self.state_.lid_position.z + 1,
+            self.state_.lid_position.z + 1
+        )
 
+    def onStack(self, object):
+        xmin, xmax, ymin, ymax, xminDrawer, xmaxDrawer, yminDrawer, ymaxDrawer = self.getDrawerBounds()
+        return self.inVolume(
+            object.position,
+            xmin, xmax,
+            ymin, ymax,
+            self.drawerHeight + 1, self.drawerHeight + 1
+        )
 
     def inBox(self, object):
         return self.inVolume(object.position, self.state_.box_position.x - self.boxRadius,

@@ -7,9 +7,9 @@ from random import random, randint
 
 # ROS
 import rospy
+from task_sim import data_utils as DataUtils
 from task_sim.msg import Action, Status
 from task_sim.srv import QueryStatus, SelectAction
-from task_sim.data_utils import DataUtils
 from task_sim.plan_action import PlanAction
 
 from plan_network import PlanNetwork

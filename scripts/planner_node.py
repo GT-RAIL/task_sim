@@ -12,7 +12,7 @@ from task_sim.srv import QueryStatus, SelectAction
 import rospkg
 import rospy
 
-from data_utils import DataUtils
+from task_sim import data_utils as DataUtils
 from forward_planner import ForwardPlanner
 from plan_network import PlanNetwork
 from plan_action import PlanAction

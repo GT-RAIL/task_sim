@@ -14,7 +14,7 @@ import rospkg
 from geometry_msgs.msg import Point
 from task_sim.msg import Action, Status
 from task_sim.srv import QueryStatus, SelectAction
-from task_sim.data_utils import DataUtils
+from task_sim import data_utils as DataUtils
 
 # scikit-learn
 from sklearn.externals import joblib

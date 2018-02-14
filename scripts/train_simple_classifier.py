@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # task_sim
-from task_sim.data_utils import DataUtils
+from task_sim import data_utils as DataUtils
 from task_sim.msg import Action
 
 # ROS

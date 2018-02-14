@@ -11,8 +11,8 @@ import numpy as np
 
 from collections import defaultdict
 
+from task_sim import data_utils as DataUtils
 from task_sim.msg import Status
-from task_sim.data_utils import DataUtils
 from task_sim.rl import tasks
 
 # Base Q-Learning Agent

@@ -6,8 +6,7 @@ from math import sqrt
 # ROS
 import copy
 from task_sim.msg import Action
-
-from data_utils import DataUtils
+from task_sim import data_utils as DataUtils
 
 class PlanAction:
 
