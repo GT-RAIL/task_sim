@@ -419,16 +419,16 @@ class PlanNetwork:
             targets = self.cluster_to_objects[candidate.target]
             for obj in objects:
                 for target in targets:
-                    print '\n******************'
-                    print 'Testing preconditions for ' + str(candidate.action) + ', ' + str(obj) + ', ' + str(target)
-                    print str(candidate)
+                    # print '\n******************'
+                    # print 'Testing preconditions for ' + str(candidate.action) + ', ' + str(obj) + ', ' + str(target)
+                    # print str(candidate)
                     if candidate.check_preconditions(state, obj, target, self.object_to_cluster):
-                        print 'Success'
+                        # print 'Success'
                         temp_action_list.append([candidate, obj, target, weight])
                         pre_met_count += 1
-                    else:
-                        print 'Failure'
-                    print '****************\n'
+                    # else:
+                        # print 'Failure'
+                    # print '****************\n'
             if pre_met_count > 0:
                 for act in temp_action_list:
                     act[3] /= float(pre_met_count)

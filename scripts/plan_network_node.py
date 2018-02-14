@@ -56,14 +56,14 @@ class PlanNetworkNode:
                 self.handle_intervention_action = False
             actual_node = self.network.generalize_action(PlanAction(self.prev_state, self.prev_action, req.state))
             if actual_node != self.current_node:
-                print 'Unexpected effects!  Updating current node... (Note: this node may not be in the graph!)'
-                print '\n\n---------------------------------------'
-                print 'Current node: '
-                print str(self.current_node)
-                print '\n----------------------------------------'
-                print 'Actual node: '
-                print str(actual_node)
-                print '-----------------------------------------\n\n'
+                # print 'Unexpected effects!  Updating current node... (Note: this node may not be in the graph!)'
+                # print '\n\n---------------------------------------'
+                # print 'Current node: '
+                # print str(self.current_node)
+                # print '\n----------------------------------------'
+                # print 'Actual node: '
+                # print str(actual_node)
+                # print '-----------------------------------------\n\n'
                 if self.network.has_node(actual_node):
                     self.current_node = actual_node
                 else:
@@ -84,8 +84,8 @@ class PlanNetworkNode:
                         else:
                             self.current_node = self.network.find_suitable_node(req.state)
                     self.current_node = self.network.find_suitable_node(req.state)
-            else:
-                print 'Expected effects match.'
+            # else:
+            #     print 'Expected effects match.'
 
         if self.current_node is None:
             action.action_type = Action.NOOP
@@ -112,10 +112,10 @@ class PlanNetworkNode:
 
         if len(action_list) > 0:
 
-            print '\nAction list: '
-            for act in action_list:
-                print str(act[0].action) + ', ' + str(act[1]) + ', ' + str(act[2]) + ', ' + str(act[3])
-            print '\n'
+            # print '\nAction list: '
+            # for act in action_list:
+            #     print str(act[0].action) + ', ' + str(act[1]) + ', ' + str(act[2]) + ', ' + str(act[3])
+            # print '\n'
 
             selection = random()
             count = 0
@@ -140,13 +140,13 @@ class PlanNetworkNode:
             norm = selected_action[3]
             self.remaining_actions.remove(selected_action)
         else:
-            print 'Still no actions!'
+            # print 'Still no actions!'
             action.action_type = Action.NOOP
             self.prev_state = copy.deepcopy(req.state)
             self.intervention_requested = True
 
         if action.action_type != Action.NOOP:
-            print 'Action:\n' + str(action.action_type) + ', ' + selected_action[1] + ', ' + selected_action[2]
+            # print 'Action:\n' + str(action.action_type) + ', ' + selected_action[1] + ', ' + selected_action[2]
             self.noop_count = 0
         else:
             self.noop_count += 1
