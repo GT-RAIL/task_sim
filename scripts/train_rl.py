@@ -59,13 +59,20 @@ class RLAgentTrainer(object):
                 del self.visdom_config['plot_frequency']
 
         # Set the parameters to save the agent
-        self.save_path = rospy.get_param(
+        save_path = get_path(rospy.get_param(
             '~save_path',
             os.path.join('data', 'task1', 'models')
+        ))
+        save_prefix = rospy.get_param('~save_prefix', 'egreedy_q_table')
+        save_suffix = rospy.get_param('~save_suffix', None)
+        self.save_every = rospy.get_param('~save_every', self.execute_post_episode)
+        self.save_filename = os.path.join(
+            save_path,
+            "{}_{}.pkl".format(
+                save_prefix,
+                save_suffix or datetime.date.now().strftime("%Y-%m-%dT%H-%M-%S")
+            )
         )
-        self.save_prefix = rospy.get_param('~save_prefix', 'egreedy_q_table')
-        self.save_suffix = rospy.get_param('~save_suffix', None)
-        self.save_path = get_path(self.save_path)
 
 
         # Params and initialization for the Task
@@ -81,12 +88,15 @@ class RLAgentTrainer(object):
         # Processing for epsilon-greedy agents.
         epsilon_start = self.agent_params.get('epsilon_start', 0.15)
         epsilon_decay_factor = self.agent_params.get('epsilon_decay_factor', 0.9995)
+        epsilon_bias = self.agent_params.get('epsilon_bias', 0.0)
         # epsilon = lambda eps: epsilon_start * (epsilon_decay_factor**eps)
-        epsilon = lambda eps: epsilon_start
+        epsilon = lambda eps: epsilon_start * (epsilon_decay_factor**eps) + epsilon_bias
+        # epsilon = lambda eps: epsilon_start
         self.agent_params['epsilon'] = epsilon
 
-        alpha_decay_factor = self.agent_params.get('alpha_decay_factor', 1000)
         alpha_start = self.agent_params.get('alpha_start', 0.1)
+        alpha_decay_factor = self.agent_params.get('alpha_decay_factor', 1000)
+        alpha_bias = self.agent_params.get('alpha_bias', 0.0)
         # alpha = lambda eps: alpha_start * alpha_decay_factor / (alpha_decay_factor + eps)
         # alpha = lambda eps: alpha_start / np.ceil((eps+1)/alpha_decay_factor)
         # alpha = lambda eps: alpha_start / ((eps//alpha_decay_factor) + 1)
@@ -163,11 +173,11 @@ class RLAgentTrainer(object):
         for eps in xrange(self.num_episodes):
 
             # If we should plot the learning params, send to visdom
-            # if (eps+1) % self.visdom_config.get('plot_frequency', eps+2) == 0:
-            #     self.viz.update_line(
-            #         eps, self.agent_params['epsilon'](eps),
-            #         'epsilon', 'epsilon', 'Episode'
-            #     )
+            if (eps+1) % self.visdom_config.get('plot_frequency', eps+2) == 0:
+                self.viz.update_line(
+                    eps, self.agent_params['epsilon'](eps),
+                    'epsilon', 'epsilon', 'Episode'
+                )
             #     self.viz.update_line(
             #         eps, self.agent_params['alpha'](eps),
             #         'alpha', 'alpha', 'Episode'
@@ -208,15 +218,13 @@ class RLAgentTrainer(object):
             self.task.reset()
             self.agent.reset()
 
+            if self.save_every > 0 and (eps+1) % self.save_every == 0:
+                rospy.loginfo("Saving agent to file")
+                self.agent.save(self.save_filename)
+
         # Completed training. Save the agent
-        agent_filename = os.path.join(
-            self.save_path,
-            "{}_{}.pkl".format(
-                self.save_prefix,
-                self.save_suffix or datetime.date.now().strftime("%Y-%m-%dT%H-%M-%S")
-            )
-        )
-        self.agent.save(agent_filename)
+        self.agent.save(self.save_filename)
+        rospy.loginfo("Training Complete. Agent Saved")
 
 
 if __name__ == '__main__':
