@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import copy
+from datetime import datetime
 import heapq
 from random import shuffle
 
@@ -16,6 +17,7 @@ class ForwardPlanner:
         self.explored = []
 
         print 'Actions: \n' + str(self.actions)
+        print '\nAction list size: ' + str(len(self.actions))
 
     def initialize(self, state):
         self.node = PlanNode(PlanState(state), [])
@@ -27,6 +29,8 @@ class ForwardPlanner:
         self.explored = []
 
     def plan(self, state=None):
+        start_time = datetime.now()
+
         if state is not None:
             self.initialize(state)
 
@@ -41,9 +45,11 @@ class ForwardPlanner:
 
         while True:
             if len(self.frontier) == 0:
+                print 'Planning time: ' + str(datetime.now() - start_time)
                 return None
             self.node = self.pop_frontier()
             if self.node is None:
+                print 'Planning time: ' + str(datetime.now() - start_time)
                 return None
             if self.goal_test():
                 print '\n--------------------------------------------------------------------------\n'
@@ -52,6 +58,7 @@ class ForwardPlanner:
 
                 print '\n\nGoal distance: ' + str(goal_distance(self.node.state))
                 print '\n--------------------------------------------------------------------------\n'
+                print 'Planning time: ' + str(datetime.now() - start_time)
                 return self.node.path
             self.explored.append(self.node.state)
 

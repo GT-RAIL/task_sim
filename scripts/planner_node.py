@@ -24,8 +24,8 @@ class PlannerNode:
         task = rospy.get_param('~task', 'task1')
         suffix = rospy.get_param('output_suffix', '_2018-02-13')
 
-        self.network = PlanNetwork()
-        self.network.read_graph(task=task, suffix=suffix)
+        # self.network = PlanNetwork()
+        # self.network.read_graph(task=task, suffix=suffix)
 
         path = rospkg.RosPack().get_path('task_sim') + '/data/' + task + '/models/'
         print 'loading action list from: \n' + path + 'plan_action_list' + suffix + '.pkl'
