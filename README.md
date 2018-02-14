@@ -60,6 +60,7 @@ rate: The rate of executing actions, in case you want to follow along
 save_path: Folder to save the trained agent at. Relative to `task_sim` folder
 save_prefix: Filename to use when saving the agent
 save_suffix: More filename options. If empty (cannot be NULL), use the datetime
+save_every: Number of episodes after which to save the agent
 
 task: Dictionary of keyword args to initialize the task. Cannot use keyword `viz`
 

@@ -59,13 +59,20 @@ class RLAgentTrainer(object):
                 del self.visdom_config['plot_frequency']
 
         # Set the parameters to save the agent
-        self.save_path = rospy.get_param(
+        save_path = get_path(rospy.get_param(
             '~save_path',
             os.path.join('data', 'task1', 'models')
+        ))
+        save_prefix = rospy.get_param('~save_prefix', 'egreedy_q_table')
+        save_suffix = rospy.get_param('~save_suffix', None)
+        self.save_every = rospy.get_param('~save_every', self.execute_post_episode)
+        self.save_filename = os.path.join(
+            save_path,
+            "{}_{}.pkl".format(
+                save_prefix,
+                save_suffix or datetime.date.now().strftime("%Y-%m-%dT%H-%M-%S")
+            )
         )
-        self.save_prefix = rospy.get_param('~save_prefix', 'egreedy_q_table')
-        self.save_suffix = rospy.get_param('~save_suffix', None)
-        self.save_path = get_path(self.save_path)
 
 
         # Params and initialization for the Task
@@ -211,15 +218,13 @@ class RLAgentTrainer(object):
             self.task.reset()
             self.agent.reset()
 
+            if self.save_every > 0 and (eps+1) % self.save_every == 0:
+                rospy.loginfo("Saving agent to file")
+                self.agent.save(self.save_filename)
+
         # Completed training. Save the agent
-        agent_filename = os.path.join(
-            self.save_path,
-            "{}_{}.pkl".format(
-                self.save_prefix,
-                self.save_suffix or datetime.date.now().strftime("%Y-%m-%dT%H-%M-%S")
-            )
-        )
-        self.agent.save(agent_filename)
+        self.agent.save(self.save_filename)
+        rospy.loginfo("Training Complete. Agent Saved")
 
 
 if __name__ == '__main__':
