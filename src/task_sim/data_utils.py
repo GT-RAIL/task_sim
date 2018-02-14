@@ -492,8 +492,8 @@ def semantic_state_vector(
     # Get container open
     set_feature(
         "box_open",
-        abs(state.box_position.x - state.lid_position.x) > 1)
-            and (abs(state.lid_position.y - state.lid_position.y) > 1
+        (abs(state.box_position.x - state.lid_position.x) > 1)
+            and (abs(state.lid_position.y - state.lid_position.y) > 1)
     )
     set_feature("drawer_open", state.drawer_opening > 1)
 
