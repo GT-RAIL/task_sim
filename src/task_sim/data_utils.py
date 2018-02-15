@@ -32,6 +32,53 @@ OBJECT_TO_INT_MAP = bidict.frozenbidict({
     'knife': 11,
 })
 
+# Calculation helper functions
+
+def euclidean_3D(p1, p2):
+    return sqrt(pow(p1.x - p2.x, 2) + pow(p1.y - p2.y, 2) + pow(p1.z - p2.z, 2))
+
+def translate_pose(pose, translation):
+    pose.x += translation.x
+    pose.y += translation.y
+    pose.z += translation.z
+
+def translate_pose2D(pose, translation):
+    pose.x += translation.x
+    pose.y += translation.y
+
+def rotate_pose(pose, rotation):
+    rotation *= 3.14159/180.0
+    rotated_pose = Point()
+    rotated_pose.x = floor(cos(rotation)*pose.x - sin(rotation)*pose.y + 0.5)
+    rotated_pose.y = floor(sin(rotation)*pose.x + cos(rotation)*pose.y + 0.5)
+    pose.x = int(rotated_pose.x)
+    pose.y = int(rotated_pose.y)
+
+def rotate_state(state, rotation):
+    for object in state.objects:
+        rotate_pose(object.position, rotation)
+    rotate_pose(state.drawer_position, rotation)
+    state.drawer_position.theta += rotation
+    state.drawer_position.theta %= 360
+    rotate_pose(state.box_position, rotation)
+    rotate_pose(state.lid_position, rotation)
+    rotate_pose(state.gripper_position, rotation)
+
+def normalize_vector(vector):
+    vec = copy.copy(vector)
+    means = mean(vec, axis=0)
+    stds = std(vec, axis=0)
+    for row in vec:
+        for i in range(row.shape[0]):
+            if stds[i] == 0:
+                row[i] = 0
+            else:
+                row[i] = (row[i] - means[i]) / stds[i]
+    return vec
+
+def is_position_near_edge(position, x_margin=4, y_margin=2, xlim=40, ylim=15):
+    return (x_margin < position.x < xlim-x_margin) and (y_margin < position.y < ylim-y_margin)
+
 # Functions to handle the different frames of reference
 
 def change_frame(state, frame):
@@ -289,7 +336,8 @@ def get_task_frame(state, position):
     # default
     return 'Table'
 
-# Get key important task related features
+# Get key important task related features. Helper functions about objects are
+# the most prevalent
 
 def get_object_by_name(state, name):
     """Find an object given an object name"""
@@ -304,6 +352,34 @@ def get_object_at(state, position):
         if object.position == position:
             return object
     return None
+
+def name_to_int(name):
+    """Returns the object as an integer. An unknown object is the same as
+    the object of `''` (table)"""
+    global OBJECT_TO_INT_MAP
+
+    return OBJECT_TO_INT_MAP.get(
+        name.lower(),
+        OBJECT_TO_INT_MAP['']
+    )
+
+def int_to_name(n):
+    """Returns the referent object from an int index. If not found, return
+    `''` (table)"""
+    global OBJECT_TO_INT_MAP
+
+    return OBJECT_TO_INT_MAP.inv.get(
+        n,
+        OBJECT_TO_INT_MAP.inv[0]
+    )
+
+def object_int_pairs():
+    """Returns the (obj (lower), int) pairs of the objects"""
+    global OBJECT_TO_INT_MAP
+    return OBJECT_TO_INT_MAP.items()
+
+def to_object_name(object_key):
+    return (object_key[0].upper() + object_key[1:]) if object_key else object_key
 
 def get_handle_pos(state):
     """Get the position of the drawer handle"""
@@ -331,49 +407,6 @@ def get_drawer_midpoint_pos(state):
         point.y -= 4 + state.drawer_opening//2
     return point
 
-# Calculation helper functions
-
-def euclidean_3D(p1, p2):
-    return sqrt(pow(p1.x - p2.x, 2) + pow(p1.y - p2.y, 2) + pow(p1.z - p2.z, 2))
-
-def translate_pose(pose, translation):
-    pose.x += translation.x
-    pose.y += translation.y
-    pose.z += translation.z
-
-def translate_pose2D(pose, translation):
-    pose.x += translation.x
-    pose.y += translation.y
-
-def rotate_pose(pose, rotation):
-    rotation *= 3.14159/180.0
-    rotated_pose = Point()
-    rotated_pose.x = floor(cos(rotation)*pose.x - sin(rotation)*pose.y + 0.5)
-    rotated_pose.y = floor(sin(rotation)*pose.x + cos(rotation)*pose.y + 0.5)
-    pose.x = int(rotated_pose.x)
-    pose.y = int(rotated_pose.y)
-
-def rotate_state(state, rotation):
-    for object in state.objects:
-        rotate_pose(object.position, rotation)
-    rotate_pose(state.drawer_position, rotation)
-    state.drawer_position.theta += rotation
-    state.drawer_position.theta %= 360
-    rotate_pose(state.box_position, rotation)
-    rotate_pose(state.lid_position, rotation)
-    rotate_pose(state.gripper_position, rotation)
-
-def normalize_vector(vector):
-    vec = copy.copy(vector)
-    means = mean(vec, axis=0)
-    stds = std(vec, axis=0)
-    for row in vec:
-        for i in range(row.shape[0]):
-            if stds[i] == 0:
-                row[i] = 0
-            else:
-                row[i] = (row[i] - means[i]) / stds[i]
-    return vec
 
 # State representations
 
@@ -477,7 +510,9 @@ def semantic_state_vector(
         set_feature("{}_not_visible".format(obj_name), obj.occluded or obj.lost)
 
         # Near edge
-        set_feature("{}_near_edge".format(obj_name), None) # TODO
+        set_feature(
+            "{}_near_edge".format(obj_name), is_position_near_edge(obj.position)
+        )
 
         # Touching
         set_feature("touching_{}_x_box".format(obj_name), None) #TODO
@@ -500,14 +535,14 @@ def semantic_state_vector(
     # Gripper Semantics
     set_feature("gripper_open", state.gripper_open)
     set_feature("object_in_gripper", name_to_int(state.object_in_gripper))
-    set_feature("gripper_near_edge", None) # TODO
+    set_feature("gripper_near_edge", is_position_near_edge(state.gripper_position))
 
     # Relative positions and touching
     for obj_name in OBJECT_TO_INT_MAP.iterkeys():
         if not obj_name or obj_name == 'gripper':
             continue
 
-        # TODO: include logic to get the different position values
+        # TODO: Get the different position values
         obj_position = None
 
         # Relative Height
@@ -522,7 +557,16 @@ def semantic_state_vector(
         # Might need to include different logic for the containers?
 
     # Lid is near the edge
-    set_feature("lid_near_edge", None) # TODO
+    lid_near_edge = False
+    for dx in [-2,2]:
+        for dy in [-2,2]:
+            lid_near_edge = (
+                lid_near_edge
+                or is_position_near_edge(
+                    Point(state.lid_position.x+dx, state.lid_position.y, 0)
+                )
+            )
+    set_feature("lid_near_edge", lid_near_edge)
 
     # Add in the history
     for i in xrange(history_buffer):
@@ -930,33 +974,3 @@ def msg_from_semantic_action(state, semantic_action):
         action.position.y = position.y
 
     return action
-
-# Target object name helper functions
-
-def name_to_int(name):
-    """Returns the object as an integer. An unknown object is the same as
-    the object of `''` (table)"""
-    global OBJECT_TO_INT_MAP
-
-    return OBJECT_TO_INT_MAP.get(
-        name.lower(),
-        OBJECT_TO_INT_MAP['']
-    )
-
-def int_to_name(n):
-    """Returns the referent object from an int index. If not found, return
-    `''` (table)"""
-    global OBJECT_TO_INT_MAP
-
-    return OBJECT_TO_INT_MAP.inv.get(
-        n,
-        OBJECT_TO_INT_MAP.inv[0]
-    )
-
-def object_int_pairs():
-    """Returns the (obj (lower), int) pairs of the objects"""
-    global OBJECT_TO_INT_MAP
-    return OBJECT_TO_INT_MAP.items()
-
-def to_object_name(object_key):
-    return (object_key[0].upper() + object_key[1:]) if object_key else object_key
