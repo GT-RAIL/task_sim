@@ -387,11 +387,15 @@ class Task1(Task):
         return DataUtils.msg_from_semantic_action(self.world_state, action)
 
     def get_agent_state(self):
-        return tuple(DataUtils.naive_state_vector(
+        # return tuple(DataUtils.naive_state_vector(
+        #     self.world_state,
+        #     state_positions=self.state_vector_args.get('state_positions', False),
+        #     state_semantics=self.state_vector_args.get('state_semantics', True),
+        #     position_semantics=self.state_vector_args.get('position_semantics', True),
+        #     history_buffer=self.state_vector_args.get('history_buffer', 0),
+        # ))
+        return tuple(DataUtils.semantic_state_vector(
             self.world_state,
-            state_positions=self.state_vector_args.get('state_positions', False),
-            state_semantics=self.state_vector_args.get('state_semantics', True),
-            position_semantics=self.state_vector_args.get('position_semantics', True),
             history_buffer=self.state_vector_args.get('history_buffer', 0),
         ))
 
