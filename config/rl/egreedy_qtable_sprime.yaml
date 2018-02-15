@@ -5,14 +5,14 @@ visdom_config:
   env_name: "egreedy_qtable_sprime"
   rewrite_windows: true
 
-execute_post_episode: 500
-num_episodes: 8000
+execute_post_episode: 50
+num_episodes: 100
 change_seeds: true
 rate: -1
 save_path: "data/task1/models"
 save_prefix: "egreedy_qtable_sprime"
 save_suffix: ''
-save_every: 500
+save_every: 50
 
 task:
   state_vector_args:
@@ -30,7 +30,7 @@ task:
 
 agent:
   epsilon_start: 0.14
-  epsilon_decay_factor: 0.9997
+  epsilon_decay_factor: 0.99
   epsilon_bias: 0.01
   alpha_start: 0.1
   alpha_decay_factor: 1000

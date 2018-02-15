@@ -26,8 +26,10 @@ Running RL (detached) with docker
 ```
 # $(pwd) is used assuming that you are running this from the `task_sim` dir
 # <config_file> is the file path relative to the `task_sim` directory
+# Change /root to the $TASKSIM_FILES_ROOT if the image build args were different
+# Update <name> by setting it as desired
 
-docker run -d --rm -v $(pwd)/../:/usr/src ros:indigo /usr/src/task_sim/bin/docker_train_rl.sh <config_file>
+docker run --runtime=nvidia -d --rm -v $(pwd)/../:/root/software/ --name <name> gt-rail/task_sim:rl /root/software/task_sim/bin/train_rl.sh <config_file>
 
 # Run with `-it` instead of `-d` to stay attached to the container
 ```
@@ -40,6 +42,16 @@ docker logs -f <container> # To follow the output. ctrl+c stops following
 ```
 
 There is also a way to attach to the container with `docker attach` but I haven't been able to figure out a method of detaching from the container once attached.
+
+### Building Docker Image
+
+There is a docker image at `bin/docker/rl` that can be used to run an isolated instance of the RL training code. Run the following command from the top-level `task_sim` directory. The output is an image with the tag `gt-rail/task_sim:rl`
+
+```
+docker build -t gt-rail/task_sim:rl -f bin/docker/rl/Dockerfile .
+```
+
+The Dockerfile takes the additional arg of `$TASKSIM_FILES_ROOT` that is by default set to the directory of `/root` in the target image. You can change this if you so desire.
 
 ### Config file
 
@@ -55,7 +67,7 @@ visdom_config: Dictionary of configs for the visdom interface
 
 execute_post_episode: Test policy after these many episodes
 num_episodes: Number of training episodes to run
-change_seeds: Flag to randomize the table_sim between episodes, or list of seeds
+change_seeds: Boolean to randomize the table_sim between episodes, or list of seeds
 rate: The rate of executing actions, in case you want to follow along
 save_path: Folder to save the trained agent at. Relative to `task_sim` folder
 save_prefix: Filename to use when saving the agent
