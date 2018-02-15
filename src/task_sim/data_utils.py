@@ -43,6 +43,10 @@ class Globals:
         'table_height': 15,
     }
 
+    TOUCH_SEARCH_OFFSETS = [
+        Point(x,y,0) for x in xrange(-1,2) for y in xrange(-1,2)
+    ]
+
 # Calculation helper functions
 
 def euclidean_3D(p1, p2):
@@ -56,6 +60,16 @@ def translate_pose(pose, translation):
 def translate_pose2D(pose, translation):
     pose.x += translation.x
     pose.y += translation.y
+
+def get_translated_pose(pose, translation):
+    new_pose = Point(pose.x, pose.y, pose.z)
+    translate_pose(new_pose, translation)
+    return new_pose
+
+def get_translated_pose2D(pose, translation):
+    new_pose = Point(pose.x, pose.y, pose.z)
+    translate_pose2D(new_pose, translation)
+    return new_pose
 
 def rotate_pose(pose, rotation):
     rotation *= 3.14159/180.0
@@ -120,7 +134,7 @@ def is_position_near_edge(
     ylim=Globals.DEFAULT_ENVIRONMENT['table_height']
 ):
     """Check if the position is near the edge"""
-    return (
+    return not (
         (x_margin < position.x < xlim-x_margin)
         and (y_margin < position.y < ylim-y_margin)
     )
@@ -129,6 +143,14 @@ def get_relative_position_ternary(pos1, pos2):
     """Given two position scalars pos1 and pos2, return -1 if pos1 < pos2, 0 if
     pos1 == pos2, else +1"""
     return -1 if pos1 < pos2 else (0 if pos1 == pos2 else 1)
+
+def is_adjacent(position1, position2):
+    """Given 2 positions, return if they are adjacent"""
+    return any([
+        position2 == get_translated_pose2D(position1, translation)
+        for translation in Globals.TOUCH_SEARCH_OFFSETS
+        if translation.x != 0 and translation.y != 0
+    ])
 
 # Object Getters
 
@@ -149,18 +171,12 @@ def get_object_at(state, position):
 def name_to_int(name):
     """Returns the object as an integer. An unknown object is the same as
     the object of `''` (table)"""
-    return Globals.OBJECT_TO_INT_MAP.get(
-        name.lower(),
-        Globals.OBJECT_TO_INT_MAP['']
-    )
+    return Globals.OBJECT_TO_INT_MAP.get(name.lower(), Globals.OBJECT_TO_INT_MAP[''])
 
 def int_to_name(n):
     """Returns the referent object from an int index. If not found, return
     `''` (table)"""
-    return Globals.OBJECT_TO_INT_MAP.inv.get(
-        n,
-        Globals.OBJECT_TO_INT_MAP.inv[0]
-    )
+    return Globals.OBJECT_TO_INT_MAP.inv.get(n, Globals.OBJECT_TO_INT_MAP.inv[0])
 
 def object_int_pairs():
     """Returns the (obj (lower), int) pairs of the objects"""
@@ -246,17 +262,23 @@ def get_handle_pos(
         handle_point.y -= offset
     return handle_point
 
-def get_drawer_midpoint_pos(state):
+def get_drawer_midpoint_pos(
+    state,
+    drawer_depth=Globals.DEFAULT_ENVIRONMENT['drawer_depth'],
+    drawer_height=Globals.DEFAULT_ENVIRONMENT['drawer_height'],
+):
     """Get the midpoint of an open drawer"""
-    point = Point(state.drawer_position.x, state.drawer_position.y, 2)
+    point = Point(state.drawer_position.x, state.drawer_position.y, drawer_height)
+    depthAdjustment = ((drawer_depth - 1)/2)
+    offset = depthAdjustment + state.drawer_opening//2 + 1
     if state.drawer_position.theta == 0:
-        point.x += 4 + state.drawer_opening//2
+        point.x += offset
     elif state.drawer_position.theta == 90:
-        point.y += 4 + state.drawer_opening//2
+        point.y += offset
     elif state.drawer_position.theta == 180:
-        point.x -= 4 + state.drawer_opening//2
+        point.x -= offset
     else:
-        point.y -= 4 + state.drawer_opening//2
+        point.y -= offset
     return point
 
 # Collision Helper functions
@@ -355,6 +377,8 @@ def in_collision(
         )
     )
 
+# Touch helper functions
+
 def get_neighbor_count(
     state, position,
     box_radius=Globals.DEFAULT_ENVIRONMENT['box_radius'],
@@ -376,6 +400,100 @@ def get_neighbor_count(
             ):
                 count += 1
     return count
+
+def is_touching_box(
+    state, position,
+    box_radius=Globals.DEFAULT_ENVIRONMENT['box_radius'],
+    box_height=Globals.DEFAULT_ENVIRONMENT['box_height']
+):
+    return any([
+        box_collision(state, get_translated_pose2D(position, translation), box_radius, box_height)
+        for translation in Globals.TOUCH_SEARCH_OFFSETS
+        if translation.x != 0 or translation.y != 0
+    ])
+
+def is_touching_lid(
+    state, position,
+    box_radius=Globals.DEFAULT_ENVIRONMENT['box_radius'],
+    box_height=Globals.DEFAULT_ENVIRONMENT['box_height']
+):
+    return any([
+        lid_collision(state, get_translated_pose2D(position, translation), box_radius)
+        for translation in Globals.TOUCH_SEARCH_OFFSETS
+        if translation.x != 0 or translation.y != 0
+    ])
+
+def is_touching_stack(
+    state, position,
+    drawer_width=Globals.DEFAULT_ENVIRONMENT['drawer_width'],
+    drawer_depth=Globals.DEFAULT_ENVIRONMENT['drawer_depth'],
+    drawer_height=Globals.DEFAULT_ENVIRONMENT['drawer_height']
+):
+    return any([
+        drawer_collision(
+            state, get_translated_pose2D(position, translation),
+            drawer_width, drawer_depth, drawer_height
+        )[0]
+        for translation in Globals.TOUCH_SEARCH_OFFSETS
+        if translation.x != 0 and translation.y != 0
+    ])
+
+def is_touching_drawer(
+    state, position,
+    drawer_width=Globals.DEFAULT_ENVIRONMENT['drawer_width'],
+    drawer_depth=Globals.DEFAULT_ENVIRONMENT['drawer_depth'],
+    drawer_height=Globals.DEFAULT_ENVIRONMENT['drawer_height']
+):
+    return any([
+        any(drawer_collision(
+            state, get_translated_pose2D(position, translation),
+            drawer_width, drawer_depth, drawer_height
+        ))
+        for translation in Globals.TOUCH_SEARCH_OFFSETS
+        if translation.x != 0 and translation.y != 0
+    ])
+
+def is_gripper_touching(
+    state, target,
+    box_radius=Globals.DEFAULT_ENVIRONMENT['box_radius'],
+    box_height=Globals.DEFAULT_ENVIRONMENT['box_height'],
+    drawer_width=Globals.DEFAULT_ENVIRONMENT['drawer_width'],
+    drawer_depth=Globals.DEFAULT_ENVIRONMENT['drawer_depth'],
+    drawer_height=Globals.DEFAULT_ENVIRONMENT['drawer_height']
+):
+    """Check if the gripper is touching the target object"""
+    gripper_extremes = [
+        get_translated_pose2D(state.gripper_position, translation)
+        for translation in Globals.TOUCH_SEARCH_OFFSETS
+        if abs(translation.x) == abs(translation.y)
+    ]
+    if target == 'stack':
+        return any([
+            is_touching_stack(state, pos, drawer_width, drawer_depth, drawer_height)
+            for pos in gripper_extremes
+        ])
+    elif target == 'drawer':
+        return any([
+            is_touching_drawer(state, pos, drawer_width, drawer_depth, drawer_height)
+            for pos in gripper_extremes
+        ])
+    elif target == 'box':
+        return any([
+            is_touching_box(state, pos, box_radius, box_height)
+            for pos in gripper_extremes
+        ])
+    elif target == 'lid':
+        return any([
+            is_touching_lid(state, pos, box_radius, box_height)
+            for pos in gripper_extremes
+        ])
+    else: # Some object
+        obj_position = get_object_by_name(state, target).position
+        return any([
+            gripper_collision(state, get_translated_pose2D(obj_position, translation))
+            for translation in Globals.TOUCH_SEARCH_OFFSETS
+            if translation.x != 0 or translation.y != 0
+        ])
 
 # Functions to handle the different frames of reference
 
@@ -740,20 +858,25 @@ def semantic_state_vector(
         )
 
         # Touching
-        set_feature("touching_{}_x_box".format(obj_name), None) #TODO
-        set_feature("touching_{}_x_lid".format(obj_name), None) # TODO
-        set_feature("touching_{}_x_stack".format(obj_name), None) # TODO
+        set_feature("touching_{}_x_box".format(obj_name), is_touching_box(state, obj.position))
+        set_feature("touching_{}_x_lid".format(obj_name), is_touching_lid(state, obj.position))
+        set_feature("touching_{}_x_stack".format(obj_name), is_touching_stack(state, obj.position))
 
         # Object touching objects
         for j in xrange(idx+1, len(objects)):
             other_obj = get_object_by_name(state, objects[j])
-            set_feature("touching_{}_x_{}".format(obj_name, objects[j]), None) # TODO
+            set_feature(
+                "touching_{}_x_{}".format(obj_name, objects[j]),
+                is_adjacent(obj.position, other_obj.position)
+            )
 
     # Get container open
     set_feature(
         "box_open",
-        (abs(state.box_position.x - state.lid_position.x) > 1)
-            and (abs(state.lid_position.y - state.lid_position.y) > 1)
+        (
+            abs(state.box_position.x - state.lid_position.x) > 1)
+            and (abs(state.lid_position.y - state.lid_position.y) > 1
+        )
     )
     set_feature("drawer_open", state.drawer_opening > 1)
 
@@ -799,13 +922,12 @@ def semantic_state_vector(
         # Touching. We don't care about handle
         if obj_name == 'handle':
             continue
-        set_feature("touching_gripper_{}".format(obj_name), None) # TODO
-        # Might need to include different logic for the containers?
+        set_feature("touching_gripper_{}".format(obj_name), is_gripper_touching(state, obj_name))
 
     # Lid is near the edge
     lid_near_edge = False
-    for dx in [-2,2]:
-        for dy in [-2,2]:
+    for dx in [-Globals.DEFAULT_ENVIRONMENT['box_radius'],Globals.DEFAULT_ENVIRONMENT['box_radius']]:
+        for dy in [-Globals.DEFAULT_ENVIRONMENT['box_radius'],Globals.DEFAULT_ENVIRONMENT['box_radius']]:
             lid_near_edge = (
                 lid_near_edge
                 or is_position_near_edge(
@@ -1003,6 +1125,12 @@ def semantic_action_to_position(state, target):
                     break
             if obj_collision:
                 continue
+            # Finally, do a safety check for the limits if there is an object in
+            # the gripper
+            if state.object_in_gripper and is_position_near_edge(position):
+                continue
+
+            # All checks have passed. Move/Place at the location
             break
     else:
         for o in state.objects:
