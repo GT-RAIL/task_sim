@@ -17,20 +17,31 @@ from task_sim.msg import Action
 
 # Globals
 
-OBJECT_TO_INT_MAP = bidict.frozenbidict({
-    '': 0, # Also corresponds to the table
-    'gripper': 1,
-    'stack': 2,
-    'drawer': 3,
-    'handle': 4,
-    'box': 5,
-    'lid': 6,
-    'apple': 7,
-    'batteries': 8,
-    'flashlight': 9,
-    'granola': 10,
-    'knife': 11,
-})
+class Globals:
+    OBJECT_TO_INT_MAP = bidict.frozenbidict({
+        '': 0, # Also corresponds to the table
+        'gripper': 1,
+        'stack': 2,
+        'drawer': 3,
+        'handle': 4,
+        'box': 5,
+        'lid': 6,
+        'apple': 7,
+        'batteries': 8,
+        'flashlight': 9,
+        'granola': 10,
+        'knife': 11,
+    })
+
+    DEFAULT_ENVIRONMENT = { # Defaults when random level == 1
+        'box_radius': 2,
+        'box_height': 1,
+        'drawer_width': 5,
+        'drawer_depth': 7,
+        'drawer_height': 2,
+        'table_width': 40,
+        'table_height': 15,
+    }
 
 # Calculation helper functions
 
@@ -76,8 +87,295 @@ def normalize_vector(vector):
                 row[i] = (row[i] - means[i]) / stds[i]
     return vec
 
-def is_position_near_edge(position, x_margin=4, y_margin=2, xlim=40, ylim=15):
-    return (x_margin < position.x < xlim-x_margin) and (y_margin < position.y < ylim-y_margin)
+def on_box_edge(position, xmin, xmax, ymin, ymax, zmin, zmax):
+    """Detect whether a point is on the perimeter of a given rectangular prism
+
+    Keyword arguments:
+    position -- point to check
+    (xmin, xmax, ymin, ymax, zmin, zmax) -- bounds of the prism
+    """
+    return ((((position.x == xmin or position.x == xmax)
+              and position.y >= ymin
+              and position.y <= ymax)
+             or ((position.y == ymin or position.y == ymax)
+                 and position.x >= xmin
+                 and position.x <= xmax))
+            and position.z >= zmin
+            and position.z <= zmax)
+
+def in_volume(position, xmin, xmax, ymin, ymax, zmin, zmax):
+    """Detect whether a point is within a rectangular prism
+
+    Keyword arguments:
+    position -- point to check
+    (xmin, xmax, ymin, ymax, zmin, zmax) -- bounds of the prism
+    """
+    return (position.x >= xmin and position.x <= xmax
+        and position.y >= ymin and position.y <= ymax
+        and position.z >= zmin and position.z <= zmax)
+
+def is_position_near_edge(
+    position, x_margin=4, y_margin=2,
+    xlim=Globals.DEFAULT_ENVIRONMENT['table_width'],
+    ylim=Globals.DEFAULT_ENVIRONMENT['table_height']
+):
+    """Check if the position is near the edge"""
+    return (
+        (x_margin < position.x < xlim-x_margin)
+        and (y_margin < position.y < ylim-y_margin)
+    )
+
+def get_relative_position_ternary(pos1, pos2):
+    """Given two position scalars pos1 and pos2, return -1 if pos1 < pos2, 0 if
+    pos1 == pos2, else +1"""
+    return -1 if pos1 < pos2 else (0 if pos1 == pos2 else 1)
+
+# Object Getters
+
+def get_object_by_name(state, name):
+    """Find an object given an object name"""
+    for object in state.objects:
+        if object.name == name or object.name.lower() == name:
+            return object
+    return None
+
+def get_object_at(state, position):
+    """Return the object at a given position"""
+    for object in state.objects:
+        if object.position == position:
+            return object
+    return None
+
+def name_to_int(name):
+    """Returns the object as an integer. An unknown object is the same as
+    the object of `''` (table)"""
+    return Globals.OBJECT_TO_INT_MAP.get(
+        name.lower(),
+        Globals.OBJECT_TO_INT_MAP['']
+    )
+
+def int_to_name(n):
+    """Returns the referent object from an int index. If not found, return
+    `''` (table)"""
+    return Globals.OBJECT_TO_INT_MAP.inv.get(
+        n,
+        Globals.OBJECT_TO_INT_MAP.inv[0]
+    )
+
+def object_int_pairs():
+    """Returns the (obj (lower), int) pairs of the objects"""
+    return Globals.OBJECT_TO_INT_MAP.items()
+
+def to_object_name(object_key):
+    return (object_key[0].upper() + object_key[1:]) if object_key else object_key
+
+# Drawer getters
+
+def get_drawer_bounds(
+    state,
+    drawer_width=Globals.DEFAULT_ENVIRONMENT['drawer_width'],
+    drawer_depth=Globals.DEFAULT_ENVIRONMENT['drawer_height']
+):
+    """Determine the bounds of the drawer stack and drawer itself
+
+    Returns:
+    xmin, xmax, ymin, ymax, xminDrawer, xmaxDrawer, yminDrawer, ymaxDrawer
+        (xmin, xmax, ymin, ymax) -- bounding box of the drawer stack
+        (xminDrawer, xmaxDrawer, yminDrawer, ymaxDrawer) -- bounding box of the drawer
+    """
+    widthAdjustment = (drawer_width - 1)/2
+    depthAdjustment = (drawer_depth - 1)/2
+    if state.drawer_position.theta == 0:
+        xmin = state.drawer_position.x - depthAdjustment
+        xmax = state.drawer_position.x + depthAdjustment
+        ymin = state.drawer_position.y - widthAdjustment
+        ymax = state.drawer_position.y + widthAdjustment
+        xminDrawer = xmin + state.drawer_opening
+        xmaxDrawer = xmax + state.drawer_opening
+        yminDrawer = ymin
+        ymaxDrawer = ymax
+
+    elif state.drawer_position.theta == 90:
+        xmin = state.drawer_position.x - widthAdjustment
+        xmax = state.drawer_position.x + widthAdjustment
+        ymin = state.drawer_position.y - depthAdjustment
+        ymax = state.drawer_position.y + depthAdjustment
+        xminDrawer = xmin
+        xmaxDrawer = xmax
+        yminDrawer = ymin + state.drawer_opening
+        ymaxDrawer = ymax + state.drawer_opening
+
+    elif state.drawer_position.theta == 180:
+        xmin = state.drawer_position.x - depthAdjustment
+        xmax = state.drawer_position.x + depthAdjustment
+        ymin = state.drawer_position.y - widthAdjustment
+        ymax = state.drawer_position.y + widthAdjustment
+        xminDrawer = xmin - state.drawer_opening
+        xmaxDrawer = xmax - state.drawer_opening
+        yminDrawer = ymin
+        ymaxDrawer = ymax
+
+    else:  # 270
+        xmin = state.drawer_position.x - widthAdjustment
+        xmax = state.drawer_position.x + widthAdjustment
+        ymin = state.drawer_position.y - depthAdjustment
+        ymax = state.drawer_position.y + depthAdjustment
+        xminDrawer = xmin
+        xmaxDrawer = xmax
+        yminDrawer = ymin - state.drawer_opening
+        ymaxDrawer = ymax - state.drawer_opening
+
+    return xmin, xmax, ymin, ymax, xminDrawer, xmaxDrawer, yminDrawer, ymaxDrawer
+
+def get_handle_pos(
+    state,
+    drawer_depth=Globals.DEFAULT_ENVIRONMENT['drawer_depth'],
+    drawer_height=Globals.DEFAULT_ENVIRONMENT['drawer_height']
+):
+    """Calculate the point corresponding to the handle on the drawer"""
+    depthAdjustment = ((drawer_depth - 1)/2)
+    handle_point = Point(state.drawer_position.x, state.drawer_position.y, drawer_height)
+    offset = depthAdjustment + state.drawer_opening + 1
+    if state.drawer_position.theta == 0:
+        handle_point.x += offset
+    elif state.drawer_position.theta == 90:
+        handle_point.y += offset
+    elif state.drawer_position.theta == 180:
+        handle_point.x -= offset
+    else:
+        handle_point.y -= offset
+    return handle_point
+
+def get_drawer_midpoint_pos(state):
+    """Get the midpoint of an open drawer"""
+    point = Point(state.drawer_position.x, state.drawer_position.y, 2)
+    if state.drawer_position.theta == 0:
+        point.x += 4 + state.drawer_opening//2
+    elif state.drawer_position.theta == 90:
+        point.y += 4 + state.drawer_opening//2
+    elif state.drawer_position.theta == 180:
+        point.x -= 4 + state.drawer_opening//2
+    else:
+        point.y -= 4 + state.drawer_opening//2
+    return point
+
+# Collision Helper functions
+
+def gripper_collision(state, position):
+    """Detect collision with only the gripper"""
+    return on_box_edge(
+        position,
+        state.gripper_position.x - 1, state.gripper_position.x + 1,
+        state.gripper_position.y - 1, state.gripper_position.y + 1,
+        state.gripper_position.z, state.gripper_position.z
+    )
+
+def object_collision(state, position):
+    """Detect collision with any object"""
+    for object in state.objects:
+        if object.position == position:
+            return object
+    return None
+
+def box_collision(
+    state, position,
+    box_radius=Globals.DEFAULT_ENVIRONMENT['box_radius'],
+    box_height=Globals.DEFAULT_ENVIRONMENT['box_height']
+):
+    """Detect collision with only the box"""
+    return on_box_edge(
+        position,
+        state.box_position.x - box_radius, state.box_position.x + box_radius,
+        state.box_position.y - box_radius, state.box_position.y + box_radius,
+        state.box_position.z, state.box_position.z + box_height - 1
+    )
+
+def lid_collision(
+    state, position,
+    box_radius=Globals.DEFAULT_ENVIRONMENT['box_radius']
+):
+    """Detect collision with only the lid"""
+    return in_volume(
+        position,
+        state.lid_position.x - box_radius, state.lid_position.x + box_radius,
+        state.lid_position.y - box_radius, state.lid_position.y + box_radius,
+        state.lid_position.z, state.lid_position.z
+    )
+
+def drawer_collision(
+    state, position,
+    drawer_width=Globals.DEFAULT_ENVIRONMENT['drawer_width'],
+    drawer_depth=Globals.DEFAULT_ENVIRONMENT['drawer_depth'],
+    drawer_height=Globals.DEFAULT_ENVIRONMENT['drawer_height']
+):
+    """Detect collision with only the drawer
+
+    Returns:
+    List of collisions as follows:
+    [drawer stack collision, drawer bottom collision, drawer edge collision]
+    """
+    xmin, xmax, ymin, ymax, xminDrawer, xmaxDrawer, yminDrawer, ymaxDrawer = get_drawer_bounds(state, drawer_width, drawer_depth)
+
+    return [
+        in_volume(position, xmin, xmax, ymin, ymax, 0, drawer_height),
+        in_volume(position, xminDrawer + 1, xmaxDrawer - 1, yminDrawer + 1, ymaxDrawer - 1, drawer_height - 1, drawer_height - 1),
+        on_box_edge(position, xminDrawer, xmaxDrawer, yminDrawer, ymaxDrawer,
+                           drawer_height - 1, drawer_height)
+    ]
+
+def environment_collision(
+    state, position,
+    box_radius=Globals.DEFAULT_ENVIRONMENT['box_radius'],
+    box_height=Globals.DEFAULT_ENVIRONMENT['box_height'],
+    drawer_width=Globals.DEFAULT_ENVIRONMENT['drawer_width'],
+    drawer_depth=Globals.DEFAULT_ENVIRONMENT['drawer_depth'],
+    drawer_height=Globals.DEFAULT_ENVIRONMENT['drawer_height']
+):
+    """Detect collision with either the box, lid, or drawer"""
+    return (
+        box_collision(state, position, box_radius, box_height)
+        or lid_collision(state, position, box_radius)
+        or any(drawer_collision(state, position, drawer_width, drawer_depth, drawer_height))
+    )
+
+def in_collision(
+    state, position,
+    box_radius=Globals.DEFAULT_ENVIRONMENT['box_radius'],
+    box_height=Globals.DEFAULT_ENVIRONMENT['box_height'],
+    drawer_width=Globals.DEFAULT_ENVIRONMENT['drawer_width'],
+    drawer_depth=Globals.DEFAULT_ENVIRONMENT['drawer_depth'],
+    drawer_height=Globals.DEFAULT_ENVIRONMENT['drawer_height']
+):
+    """Detect collision with anything in the environment (gripper not included)"""
+    return (
+        object_collision(state, position)
+        or environment_collision(
+            state, position, box_radius, box_height,
+            drawer_width, drawer_depth, drawer_height
+        )
+    )
+
+def get_neighbor_count(
+    state, position,
+    box_radius=Globals.DEFAULT_ENVIRONMENT['box_radius'],
+    box_height=Globals.DEFAULT_ENVIRONMENT['box_height'],
+    drawer_width=Globals.DEFAULT_ENVIRONMENT['drawer_width'],
+    drawer_depth=Globals.DEFAULT_ENVIRONMENT['drawer_depth'],
+    drawer_height=Globals.DEFAULT_ENVIRONMENT['drawer_height']
+):
+    """Get the count of the number of neighbours at a position"""
+    count = 0
+    for x in range(-1, 2):
+        for y in range(-1, 2):
+            if x == 0 and y == 0:
+                continue
+            if in_collision(
+                state, Point(position.x + x, position.y + y, position.z),
+                box_radius, box_height,
+                drawer_width, drawer_depth, drawer_height
+            ):
+                count += 1
+    return count
 
 # Functions to handle the different frames of reference
 
@@ -336,77 +634,6 @@ def get_task_frame(state, position):
     # default
     return 'Table'
 
-# Get key important task related features. Helper functions about objects are
-# the most prevalent
-
-def get_object_by_name(state, name):
-    """Find an object given an object name"""
-    for object in state.objects:
-        if object.name == name or object.name.lower() == name:
-            return object
-    return None
-
-def get_object_at(state, position):
-    """Return the object at a given position"""
-    for object in state.objects:
-        if object.position == position:
-            return object
-    return None
-
-def name_to_int(name):
-    """Returns the object as an integer. An unknown object is the same as
-    the object of `''` (table)"""
-    global OBJECT_TO_INT_MAP
-
-    return OBJECT_TO_INT_MAP.get(
-        name.lower(),
-        OBJECT_TO_INT_MAP['']
-    )
-
-def int_to_name(n):
-    """Returns the referent object from an int index. If not found, return
-    `''` (table)"""
-    global OBJECT_TO_INT_MAP
-
-    return OBJECT_TO_INT_MAP.inv.get(
-        n,
-        OBJECT_TO_INT_MAP.inv[0]
-    )
-
-def object_int_pairs():
-    """Returns the (obj (lower), int) pairs of the objects"""
-    global OBJECT_TO_INT_MAP
-    return OBJECT_TO_INT_MAP.items()
-
-def to_object_name(object_key):
-    return (object_key[0].upper() + object_key[1:]) if object_key else object_key
-
-def get_handle_pos(state):
-    """Get the position of the drawer handle"""
-    point = Point(state.drawer_position.x, state.drawer_position.y, 2)
-    if state.drawer_position.theta == 0:
-        point.x += 4 + state.drawer_opening
-    elif state.drawer_position.theta == 90:
-        point.y += 4 + state.drawer_opening
-    elif state.drawer_position.theta == 180:
-        point.x -= 4 + state.drawer_opening
-    else:
-        point.y -= 4 + state.drawer_opening
-    return point
-
-def get_drawer_midpoint_pos(state):
-    """Get the midpoint of an open drawer"""
-    point = Point(state.drawer_position.x, state.drawer_position.y, 2)
-    if state.drawer_position.theta == 0:
-        point.x += 4 + state.drawer_opening//2
-    elif state.drawer_position.theta == 90:
-        point.y += 4 + state.drawer_opening//2
-    elif state.drawer_position.theta == 180:
-        point.x -= 4 + state.drawer_opening//2
-    else:
-        point.y -= 4 + state.drawer_opening//2
-    return point
-
 
 # State representations
 
@@ -484,8 +711,6 @@ def semantic_state_vector(
     lid:
         near_edge
     """
-    global OBJECT_TO_INT_MAP
-
     # Helper function
     def set_feature(key, value):
         semantic_state_keys.append(key)
@@ -500,7 +725,7 @@ def semantic_state_vector(
 
     # First, get the properties of the objects one by one
     for idx, obj_name in enumerate(objects):
-        obj = get_object_by_name(obj_name)
+        obj = get_object_by_name(state, obj_name)
 
         # Directly from the state - in_box, in_drawer, on_lid, on_stack, not_visible
         set_feature("{}_in_box".format(obj_name), obj.in_box)
@@ -521,7 +746,7 @@ def semantic_state_vector(
 
         # Object touching objects
         for j in xrange(idx+1, len(objects)):
-            other_obj = get_object_by_name(objects[j])
+            other_obj = get_object_by_name(state, objects[j])
             set_feature("touching_{}_x_{}".format(obj_name, objects[j]), None) # TODO
 
     # Get container open
@@ -538,17 +763,38 @@ def semantic_state_vector(
     set_feature("gripper_near_edge", is_position_near_edge(state.gripper_position))
 
     # Relative positions and touching
-    for obj_name in OBJECT_TO_INT_MAP.iterkeys():
+    for obj_name in Globals.OBJECT_TO_INT_MAP.iterkeys():
         if not obj_name or obj_name == 'gripper':
             continue
 
-        # TODO: Get the different position values
+        # Get the different position values
         obj_position = None
+        if obj_name in objects:
+            obj_position = get_object_by_name(state, obj_name).position
+        elif obj_name == 'stack':
+            obj_position = Point(state.drawer_position.x, state.drawer_position.y, 0)
+        elif obj_name == 'drawer':
+            obj_position = get_drawer_midpoint_pos(state)
+        elif obj_name == 'handle':
+            obj_position = get_handle_pos(state)
+        elif obj_name == 'box':
+            obj_position = state.box_position
+        elif obj_name == 'lid':
+            obj_position = state.lid_position
 
         # Relative Height
-        set_feature("relative_h_{}".format(obj_name), None) # TODO
-        set_feature("relative_x_{}".format(obj_name), None) # TODO
-        set_feature("relative_y_{}".format(obj_name), None) # TODO
+        set_feature(
+            "relative_h_{}".format(obj_name),
+            get_relative_position_ternary(state.gripper_position.z, obj_position.z)
+        )
+        set_feature(
+            "relative_x_{}".format(obj_name),
+            get_relative_position_ternary(state.gripper_position.x, obj_position.x)
+        )
+        set_feature(
+            "relative_y_{}".format(obj_name),
+            get_relative_position_ternary(state.gripper_position.y, obj_position.y)
+        )
 
         # Touching. We don't care about handle
         if obj_name == 'handle':
@@ -806,8 +1052,6 @@ def get_action_obj_offset_candidates(state):
 
     Input state is of type task_sim.State
     """
-    global OBJECT_TO_INT_MAP
-
     action_candidates = [(Action.NOOP, None, None)]
 
     # Open, Close Gripper
@@ -824,7 +1068,7 @@ def get_action_obj_offset_candidates(state):
     ])
 
     # Grasp
-    for object_key in OBJECT_TO_INT_MAP.iterkeys():
+    for object_key in Globals.OBJECT_TO_INT_MAP.iterkeys():
         if not object_key: # Table/Empty object name
             continue
 
@@ -838,7 +1082,7 @@ def get_action_obj_offset_candidates(state):
         )
 
     # Move, Place
-    for object_key in OBJECT_TO_INT_MAP.iterkeys():
+    for object_key in Globals.OBJECT_TO_INT_MAP.iterkeys():
         # We perform no collision/edge checking. Instead, all options are
         # available and I'm choosing to arbitrarily end limit the offset to
         # -5 < offset < 5 for an object, and the whole range for the table
@@ -865,8 +1109,6 @@ def get_semantic_action_candidates(state):
     """Given a state, this returns the possible semantic action candidates
     that can be used by `semantic_action_to_position()`. Parameters are
     (action, object, target)"""
-    global OBJECT_TO_INT_MAP
-
     action_candidates = [(Action.NOOP, None, None)]
 
     # Open, Close Gripper
@@ -883,7 +1125,7 @@ def get_semantic_action_candidates(state):
     ])
 
     # Grasp
-    for object_key in OBJECT_TO_INT_MAP.iterkeys():
+    for object_key in Globals.OBJECT_TO_INT_MAP.iterkeys():
         if not object_key: # Table/Empty object name
             continue
 
@@ -897,7 +1139,7 @@ def get_semantic_action_candidates(state):
         )
 
     # Move, Place
-    for object_key in OBJECT_TO_INT_MAP.iterkeys():
+    for object_key in Globals.OBJECT_TO_INT_MAP.iterkeys():
         action_candidates.extend([
             (Action.PLACE, None, to_object_name(object_key)),
             (Action.MOVE_ARM, None, to_object_name(object_key)),

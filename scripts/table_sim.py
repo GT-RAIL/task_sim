@@ -307,14 +307,11 @@ class TableSim:
 
 
     def getNeighborCount(self, position):
-        count = 0
-        for x in range(-1, 2):
-            for y in range(-1, 2):
-                if x == 0 and y == 0:
-                    continue
-                if self.inCollision(Point(position.x + x, position.y + y, position.z)):
-                    count += 1
-        return count
+        return DataUtils.get_neighbor_count(
+            self.state_, position,
+            self.boxRadius, self.boxHeight,
+            self.drawerWidth, self.drawerDepth, self.drawerHeight
+        )
 
 
     def worldUpdate(self, action=None):
@@ -984,13 +981,20 @@ class TableSim:
 
     def inCollision(self, position):
         """Detect collision with anything in the environment (gripper not included)"""
-        return self.objectCollision(position) or self.environmentCollision(position)
+        return DataUtils.in_collision(
+            self.state_, position,
+            self.boxRadius, self.boxHeight,
+            self.drawerWidth, self.drawerDepth, self.drawerHeight
+        )
 
 
     def environmentCollision(self, position):
         """Detect collision with either the box, lid, or drawer"""
-        return self.boxCollision(position) or self.lidCollision(position) or any(self.drawerCollision(position))
-
+        return DataUtils.environment_collision(
+            self.state_, position,
+            self.boxRadius, self.boxHeight,
+            self.drawerWidth, self.drawerDepth, self.drawerHeight
+        )
 
     def environmentWithoutLidCollision(self, position):
         """Detect collision with either the box or drawer"""
@@ -1016,43 +1020,22 @@ class TableSim:
 
     def objectCollision(self, position):
         """Detect collision with any object"""
-        for object in self.state_.objects:
-            if object.position == position:
-                return object
-        return None
+        return DataUtils.object_collision(self.state_, position)
 
 
     def gripperCollision(self, position):
         """Detect collision with only the gripper"""
-        return self.onBoxEdge(position,
-                              self.state_.gripper_position.x - 1,
-                              self.state_.gripper_position.x + 1,
-                              self.state_.gripper_position.y - 1,
-                              self.state_.gripper_position.y + 1,
-                              self.state_.gripper_position.z,
-                              self.state_.gripper_position.z)
+        return DataUtils.gripper_collision(self.state_, position)
 
 
     def boxCollision(self, position):
         """Detect collision with only the box"""
-        return self.onBoxEdge(position,
-                              self.state_.box_position.x - self.boxRadius,
-                              self.state_.box_position.x + self.boxRadius,
-                              self.state_.box_position.y - self.boxRadius,
-                              self.state_.box_position.y + self.boxRadius,
-                              self.state_.box_position.z,
-                              self.state_.box_position.z + self.boxHeight - 1)
+        return DataUtils.box_collision(self.state_, position, self.boxRadius, self.boxHeight)
 
 
     def lidCollision(self, position):
         """Detect collision with only the lid"""
-        return self.inVolume(position,
-                             self.state_.lid_position.x - self.boxRadius,
-                             self.state_.lid_position.x + self.boxRadius,
-                             self.state_.lid_position.y - self.boxRadius,
-                             self.state_.lid_position.y + self.boxRadius,
-                             self.state_.lid_position.z,
-                             self.state_.lid_position.z)
+        return DataUtils.lid_collision(self.state_, position, self.boxRadius)
 
 
     def drawerCollision(self, position):
@@ -1062,13 +1045,7 @@ class TableSim:
         List of collisions as follows:
         [drawer stack collision, drawer bottom collision, drawer edge collision]
         """
-        xmin, xmax, ymin, ymax, xminDrawer, xmaxDrawer, yminDrawer, ymaxDrawer = self.getDrawerBounds()
-
-        return [self.inVolume(position, xmin, xmax, ymin, ymax, 0, self.drawerHeight),
-                self.inVolume(position, xminDrawer + 1, xmaxDrawer - 1, yminDrawer + 1, ymaxDrawer - 1,
-                              self.drawerHeight - 1, self.drawerHeight - 1),
-                self.onBoxEdge(position, xminDrawer, xmaxDrawer, yminDrawer, ymaxDrawer,
-                               self.drawerHeight - 1, self.drawerHeight)]
+        return DataUtils.drawer_collision(self.state_, position, self.drawerWidth, self.drawerDepth, self.drawerHeight)
 
     def getDrawerBounds(self):
         """Determine the bounds of the drawer stack and drawer itself
@@ -1078,65 +1055,11 @@ class TableSim:
             (xmin, xmax, ymin, ymax) -- bounding box of the drawer stack
             (xminDrawer, xmaxDrawer, yminDrawer, ymaxDrawer) -- bounding box of the drawer
         """
-        widthAdjustment = (self.drawerWidth - 1)/2
-        depthAdjustment = (self.drawerDepth - 1)/2
-        if self.state_.drawer_position.theta == 0:
-            xmin = self.state_.drawer_position.x - depthAdjustment
-            xmax = self.state_.drawer_position.x + depthAdjustment
-            ymin = self.state_.drawer_position.y - widthAdjustment
-            ymax = self.state_.drawer_position.y + widthAdjustment
-            xminDrawer = xmin + self.state_.drawer_opening
-            xmaxDrawer = xmax + self.state_.drawer_opening
-            yminDrawer = ymin
-            ymaxDrawer = ymax
-
-        elif self.state_.drawer_position.theta == 90:
-            xmin = self.state_.drawer_position.x - widthAdjustment
-            xmax = self.state_.drawer_position.x + widthAdjustment
-            ymin = self.state_.drawer_position.y - depthAdjustment
-            ymax = self.state_.drawer_position.y + depthAdjustment
-            xminDrawer = xmin
-            xmaxDrawer = xmax
-            yminDrawer = ymin + self.state_.drawer_opening
-            ymaxDrawer = ymax + self.state_.drawer_opening
-
-        elif self.state_.drawer_position.theta == 180:
-            xmin = self.state_.drawer_position.x - depthAdjustment
-            xmax = self.state_.drawer_position.x + depthAdjustment
-            ymin = self.state_.drawer_position.y - widthAdjustment
-            ymax = self.state_.drawer_position.y + widthAdjustment
-            xminDrawer = xmin - self.state_.drawer_opening
-            xmaxDrawer = xmax - self.state_.drawer_opening
-            yminDrawer = ymin
-            ymaxDrawer = ymax
-
-        else:  # 270
-            xmin = self.state_.drawer_position.x - widthAdjustment
-            xmax = self.state_.drawer_position.x + widthAdjustment
-            ymin = self.state_.drawer_position.y - depthAdjustment
-            ymax = self.state_.drawer_position.y + depthAdjustment
-            xminDrawer = xmin
-            xmaxDrawer = xmax
-            yminDrawer = ymin - self.state_.drawer_opening
-            ymaxDrawer = ymax - self.state_.drawer_opening
-
-        return xmin, xmax, ymin, ymax, xminDrawer, xmaxDrawer, yminDrawer, ymaxDrawer
-
+        return DataUtils.get_drawer_bounds(self.state_, self.drawerWidth, self.drawerDepth)
 
     def getDrawerHandle(self):
         """Calculate the point corresponding to the handle on the drawer"""
-        depthAdjustment = ((self.drawerDepth - 1)/2)
-        handle_point = Point(self.state_.drawer_position.x, self.state_.drawer_position.y, self.drawerHeight)
-        offset = depthAdjustment + self.state_.drawer_opening + 1
-        if self.state_.drawer_position.theta == 0:
-            handle_point.x += offset
-        elif self.state_.drawer_position.theta == 90:
-            handle_point.y += offset
-        elif self.state_.drawer_position.theta == 180:
-            handle_point.x -= offset
-        else:
-            handle_point.y -= offset
-        return handle_point
+        return DataUtils.get_handle_pos(self.state_, self.drawerDepth, self.drawerHeight)
 
 
     def getDrawerValidPoints(self):
@@ -1216,14 +1139,7 @@ class TableSim:
         position -- point to check
         (xmin, xmax, ymin, ymax, zmin, zmax) -- bounds of the prism
         """
-        return ((((position.x == xmin or position.x == xmax)
-                  and position.y >= ymin
-                  and position.y <= ymax)
-                 or ((position.y == ymin or position.y == ymax)
-                     and position.x >= xmin
-                     and position.x <= xmax))
-                and position.z >= zmin
-                and position.z <= zmax)
+        return DataUtils.on_box_edge(position, xmin, xmax, ymin, ymax, zmin, zmax)
 
 
     def inVolume(self, position, xmin, xmax, ymin, ymax, zmin, zmax):
@@ -1233,9 +1149,7 @@ class TableSim:
         position -- point to check
         (xmin, xmax, ymin, ymax, zmin, zmax) -- bounds of the prism
         """
-        return (position.x >= xmin and position.x <= xmax
-            and position.y >= ymin and position.y <= ymax
-            and position.z >= zmin and position.z <= zmax)
+        return DataUtils.in_volume(position, xmin, xmax, ymin, ymax, zmin, zmax)
 
 
     def show(self):
