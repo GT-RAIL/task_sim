@@ -828,6 +828,11 @@ def semantic_state_vector(
         touching_box, touching_drawer, touching_lid, touching_stack
     lid:
         near_edge
+
+    :history_buffer: The length of history to include in the feature vector
+    :feature_type: Cast the data into this type. Ignored if retrurn_scaled
+    :return_dict: Return the state vector as a dictionary of k,v pairs. Also
+                    returns the list of all the keys
     """
     # Helper function
     def set_feature(key, value):
@@ -1234,9 +1239,11 @@ def get_action_obj_offset_candidates(state):
     return action_candidates
 
 def get_semantic_action_candidates(state):
-    """Given a state, this returns the possible semantic action candidates
+    """
+    Given a state, this returns the possible semantic action candidates
     that can be used by `semantic_action_to_position()`. Parameters are
-    (action, object, target)"""
+    (action, object, target)
+    """
     action_candidates = [(Action.NOOP, None, None)]
 
     # Open, Close Gripper
@@ -1283,31 +1290,41 @@ def msg_from_action_obj_offset(state, action_obj_offset):
 
     # First grab the object if it is a grasp
     if action.action_type in [Action.GRASP]:
-        action.object = action_obj_offset[1]
+        action.object = to_object_name(
+            action_obj_offset[1]
+            if type(action_obj_offset[1]) != int
+            else int_to_name(action_obj_offset[1])
+        )
 
     # Then, if we have to move or place, translate the offset
     if action.action_type in [Action.MOVE_ARM, Action.PLACE]:
+        obj_name = to_object_name(
+            action_obj_offset[1]
+            if type(action_obj_offset[1]) != int
+            else int_to_name(action_obj_offset[1])
+        )
+
         # First check to see if this is one of the graspable objects
         found_pos = None
         for state_obj in state.objects:
-            if action_obj_offset[1] == state_obj.name:
+            if obj_name == state_obj.name:
                 found_pos = state_obj.position
                 break
 
         # If the object was not found, check stack, drawer, handle, box,
         # lid, and gripper
         if found_pos is None:
-            if action_obj_offset[1] == 'Stack':
+            if obj_name == 'Stack':
                 found_pos = state.drawer_position
-            elif action_obj_offset[1] == 'Drawer':
+            elif obj_name == 'Drawer':
                 found_pos = get_drawer_midpoint_pos(state)
-            elif action_obj_offset[1] == 'Handle':
+            elif obj_name == 'Handle':
                 found_pos = get_handle_pos(state)
-            elif action_obj_offset[1] == 'Box':
+            elif obj_name == 'Box':
                 found_pos = state.box_position
-            elif action_obj_offset[1] == 'Lid':
+            elif obj_name == 'Lid':
                 found_pos = state.lid_position
-            elif action_obj_offset[1] == 'Gripper':
+            elif obj_name == 'Gripper':
                 found_pos = state.gripper_position
 
         # Update the position in the action object
@@ -1333,12 +1350,21 @@ def msg_from_semantic_action(state, semantic_action):
 
     # Grab the object if it's a grasp
     if action.action_type in [Action.GRASP]:
-        action.object = semantic_action[1]
+        action.object = to_object_name(
+            semantic_action[1]
+            if type(semantic_action[1]) != int
+            else int_to_name(semantic_action[1])
+        )
 
     # Use the semantic_action_to_position to get a position for MOVE, PLACE
     if action.action_type in [Action.MOVE_ARM, Action.PLACE]:
         position = semantic_action_to_position(
-            state, semantic_action[2]
+            state,
+            to_object_name(
+                semantic_action[2]
+                if type(semantic_action[2]) != int
+                else int_to_name(semantic_action[1])
+            )
         )
         action.position.x = position.x
         action.position.y = position.y

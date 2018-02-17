@@ -12,7 +12,7 @@ import numpy as np
 from collections import defaultdict
 
 from task_sim import data_utils as DataUtils
-from task_sim.msg import Status
+from task_sim.msg import Status, Action
 from task_sim.rl import tasks
 
 # Base Q-Learning Agent
@@ -184,7 +184,7 @@ class EpsilonGreedyQTableAgent(QLearningAgent):
         # Check to see if this is the end. Else update the Q value
         if self.task.status() != Status.IN_PROGRESS:
             Q[s1, None] = r1
-            Q[s,a] = self.alpha(episode) * (r + gamma*Q[s1,None] - Q[s,a])
+            Q[s,a] += self.alpha(episode) * (r + gamma*Q[s1,None] - Q[s,a])
         elif s is not None:
             Q[s, a] += self.alpha(episode) * (
                 r + gamma*max(Q[s1,a1] for a1 in self.actions_in_state(s1)) - Q[s,a]
@@ -238,6 +238,189 @@ class EpsilonGreedyQTableAgent(QLearningAgent):
         self.Q = defaultdict(lambda: float(self.default_Q))
         for k,v in data['Q']:
             self.Q[k] = v
+
+        # Reset the agent
+        self.reset()
+
+class EpsilonGreedyQTiledAgent(QLearningAgent):
+    """Uses epsilon greedy to choose actions during explore/exploit. Store the
+    Q values in a tiled has table instead"""
+
+    def __init__(
+        self, task, gamma,
+        epsilon=None, alpha=lambda eps: 1./(1+eps),
+        num_tiles=512, tiles_max_size=1024**2,
+        missing_param_value=-5,
+        *args, **kwargs
+    ):
+        """Epsilon is also a lambda expression that takes into account the
+        training episode"""
+        super(EpsilonGreedyQTiledAgent, self).__init__(
+            task, gamma, lambda eps: alpha(eps)/num_tiles,
+            *args, **kwargs
+        )
+
+        # Need to reset the random seed for consistent hashing
+        random.seed(0)
+        from task_sim.rl import tile_coder
+        self.tile_coder = tile_coder
+
+        # Use a Q table
+        self.IHT = self.tile_coder.IHT(tiles_max_size)
+        self.num_tiles = num_tiles
+        self.Q = np.zeros((tiles_max_size,))
+        self.pi = {}
+        self.missing_param_value = missing_param_value
+
+        if epsilon:
+            self.epsilon = epsilon
+        else:
+            self.epsilon = lambda n: 0.1 * (0.9**n)
+
+    def _tile_sa(self, state, action=[], readonly=False):
+        """Given a state, action; tile it"""
+        return self.tile_coder.tiles(
+            self.IHT, # ihtORsize
+            self.num_tiles, # numtilings
+            state, # floats
+            action, # ints
+            readonly # readonly
+        )
+
+    def actions_in_state(self, state):
+        actions = super(EpsilonGreedyQTiledAgent, self).actions_in_state(state)
+
+        # Actions are as tuples. Convert them to a type that can be tiled
+        actions = [
+            self._convert_action_to_actionlist(act)
+            for act in actions
+        ]
+
+        # Actions is now a list of [action, object_int|missing_value]
+        return actions
+
+    def _convert_actionlist_to_action(self, action):
+        """Given an action, convert it to a meaningful action for the task"""
+        action = (
+            action[0],
+            action[1] if action[0] in [Action.GRASP] else None,
+            action[1] if action[0] in [Action.PLACE, Action.MOVE_ARM] else None,
+        )
+        return action
+
+    def _convert_action_to_actionlist(self, action):
+        """Given a meaningful action for the task, convert to a list of ints"""
+        action_param = (
+            DataUtils.name_to_int(action[1]) if action[1] is not None
+            else (
+                DataUtils.name_to_int(action[2]) if action[2] is not None
+                else self.missing_param_value
+            )
+        )
+        return [action[0], action_param]
+
+    def choose_action(self, episode=None, train=True):
+        # TODO
+        """Use epsilon-greedy to explore. Choose a random action in an unknown
+        state (we can also request an intervention?)"""
+
+        # Don't choose an action if we are done
+        if self.task.status() != Status.IN_PROGRESS:
+            return None
+
+        # Otherwise, choose the best action unless we want to explore
+        action = best_action = self.pi.get(self.s, None)
+        action_candidates = self.actions_in_state(self.s)
+
+        # Fetch the best action if we are training, or if the current state that
+        # we see now has been seen before
+        if train or best_action is None:
+            best_action = max(action_candidates, key=lambda a: self.Q[self.s,a])
+
+        # If we're training, use epsilon to decide if we want to explore.
+        # Otherwise, pick the best
+        if train:
+            if random.uniform(0, 1) < self.epsilon(episode):
+                action = random.choice(action_candidates)
+            else:
+                action = best_action
+        else: # Not training. Pick the best action or just be random
+            action = best_action or random.choice(action_candidates)
+
+        # Return the action
+        return self._convert_actionlist_to_action(action)
+
+    def update_Q(self, percept, episode):
+        s1, r1 = percept
+        s, r, gamma = self.s, self.r, self.gamma
+        a = self._convert_action_to_actionlist(self.a)
+        Q = self.Q
+        sa_tiled = self._tile_sa(s, a) if s is not None else None
+
+        # If this is the end, update the terminal states
+        if self.task.status() != Status.IN_PROGRESS:
+            s1_tiled = self._tile_sa(s1)
+            Q[s1_tiled] = r1
+            Q[sa_tiled] += self.alpha(episode) * (
+                r + (gamma * np.sum(Q[s1_tiled])) - np.sum(Q[sa_tiled])
+            )
+        elif sa_tiled is not None:
+            Q[sa_tiled] += self.alpha(episode) * (
+                r
+                + (gamma * max(np.sum(Q[self._tile_sa(s1,a1)]) for a1 in self.actions_in_state(s1)))
+                - np.sum(Q[sa_tiled])
+            )
+
+        return Q
+
+    def update_pi(self):
+        # TODO
+        # Iterate through the seen states and actions to update the policy
+        known_sa = defaultdict(list)
+        for (s,a) in self.Q.iterkeys():
+            known_sa[s].append(a)
+
+        for s in known_sa.iterkeys():
+            action = max(known_sa[s], key=lambda a: self.Q[s,a])
+            self.pi[s] = action
+        return self.pi
+
+    def save(self, filename):
+        # We only save the Q table and the policy. Epsilon, Alpha
+        # need to be reloaded separately
+
+        # Reset the task before saving
+        # task = copy.deepcopy(self.task)
+        # task.reset()
+
+        # data = {
+        #     'Q': dict(self.Q),
+        #     'pi': self.pi,
+        #     'gamma': self.gamma,
+        #     'default_Q': self.default_Q,
+        #     'task': self.task.save(),
+        # }
+        # with open(filename, 'wb') as fd:
+        #     pickle.dump(data, fd)
+        pass
+
+    def load(self, filename):
+        # data = None
+        # with open(filename, 'rb') as fd:
+        #     data = pickle.load(fd)
+
+        # try:
+        #     task_name = data['task']['name']
+        #     task = getattr(tasks, task_name)(**data['task'])
+        #     self.task = task
+        # except Exception as e:
+        #     rospy.logerror("Error loading task: {}".format(e))
+        # self.default_Q = data['default_Q']
+        # self.gamma = data['gamma']
+        # self.pi = data['pi']
+        # self.Q = defaultdict(lambda: float(self.default_Q))
+        # for k,v in data['Q']:
+        #     self.Q[k] = v
 
         # Reset the agent
         self.reset()
