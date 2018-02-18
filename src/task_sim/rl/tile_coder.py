@@ -65,7 +65,7 @@ class IHT:
             return count
 
 def hashcoords(coordinates, m, readonly=False):
-    if type(m)==IHT: return m.getindex(tuple(coordinates), readonly)
+    if m.__class__.__name__==IHT.__name__: return m.getindex(tuple(coordinates), readonly)
     if type(m)==int: return basehash(tuple(coordinates)) % m
     if m==None: return coordinates
 

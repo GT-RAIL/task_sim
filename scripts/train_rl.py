@@ -104,7 +104,8 @@ class RLAgentTrainer(object):
         self.agent_params['alpha'] = alpha
 
         # Initialize the agent
-        self.agent = learners.EpsilonGreedyQTableAgent(**self.agent_params)
+        # self.agent = learners.EpsilonGreedyQTableAgent(**self.agent_params)
+        self.agent = learners.EpsilonGreedyQTiledAgent(**self.agent_params)
 
         # Create services for communicating with table_sim
         self.execute = rospy.ServiceProxy('table_sim/execute_action', Execute)
@@ -225,7 +226,7 @@ class RLAgentTrainer(object):
                 self.agent.save(self.save_filename)
                 rospy.loginfo("Agent saved to file {}".format(self.save_filename))
 
-        # Completed training. Save the agent
+        # Completed training. Save the agent.
         self.agent.save(self.save_filename)
         rospy.loginfo("Training Complete. Agent saved to file {}".format(self.save_filename))
 

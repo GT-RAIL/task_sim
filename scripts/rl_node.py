@@ -30,7 +30,7 @@ class RLAgentRunner(object):
             os.path.join(
                 rospack.get_path('task_sim'),
                 'data', 'task1', 'models',
-                'egreedy_qtable_rspecific_2018-02-14T16-41-36.pkl'
+                'egreedy_qtable_rspecific_2018-02-17T22-35-19.pkl'
             )
         )
         self.agent = learners.EpsilonGreedyQTableAgent(None, None)

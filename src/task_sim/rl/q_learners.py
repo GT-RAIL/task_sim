@@ -4,6 +4,9 @@
 
 from __future__ import division, print_function
 
+import os
+import sys
+import h5py
 import copy
 import pickle
 import random
@@ -250,7 +253,7 @@ class EpsilonGreedyQTiledAgent(QLearningAgent):
         self, task, gamma,
         epsilon=None, alpha=lambda eps: 1./(1+eps),
         num_tiles=512, tiles_max_size=1024**2,
-        missing_param_value=-5,
+        missing_param_value=-5, use_iht=True,
         *args, **kwargs
     ):
         """Epsilon is also a lambda expression that takes into account the
@@ -266,10 +269,9 @@ class EpsilonGreedyQTiledAgent(QLearningAgent):
         self.tile_coder = tile_coder
 
         # Use a Q table
-        self.IHT = self.tile_coder.IHT(tiles_max_size)
+        self.IHT = self.tile_coder.IHT(tiles_max_size) if use_iht else tiles_max_size
         self.num_tiles = num_tiles
-        self.Q = np.zeros((tiles_max_size,))
-        self.pi = {}
+        self.Q = np.zeros((tiles_max_size,), dtype=np.float)
         self.missing_param_value = missing_param_value
 
         if epsilon:
@@ -296,15 +298,15 @@ class EpsilonGreedyQTiledAgent(QLearningAgent):
             for act in actions
         ]
 
-        # Actions is now a list of [action, object_int|missing_value]
+        # Actions is now a list of [action, object_int|missing_param_value]
         return actions
 
     def _convert_actionlist_to_action(self, action):
         """Given an action, convert it to a meaningful action for the task"""
         action = (
             action[0],
-            action[1] if action[0] in [Action.GRASP] else None,
-            action[1] if action[0] in [Action.PLACE, Action.MOVE_ARM] else None,
+            DataUtils.int_to_name(action[1]) if action[0] in [Action.GRASP] else None,
+            DataUtils.int_to_name(action[1]) if action[0] in [Action.PLACE, Action.MOVE_ARM] else None,
         )
         return action
 
@@ -320,7 +322,6 @@ class EpsilonGreedyQTiledAgent(QLearningAgent):
         return [action[0], action_param]
 
     def choose_action(self, episode=None, train=True):
-        # TODO
         """Use epsilon-greedy to explore. Choose a random action in an unknown
         state (we can also request an intervention?)"""
 
@@ -328,24 +329,20 @@ class EpsilonGreedyQTiledAgent(QLearningAgent):
         if self.task.status() != Status.IN_PROGRESS:
             return None
 
-        # Otherwise, choose the best action unless we want to explore
-        action = best_action = self.pi.get(self.s, None)
+        # We don't have a policy that we save
+        action = best_action = None
         action_candidates = self.actions_in_state(self.s)
 
         # Fetch the best action if we are training, or if the current state that
         # we see now has been seen before
-        if train or best_action is None:
-            best_action = max(action_candidates, key=lambda a: self.Q[self.s,a])
+        best_action = max(action_candidates, key=lambda a: np.sum(self.Q[self._tile_sa(self.s, a)]))
 
         # If we're training, use epsilon to decide if we want to explore.
         # Otherwise, pick the best
-        if train:
-            if random.uniform(0, 1) < self.epsilon(episode):
+        if train and random.uniform(0, 1) < self.epsilon(episode):
                 action = random.choice(action_candidates)
-            else:
-                action = best_action
-        else: # Not training. Pick the best action or just be random
-            action = best_action or random.choice(action_candidates)
+        else:
+            action = best_action
 
         # Return the action
         return self._convert_actionlist_to_action(action)
@@ -353,7 +350,7 @@ class EpsilonGreedyQTiledAgent(QLearningAgent):
     def update_Q(self, percept, episode):
         s1, r1 = percept
         s, r, gamma = self.s, self.r, self.gamma
-        a = self._convert_action_to_actionlist(self.a)
+        a = self._convert_action_to_actionlist(self.a) if self.a is not None else None
         Q = self.Q
         sa_tiled = self._tile_sa(s, a) if s is not None else None
 
@@ -374,53 +371,48 @@ class EpsilonGreedyQTiledAgent(QLearningAgent):
         return Q
 
     def update_pi(self):
-        # TODO
-        # Iterate through the seen states and actions to update the policy
-        known_sa = defaultdict(list)
-        for (s,a) in self.Q.iterkeys():
-            known_sa[s].append(a)
-
-        for s in known_sa.iterkeys():
-            action = max(known_sa[s], key=lambda a: self.Q[s,a])
-            self.pi[s] = action
-        return self.pi
+        # Cannot update the policy for this method of saving states and actions
+        # Pass for now
+        return None
 
     def save(self, filename):
         # We only save the Q table and the policy. Epsilon, Alpha
         # need to be reloaded separately
 
-        # Reset the task before saving
-        # task = copy.deepcopy(self.task)
-        # task.reset()
+        data = {
+            'IHT': self.IHT,
+            'num_tiles': self.num_tiles,
+            'missing_param_value': self.missing_param_value,
+            'Q_filename': os.path.splitext(filename)[0] + '.hdf5',
+            'gamma': self.gamma,
+            'task': self.task.save()
+        }
 
-        # data = {
-        #     'Q': dict(self.Q),
-        #     'pi': self.pi,
-        #     'gamma': self.gamma,
-        #     'default_Q': self.default_Q,
-        #     'task': self.task.save(),
-        # }
-        # with open(filename, 'wb') as fd:
-        #     pickle.dump(data, fd)
-        pass
+        with open(filename, 'wb') as fd:
+            pickle.dump(data, fd)
+
+        with h5py.File(data['Q_filename'], 'w') as h:
+            h.create_dataset('Q', data=self.Q)
 
     def load(self, filename):
-        # data = None
-        # with open(filename, 'rb') as fd:
-        #     data = pickle.load(fd)
+        data = None
+        with open(filename, 'rb') as fd:
+            data = pickle.load(fd)
 
-        # try:
-        #     task_name = data['task']['name']
-        #     task = getattr(tasks, task_name)(**data['task'])
-        #     self.task = task
-        # except Exception as e:
-        #     rospy.logerror("Error loading task: {}".format(e))
-        # self.default_Q = data['default_Q']
-        # self.gamma = data['gamma']
-        # self.pi = data['pi']
-        # self.Q = defaultdict(lambda: float(self.default_Q))
-        # for k,v in data['Q']:
-        #     self.Q[k] = v
+        try:
+            task_name = data['task']['name']
+            task = getattr(tasks, task_name)(**data['task'])
+            self.task = task
+        except Exception as e:
+            rospy.logerror("Error loading task: {}".format(e))
+
+        self.gamma = data['gamma']
+        self.IHT = data['IHT']
+        self.num_tiles = data['num_tiles']
+        self.missing_param_value = data['missing_param_value']
+
+        with h5py.File(data['Q_filename'], 'r') as h:
+            self.Q = h['Q'][()]
 
         # Reset the agent
         self.reset()
