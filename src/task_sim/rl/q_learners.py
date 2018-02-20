@@ -411,7 +411,7 @@ class EpsilonGreedyQTiledAgent(QLearningAgent):
         self.num_tiles = data['num_tiles']
         self.missing_param_value = data['missing_param_value']
 
-        with h5py.File(data['Q_filename'], 'r') as h:
+        with h5py.File('data/task1/models/' + data['Q_filename'], 'r') as h:
             self.Q = h['Q'][()]
 
         # Reset the agent
