@@ -51,6 +51,7 @@ catkin_python_setup()
 add_message_files(
   FILES
   Action.msg
+  Container.msg
   Object.msg
   State.msg
   Status.msg
