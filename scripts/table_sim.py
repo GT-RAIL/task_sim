@@ -590,6 +590,10 @@ class TableSim:
                                 break
                         if collision:
                             break
+                    else:
+                        # Regular place
+                        if self.inCollision(tempPos):
+                            break
                 else:
                     # Regular place
                     if self.inCollision(tempPos):
