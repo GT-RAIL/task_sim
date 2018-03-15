@@ -1,5 +1,5 @@
 task_sim/Object[] objects
-task_sim/Container[] containers
+task_sim/SmallContainer[] containers
 geometry_msgs/Pose2D drawer_position
 float64 drawer_opening
 geometry_msgs/Point box_position

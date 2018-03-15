@@ -17,7 +17,7 @@ from std_srvs.srv import Empty, EmptyResponse
 
 from task_sim import data_utils as DataUtils
 from task_sim.srv import Execute, ExecuteResponse, QueryState, RequestIntervention, RequestInterventionResponse
-from task_sim.msg import Action, State, Object, Container, Log
+from task_sim.msg import Action, State, Object, SmallContainer, Log
 from task_sim.grasp_state import GraspState
 from task_sim.plan_action import PlanAction
 
@@ -291,19 +291,19 @@ class TableSim:
                                         and not self.inContainer(Point(c.position.x + x, c.position.y + y, c.position.z))
             self.state_.containers.append(c)
 
-        c1 = Container()
+        c1 = SmallContainer()
         c1.name = "small"
         c1.width = 2
         c1.height = 2
         place_container(c1)
 
-        c2 = Container()
+        c2 = SmallContainer()
         c2.name = "small"
         c2.width = 2
         c2.height = 2
         place_container(c2)
 
-        c3 = Container()
+        c3 = SmallContainer()
         c3.name = "large"
         c3.width = 3
         c3.height = 3
@@ -1404,7 +1404,7 @@ class TableSim:
                 yminDrawer + 1, ymaxDrawer - 1,
                 self.drawerHeight, self.drawerHeight
             )
-        elif object.__class__ == Container:
+        elif object.__class__ == SmallContainer:
             result = False
             for i in range(object.width):
                 for j in range(object.height):
@@ -1430,7 +1430,7 @@ class TableSim:
                 self.state_.lid_position.z + 1,
                 self.state_.lid_position.z + 1
             )
-        elif object.__class__ == Container:
+        elif object.__class__ == SmallContainer:
             result = False
             for i in range(object.width):
                 for j in range(object.height):
@@ -1456,7 +1456,7 @@ class TableSim:
                 ymin, ymax,
                 self.drawerHeight + 1, self.drawerHeight + 1
             )
-        elif object.__class__ == Container:
+        elif object.__class__ == SmallContainer:
             result = False
             for i in range(object.width):
                 for j in range(object.height):
@@ -1479,7 +1479,7 @@ class TableSim:
                                  self.state_.box_position.y + self.boxRadius,
                                  self.state_.box_position.z,
                                  self.boxHeight)
-        elif object.__class__ == Container:
+        elif object.__class__ == SmallContainer:
             result = False
             for i in range(object.width):
                 for j in range(object.height):
