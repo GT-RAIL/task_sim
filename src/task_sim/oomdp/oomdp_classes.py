@@ -2,12 +2,8 @@
 
 # TODO:
 """
-Separate Drawer from Stack
-
 Relations:
-    Touching
-    Closing (Drawer)
-    Holding (Gripper)
+    Gripper occlusion
 
 Occlusion?
 Edges?
@@ -30,9 +26,9 @@ class Item:
     def atop(self, obj):
         """True if an object is resting on top of another object
 
-        Valid classes: Drawer, Lid
+        Valid classes: Stack, Lid
         """
-        if obj.__class__ == Drawer:
+        if obj.__class__ == Stack:
             w = (obj.width - 1)/2
             d = (obj.depth - 1)/2
             x_min = obj.x - w
@@ -84,6 +80,64 @@ class Item:
 
         return x_min <= self.x <= x_max and y_min <= self.y <= y_max and z_min <= self.z <= z_max
 
+    def touching(self, obj):
+        """True if an object is touching (x-y plane, 'atop' covers z) another object
+
+        Valid classes: All"""
+        if obj.__class__ == Box:
+            x_min = obj.x - obj.radius
+            x_max = obj.x + obj.radius
+            y_min = obj.y - obj.radius
+            y_max = obj.y + obj.radius
+            z_min = 0
+            z_max = 1
+        elif obj.__class__ == Container:
+            x_min = obj.position.x
+            x_max = obj.position.x + obj.width - 1
+            y_min = obj.position.y
+            y_max = obj.position.y + obj.depth - 1
+            z_min = obj.position.z
+            z_max = obj.position.z
+        elif obj.__class__ == Drawer:
+            w = (obj.width - 1)/2
+            d = (obj.depth - 1)/2
+            x_min = obj.x - w
+            x_max = obj.x + w
+            y_min = obj.y - d
+            y_max = obj.y + d
+            z_min = 1
+            z_max = 2
+        elif obj.__class__ == Lid:
+            x_min = obj.position.x - obj.radius
+            x_max = obj.position.x + obj.radius
+            y_min = obj.position.y - obj.radius
+            y_max = obj.position.y + obj.radius
+            z_min = obj.position.z
+            z_max = obj.position.z
+        elif obj.__class__ == Stack:
+            w = (obj.width - 1)/2
+            d = (obj.depth - 1)/2
+            x_min = obj.x - w
+            x_max = obj.x + w
+            y_min = obj.y - d
+            y_max = obj.y + d
+            z_min = 0
+            z_max = 2
+        else:
+            x_min = obj.x
+            x_max = obj.x
+            y_min = obj.y
+            y_max = obj.y
+            z_min = obj.z
+            z_max = obj.z
+
+        for i in range(-1, 2):
+            for j in range(-1, 2):
+                if x_min <= self.x + i <= x_max and y_min <= self.y + j <= y_max and z_min <= self.z <= z_max:
+                    return True
+        return False
+
+
     def left_of(self, obj):
         """True if an object is to the left of another object
 
@@ -91,7 +145,7 @@ class Item:
         """
         if obj.__class__ == Box or obj.__class__ == Lid:
             check_x = obj.position.x - obj.radius
-        elif obj.__class__ == Drawer:
+        elif obj.__class__ == Drawer or obj.__class__ == Stack:
             check_x = obj.position.x - (obj.width - 1)/2
         else:
             check_x = obj.x
@@ -107,7 +161,7 @@ class Item:
             check_x = obj.position.x + obj.radius
         elif obj.__class__ == Container:
             check_x = obj.x + obj.width - 1
-        elif obj.__class__ == Drawer:
+        elif obj.__class__ == Drawer or obj.__class__ == Stack:
             check_x = obj.position.x + (obj.width - 1)/2
         else:
             check_x = obj.x
@@ -137,7 +191,7 @@ class Item:
         """
         if obj.__class__ == Box or obj.__class__ == Lid:
             check_y = obj.position.y
-        elif obj.__class__ == Drawer:
+        elif obj.__class__ == Drawer or obj.__class__ == Stack:
             check_y = obj.position.y
         else:
             check_y = obj.y
@@ -158,7 +212,7 @@ class Item:
         """
         if obj.__class__ == Box:
             check_z = 1
-        elif obj.__class__ == Drawer:
+        elif obj.__class__ == Drawer or obj.__class__ == Stack:
             check_z = 2
         else:
             check_z = obj.z
@@ -170,8 +224,10 @@ class Item:
 
         Valid classes: All
         """
-        if obj.__class__ == Box or obj.__class__ == Drawer:
+        if obj.__class__ == Box or obj.__class__ == Stack:
             check_z = 0
+        elif obj.__class__ == Drawer:
+            check_z = 1
         else:
             check_z = obj.z
 
@@ -203,7 +259,7 @@ class Container:
     def atop(self, obj):
         """True if on object is resting on top of another object
 
-        Valid classes: Container, Drawer, Item, Lid
+        Valid classes: Container, Drawer, Item, Lid, Stack
         """
         if obj.__class__ == Container:
             x_min = obj.x
@@ -211,7 +267,7 @@ class Container:
             y_min = obj.y
             y_max = obj.y + obj.depth
             z = obj.z + 1
-        elif obj.__class__ == Drawer:
+        elif obj.__class__ == Drawer or obj.__class__ == Stack:
             w = (obj.width - 1)/2
             d = (obj.depth - 1)/2
             x_min = obj.x - w
@@ -272,6 +328,67 @@ class Container:
                     return False
         return True
 
+    def touching(self, obj):
+        """True if an object is touching (x-y plane, 'atop' covers z) another object
+
+        Valid classes: All"""
+        if obj.__class__ == Box:
+            x_min = obj.x - obj.radius
+            x_max = obj.x + obj.radius
+            y_min = obj.y - obj.radius
+            y_max = obj.y + obj.radius
+            z_min = 0
+            z_max = 1
+        elif obj.__class__ == Container:
+            x_min = obj.position.x
+            x_max = obj.position.x + obj.width - 1
+            y_min = obj.position.y
+            y_max = obj.position.y + obj.depth - 1
+            z_min = obj.position.z
+            z_max = obj.position.z
+        elif obj.__class__ == Drawer:
+            w = (obj.width - 1)/2
+            d = (obj.depth - 1)/2
+            x_min = obj.x - w
+            x_max = obj.x + w
+            y_min = obj.y - d
+            y_max = obj.y + d
+            z_min = 1
+            z_max = 2
+        elif obj.__class__ == Lid:
+            x_min = obj.position.x - obj.radius
+            x_max = obj.position.x + obj.radius
+            y_min = obj.position.y - obj.radius
+            y_max = obj.position.y + obj.radius
+            z_min = obj.position.z
+            z_max = obj.position.z
+        elif obj.__class__ == Stack:
+            w = (obj.width - 1)/2
+            d = (obj.depth - 1)/2
+            x_min = obj.x - w
+            x_max = obj.x + w
+            y_min = obj.y - d
+            y_max = obj.y + d
+            z_min = 0
+            z_max = 2
+        else:
+            x_min = obj.x
+            x_max = obj.x
+            y_min = obj.y
+            y_max = obj.y
+            z_min = obj.z
+            z_max = obj.z
+
+        for x in range(self.x - 1, self.x + self.width + 1):
+            for y in [self.y - 1, self.y + self.depth]:
+                if x_min <= x <= x_max and y_min <= y <= y_max and z_min <= self.z <= z_max:
+                    return True
+        for y in range(self.y, self.y + self.depth):
+            for x in [self.x - 1, self.x + self.width]:
+                if x_min <= x <= x_max and y_min <= y <= y_max and z_min <= self.z <= z_max:
+                    return True
+        return False
+
     def left_of(self, obj):
         """True if an object is to the left of another object
 
@@ -279,7 +396,7 @@ class Container:
         """
         if obj.__class__ == Box or obj.__class__ == Lid:
             check_x = obj.position.x - obj.radius
-        elif obj.__class__ == Drawer:
+        elif obj.__class__ == Drawer or obj.__class__ == Stack:
             check_x = obj.position.x - (obj.width - 1)/2
         else:
             check_x = obj.x
@@ -295,7 +412,7 @@ class Container:
             check_x = obj.position.x + obj.radius
         elif obj.__class__ == Container:
             check_x = obj.x + obj.width - 1
-        elif obj.__class__ == Drawer:
+        elif obj.__class__ == Drawer or obj.__class__ == Stack:
             check_x = obj.position.x + (obj.width - 1)/2
         else:
             check_x = obj.x
@@ -311,7 +428,7 @@ class Container:
             check_y = obj.position.y + obj.radius
         elif obj.__class__ == Container:
             check_y = obj.position.y + obj.depth - 1
-        elif obj.__class__ == Drawer:
+        elif obj.__class__ == Drawer or obj.__class__ == Stack:
             check_y = obj.position.y + (obj.depth - 1)/2
         else:
             check_y = obj.y
@@ -325,7 +442,7 @@ class Container:
         """
         if obj.__class__ == Box or obj.__class__ == Lid:
             check_y = obj.position.y
-        elif obj.__class__ == Drawer:
+        elif obj.__class__ == Drawer or obj.__class__ == Stack:
             check_y = obj.position.y
         else:
             check_y = obj.y
@@ -346,7 +463,7 @@ class Container:
         """
         if obj.__class__ == Box:
             check_z = 1
-        elif obj.__class__ == Drawer:
+        elif obj.__class__ == Drawer or obj.__class__ == Stack:
             check_z = 2
         else:
             check_z = obj.z
@@ -358,8 +475,10 @@ class Container:
 
         Valid classes: All
         """
-        if obj.__class__ == Box or obj.__class__ == Drawer:
+        if obj.__class__ == Box or obj.__class__ == Stack:
             check_z = 0
+        elif obj.__class__ == Drawer:
+            check_z = 1
         else:
             check_z = obj.z
 
@@ -375,18 +494,109 @@ class Container:
 
 class Gripper:
 
-    def __init__(self, x=0, y=0, z=0, closed=False, name='', unique_name=''):
+    def __init__(self, x=0, y=0, z=0, closed=False, holding='', name='', unique_name=''):
         # mutable
         self.x = x
         self.y = y
         self.z = z
         self.closed = closed
+        self.holding = holding
 
         # immutable
         self.name = name
         self.unique_name = unique_name
 
     # Relations
+    def inside(self, obj):
+        """True if an object is contained within another object
+
+        Valid classes: Box, Container, Drawer
+        """
+        if obj.__class__ == Box:
+            x_min = obj.x - obj.radius
+            x_max = obj.x + obj.radius
+            y_min = obj.y - obj.radius
+            y_max = obj.y + obj.radius
+            z_min = 0
+            z_max = 1
+        elif obj.__class__ == Container:
+            x_min = obj.x
+            x_max = obj.x + obj.width
+            y_min = obj.y
+            y_max = obj.y + obj.depth
+            z_min = obj.z
+            z_max = obj.z
+        elif obj.__class__ == Drawer:
+            w = (obj.width - 1)/2
+            d = (obj.depth - 1)/2
+            x_min = obj.x - w
+            x_max = obj.x + w
+            y_min = obj.y - d
+            y_max = obj.y + d
+            z_min = 2
+            z_max = 2
+        else:
+            return False
+
+        return x_min <= self.x <= x_max and y_min <= self.y <= y_max and z_min <= self.z <= z_max
+
+    def touching(self, obj):
+        """True if an object is touching (x-y plane, 'atop' covers z) another object
+
+        Valid classes: All"""
+        if obj.__class__ == Box:
+            x_min = obj.x - obj.radius
+            x_max = obj.x + obj.radius
+            y_min = obj.y - obj.radius
+            y_max = obj.y + obj.radius
+            z_min = 0
+            z_max = 1
+        elif obj.__class__ == Container:
+            x_min = obj.position.x
+            x_max = obj.position.x + obj.width - 1
+            y_min = obj.position.y
+            y_max = obj.position.y + obj.depth - 1
+            z_min = obj.position.z
+            z_max = obj.position.z
+        elif obj.__class__ == Drawer:
+            w = (obj.width - 1)/2
+            d = (obj.depth - 1)/2
+            x_min = obj.x - w
+            x_max = obj.x + w
+            y_min = obj.y - d
+            y_max = obj.y + d
+            z_min = 1
+            z_max = 2
+        elif obj.__class__ == Lid:
+            x_min = obj.position.x - obj.radius
+            x_max = obj.position.x + obj.radius
+            y_min = obj.position.y - obj.radius
+            y_max = obj.position.y + obj.radius
+            z_min = obj.position.z
+            z_max = obj.position.z
+        elif obj.__class__ == Stack:
+            w = (obj.width - 1)/2
+            d = (obj.depth - 1)/2
+            x_min = obj.x - w
+            x_max = obj.x + w
+            y_min = obj.y - d
+            y_max = obj.y + d
+            z_min = 0
+            z_max = 2
+        else:
+            x_min = obj.x
+            x_max = obj.x
+            y_min = obj.y
+            y_max = obj.y
+            z_min = obj.z
+            z_max = obj.z
+
+        for i in range(-2, 3):
+            for j in range(-2, 3):
+                if x_min <= self.x + i <= x_max and y_min <= self.y + j <= y_max and z_min <= self.z <= z_max:
+                    return True
+        return False
+
     def left_of(self, obj):
         """True if an object is to the left of another object
 
@@ -394,7 +604,7 @@ class Gripper:
         """
         if obj.__class__ == Box or obj.__class__ == Lid:
             check_x = obj.position.x - obj.radius
-        elif obj.__class__ == Drawer:
+        elif obj.__class__ == Drawer or obj.__class__ == Stack:
             check_x = obj.position.x - (obj.width - 1)/2
         else:
             check_x = obj.x
@@ -410,7 +620,7 @@ class Gripper:
             check_x = obj.position.x + obj.radius
         elif obj.__class__ == Container:
             check_x = obj.x + obj.width - 1
-        elif obj.__class__ == Drawer:
+        elif obj.__class__ == Drawer or obj.__class__ == Stack:
             check_x = obj.position.x + (obj.width - 1)/2
         else:
             check_x = obj.x
@@ -426,7 +636,7 @@ class Gripper:
             check_y = obj.position.y + obj.radius
         elif obj.__class__ == Container:
             check_y = obj.position.y + obj.depth - 1
-        elif obj.__class__ == Drawer:
+        elif obj.__class__ == Drawer or obj.__class__ == Stack:
             check_y = obj.position.y + (obj.depth - 1)/2
         else:
             check_y = obj.y
@@ -440,7 +650,7 @@ class Gripper:
         """
         if obj.__class__ == Box or obj.__class__ == Lid:
             check_y = obj.position.y
-        elif obj.__class__ == Drawer:
+        elif obj.__class__ == Drawer or obj.__class__ == Stack:
             check_y = obj.position.y
         else:
             check_y = obj.y
@@ -461,7 +671,7 @@ class Gripper:
         """
         if obj.__class__ == Box:
             check_z = 1
-        elif obj.__class__ == Drawer:
+        elif obj.__class__ == Drawer or obj.__class__ == Stack:
             check_z = 2
         else:
             check_z = obj.z
@@ -473,8 +683,10 @@ class Gripper:
 
         Valid classes: All
         """
-        if obj.__class__ == Box or obj.__class__ == Drawer:
+        if obj.__class__ == Box or obj.__class__ == Stack:
             check_z = 0
+        elif obj.__class__ == Drawer:
+            check_z = 1
         else:
             check_z = obj.z
 
@@ -490,11 +702,97 @@ class Gripper:
 
 class Drawer:
 
-    def __init__(self, x=0, y=0, opening=0, width=5, depth=7, name='', unique_name=''):
+    def __init__(self, x=0, y=0, width=5, depth=7, name='', unique_name=''):
         # mutable
         self.x = x
         self.y = y
-        self.opening = opening
+
+        # immutable
+        self.width = width
+        self.depth = depth
+        self.name = name
+        self.unique_name = unique_name
+
+    # Relations
+    def closing(self, obj):
+        """True if a drawer is pushed into a stack
+
+        Valid classes: Stack
+        """
+        return abs(self.x - obj.x) <= 1 and abs(self.y - obj.y) <= 1
+
+    def touching(self, obj):
+        """True if an object is touching (x-y plane, 'atop' covers z) another object
+
+        Valid classes: All"""
+        if obj.__class__ == Box:
+            x_min = obj.x - obj.radius
+            x_max = obj.x + obj.radius
+            y_min = obj.y - obj.radius
+            y_max = obj.y + obj.radius
+            z_min = 0
+            z_max = 1
+        elif obj.__class__ == Container:
+            x_min = obj.position.x
+            x_max = obj.position.x + obj.width - 1
+            y_min = obj.position.y
+            y_max = obj.position.y + obj.depth - 1
+            z_min = obj.position.z
+            z_max = obj.position.z
+        elif obj.__class__ == Drawer:
+            w = (obj.width - 1)/2
+            d = (obj.depth - 1)/2
+            x_min = obj.x - w
+            x_max = obj.x + w
+            y_min = obj.y - d
+            y_max = obj.y + d
+            z_min = 1
+            z_max = 2
+        elif obj.__class__ == Lid:
+            x_min = obj.position.x - obj.radius
+            x_max = obj.position.x + obj.radius
+            y_min = obj.position.y - obj.radius
+            y_max = obj.position.y + obj.radius
+            z_min = obj.position.z
+            z_max = obj.position.z
+        elif obj.__class__ == Stack:
+            w = (obj.width - 1)/2
+            d = (obj.depth - 1)/2
+            x_min = obj.x - w
+            x_max = obj.x + w
+            y_min = obj.y - d
+            y_max = obj.y + d
+            z_min = 0
+            z_max = 2
+        else:
+            x_min = obj.x
+            x_max = obj.x
+            y_min = obj.y
+            y_max = obj.y
+            z_min = obj.z
+            z_max = obj.z
+
+        w = (self.width - 1)/2
+        d = (self.width - 1)/2
+        for x in range(self.x - w - 1, self.x + w + 2):
+            for y in [self.y - d - 1, self.y + d + 1]:
+                for z in [1, 2]:
+                    if x_min <= x <= x_max and y_min <= y <= y_max and z_min <= z <= z_max:
+                        return True
+        for y in range(self.y - d, self.y + d + 1):
+            for x in [self.x - w - 1, self.x + w + 1]:
+                for z in [1, 2]:
+                    if x_min <= x <= x_max and y_min <= y <= y_max and z_min <= z <= z_max:
+                        return True
+        return False
+
+
+class Stack:
+
+    def __init__(self, x=0, y=0, width=5, depth=7, name='', unique_name=''):
+        # mutable
+        self.x = x
+        self.y = y
 
         # immutable
         self.width = width
@@ -540,7 +838,7 @@ class Lid:
     def atop(self, obj):
         """True if on object is resting on top of another object
 
-        Valid classes: Container, Drawer, Item, Lid
+        Valid classes: Container, Drawer, Item, Lid, Stack
         """
         if obj.__class__ == Container:
             x_min = obj.x
@@ -548,7 +846,7 @@ class Lid:
             y_min = obj.y
             y_max = obj.y + obj.depth
             z = obj.z + 1
-        elif obj.__class__ == Drawer:
+        elif obj.__class__ == Drawer or obj.__class__ == Stack:
             w = (obj.width - 1)/2
             d = (obj.depth - 1)/2
             x_min = obj.x - w
@@ -578,6 +876,67 @@ class Lid:
                     return True
         return False
 
+    def touching(self, obj):
+        """True if an object is touching (x-y plane, 'atop' covers z) another object
+
+        Valid classes: All"""
+        if obj.__class__ == Box:
+            x_min = obj.x - obj.radius
+            x_max = obj.x + obj.radius
+            y_min = obj.y - obj.radius
+            y_max = obj.y + obj.radius
+            z_min = 0
+            z_max = 1
+        elif obj.__class__ == Container:
+            x_min = obj.position.x
+            x_max = obj.position.x + obj.width - 1
+            y_min = obj.position.y
+            y_max = obj.position.y + obj.depth - 1
+            z_min = obj.position.z
+            z_max = obj.position.z
+        elif obj.__class__ == Drawer:
+            w = (obj.width - 1)/2
+            d = (obj.depth - 1)/2
+            x_min = obj.x - w
+            x_max = obj.x + w
+            y_min = obj.y - d
+            y_max = obj.y + d
+            z_min = 1
+            z_max = 2
+        elif obj.__class__ == Lid:
+            x_min = obj.position.x - obj.radius
+            x_max = obj.position.x + obj.radius
+            y_min = obj.position.y - obj.radius
+            y_max = obj.position.y + obj.radius
+            z_min = obj.position.z
+            z_max = obj.position.z
+        elif obj.__class__ == Stack:
+            w = (obj.width - 1)/2
+            d = (obj.depth - 1)/2
+            x_min = obj.x - w
+            x_max = obj.x + w
+            y_min = obj.y - d
+            y_max = obj.y + d
+            z_min = 0
+            z_max = 2
+        else:
+            x_min = obj.x
+            x_max = obj.x
+            y_min = obj.y
+            y_max = obj.y
+            z_min = obj.z
+            z_max = obj.z
+
+        for x in range(self.x - self.radius - 1, self.x + self.radius + 2):
+            for y in [self.y - self.radius - 1, self.y + self.radius + 1]:
+                if x_min <= x <= x_max and y_min <= y <= y_max and z_min <= self.z <= z_max:
+                    return True
+        for y in range(self.y - self.radius - 1, self.y + self.radius + 1):
+            for x in [self.x - self.radius - 1, self.x + self.radius + 1]:
+                if x_min <= x <= x_max and y_min <= y <= y_max and z_min <= self.z <= z_max:
+                    return True
+        return False
+
     def left_of(self, obj):
         """True if an object is to the left of another object
 
@@ -585,7 +944,7 @@ class Lid:
         """
         if obj.__class__ == Box or obj.__class__ == Lid:
             check_x = obj.position.x - obj.radius
-        elif obj.__class__ == Drawer:
+        elif obj.__class__ == Drawer or obj.__class__ == Stack:
             check_x = obj.position.x - (obj.width - 1)/2
         else:
             check_x = obj.x
@@ -601,7 +960,7 @@ class Lid:
             check_x = obj.position.x + obj.radius
         elif obj.__class__ == Container:
             check_x = obj.x + obj.width - 1
-        elif obj.__class__ == Drawer:
+        elif obj.__class__ == Drawer or obj.__class__ == Stack:
             check_x = obj.position.x + (obj.width - 1)/2
         else:
             check_x = obj.x
@@ -617,7 +976,7 @@ class Lid:
             check_y = obj.position.y + obj.radius
         elif obj.__class__ == Container:
             check_y = obj.position.y + obj.depth - 1
-        elif obj.__class__ == Drawer:
+        elif obj.__class__ == Drawer or obj.__class__ == Stack:
             check_y = obj.position.y + (obj.depth - 1)/2
         else:
             check_y = obj.y
@@ -631,7 +990,7 @@ class Lid:
         """
         if obj.__class__ == Box or obj.__class__ == Lid:
             check_y = obj.position.y
-        elif obj.__class__ == Drawer:
+        elif obj.__class__ == Drawer or obj.__class__ == Stack:
             check_y = obj.position.y
         else:
             check_y = obj.y
@@ -652,7 +1011,7 @@ class Lid:
         """
         if obj.__class__ == Box:
             check_z = 1
-        elif obj.__class__ == Drawer:
+        elif obj.__class__ == Drawer or obj.__class__ == Stack:
             check_z = 2
         else:
             check_z = obj.z
@@ -664,8 +1023,10 @@ class Lid:
 
         Valid classes: All
         """
-        if obj.__class__ == Box or obj.__class__ == Drawer:
+        if obj.__class__ == Box or obj.__class__ == Stack:
             check_z = 0
+        elif obj.__class__ == Drawer:
+            check_z = 1
         else:
             check_z = obj.z
 
