@@ -5,3 +5,4 @@ task_sim/Gripper[] grippers
 task_sim/Item[] items
 task_sim/Lid[] lids
 task_sim/Stack[] stacks
+string[] relations
