@@ -88,9 +88,9 @@ class Item:
             z_max = 1
         elif obj.__class__ == Container:
             x_min = obj.x
-            x_max = obj.x + obj.width
+            x_max = obj.x + obj.width - 1
             y_min = obj.y
-            y_max = obj.y + obj.depth
+            y_max = obj.y + obj.depth - 1
             z_min = obj.z
             z_max = obj.z
         elif obj.__class__ == Drawer:
@@ -119,12 +119,12 @@ class Item:
             z_min = 0
             z_max = 1
         elif obj.__class__ == Container:
-            x_min = obj.position.x
-            x_max = obj.position.x + obj.width - 1
-            y_min = obj.position.y
-            y_max = obj.position.y + obj.depth - 1
-            z_min = obj.position.z
-            z_max = obj.position.z
+            x_min = obj.x
+            x_max = obj.x + obj.width - 1
+            y_min = obj.y
+            y_max = obj.y + obj.depth - 1
+            z_min = obj.z
+            z_max = obj.z
         elif obj.__class__ == Drawer:
             w = (obj.width - 1)/2
             d = (obj.depth - 1)/2
@@ -135,12 +135,12 @@ class Item:
             z_min = 1
             z_max = 2
         elif obj.__class__ == Lid:
-            x_min = obj.position.x - obj.radius
-            x_max = obj.position.x + obj.radius
-            y_min = obj.position.y - obj.radius
-            y_max = obj.position.y + obj.radius
-            z_min = obj.position.z
-            z_max = obj.position.z
+            x_min = obj.x - obj.radius
+            x_max = obj.x + obj.radius
+            y_min = obj.y - obj.radius
+            y_max = obj.y + obj.radius
+            z_min = obj.z
+            z_max = obj.z
         elif obj.__class__ == Stack:
             w = (obj.width - 1)/2
             d = (obj.depth - 1)/2
@@ -171,9 +171,9 @@ class Item:
         Valid classes: All
         """
         if obj.__class__ == Box or obj.__class__ == Lid:
-            check_x = obj.position.x - obj.radius
+            check_x = obj.x - obj.radius
         elif obj.__class__ == Drawer or obj.__class__ == Stack:
-            check_x = obj.position.x - (obj.width - 1)/2
+            check_x = obj.x - (obj.width - 1)/2
         else:
             check_x = obj.x
 
@@ -185,11 +185,11 @@ class Item:
         Valid classes: All
         """
         if obj.__class__ == Box or obj.__class__ == Lid:
-            check_x = obj.position.x + obj.radius
+            check_x = obj.x + obj.radius
         elif obj.__class__ == Container:
             check_x = obj.x + obj.width - 1
         elif obj.__class__ == Drawer or obj.__class__ == Stack:
-            check_x = obj.position.x + (obj.width - 1)/2
+            check_x = obj.x + (obj.width - 1)/2
         else:
             check_x = obj.x
 
@@ -201,11 +201,11 @@ class Item:
         Valid classes: All
         """
         if obj.__class__ == Box or obj.__class__ == Lid:
-            check_y = obj.position.y + obj.radius
+            check_y = obj.y + obj.radius
         elif obj.__class__ == Container:
-            check_y = obj.position.y + obj.depth - 1
+            check_y = obj.y + obj.depth - 1
         elif obj.__class__ == Drawer:
-            check_y = obj.position.y + (obj.depth - 1)/2
+            check_y = obj.y + (obj.depth - 1)/2
         else:
             check_y = obj.y
 
@@ -217,9 +217,9 @@ class Item:
         Valid classes: All
         """
         if obj.__class__ == Box or obj.__class__ == Lid:
-            check_y = obj.position.y
+            check_y = obj.y - obj.radius
         elif obj.__class__ == Drawer or obj.__class__ == Stack:
-            check_y = obj.position.y
+            check_y = obj.y - (obj.depth - 1)/2
         else:
             check_y = obj.y
 
@@ -396,12 +396,12 @@ class Container:
             z_min = 0
             z_max = 1
         elif obj.__class__ == Container:
-            x_min = obj.position.x
-            x_max = obj.position.x + obj.width - 1
-            y_min = obj.position.y
-            y_max = obj.position.y + obj.depth - 1
-            z_min = obj.position.z
-            z_max = obj.position.z
+            x_min = obj.x
+            x_max = obj.x + obj.width - 1
+            y_min = obj.y
+            y_max = obj.y + obj.depth - 1
+            z_min = obj.z
+            z_max = obj.z
         elif obj.__class__ == Drawer:
             w = (obj.width - 1)/2
             d = (obj.depth - 1)/2
@@ -412,12 +412,12 @@ class Container:
             z_min = 1
             z_max = 2
         elif obj.__class__ == Lid:
-            x_min = obj.position.x - obj.radius
-            x_max = obj.position.x + obj.radius
-            y_min = obj.position.y - obj.radius
-            y_max = obj.position.y + obj.radius
-            z_min = obj.position.z
-            z_max = obj.position.z
+            x_min = obj.x - obj.radius
+            x_max = obj.x + obj.radius
+            y_min = obj.y - obj.radius
+            y_max = obj.y + obj.radius
+            z_min = obj.z
+            z_max = obj.z
         elif obj.__class__ == Stack:
             w = (obj.width - 1)/2
             d = (obj.depth - 1)/2
@@ -451,13 +451,13 @@ class Container:
         Valid classes: All
         """
         if obj.__class__ == Box or obj.__class__ == Lid:
-            check_x = obj.position.x - obj.radius
+            check_x = obj.x - obj.radius
         elif obj.__class__ == Drawer or obj.__class__ == Stack:
-            check_x = obj.position.x - (obj.width - 1)/2
+            check_x = obj.x - (obj.width - 1)/2
         else:
             check_x = obj.x
 
-        return self.x + obj.width - 1 < check_x
+        return self.x + self.width - 1 < check_x
 
     def right_of(self, obj):
         """True if an object is to the right of another object
@@ -465,11 +465,11 @@ class Container:
         Valid classes: All
         """
         if obj.__class__ == Box or obj.__class__ == Lid:
-            check_x = obj.position.x + obj.radius
+            check_x = obj.x + obj.radius
         elif obj.__class__ == Container:
             check_x = obj.x + obj.width - 1
         elif obj.__class__ == Drawer or obj.__class__ == Stack:
-            check_x = obj.position.x + (obj.width - 1)/2
+            check_x = obj.x + (obj.width - 1)/2
         else:
             check_x = obj.x
 
@@ -481,11 +481,11 @@ class Container:
         Valid classes: All
         """
         if obj.__class__ == Box or obj.__class__ == Lid:
-            check_y = obj.position.y + obj.radius
+            check_y = obj.y + obj.radius
         elif obj.__class__ == Container:
-            check_y = obj.position.y + obj.depth - 1
+            check_y = obj.y + obj.depth - 1
         elif obj.__class__ == Drawer or obj.__class__ == Stack:
-            check_y = obj.position.y + (obj.depth - 1)/2
+            check_y = obj.y + (obj.depth - 1)/2
         else:
             check_y = obj.y
 
@@ -497,9 +497,9 @@ class Container:
         Valid classes: All
         """
         if obj.__class__ == Box or obj.__class__ == Lid:
-            check_y = obj.position.y
+            check_y = obj.y - obj.radius
         elif obj.__class__ == Drawer or obj.__class__ == Stack:
-            check_y = obj.position.y
+            check_y = obj.y - (obj.depth - 1)/2
         else:
             check_y = obj.y
 
@@ -631,12 +631,12 @@ class Gripper:
             z_min = 0
             z_max = 1
         elif obj.__class__ == Container:
-            x_min = obj.position.x
-            x_max = obj.position.x + obj.width - 1
-            y_min = obj.position.y
-            y_max = obj.position.y + obj.depth - 1
-            z_min = obj.position.z
-            z_max = obj.position.z
+            x_min = obj.x
+            x_max = obj.x + obj.width - 1
+            y_min = obj.y
+            y_max = obj.y + obj.depth - 1
+            z_min = obj.z
+            z_max = obj.z
         elif obj.__class__ == Drawer:
             w = (obj.width - 1)/2
             d = (obj.depth - 1)/2
@@ -647,12 +647,12 @@ class Gripper:
             z_min = 1
             z_max = 2
         elif obj.__class__ == Lid:
-            x_min = obj.position.x - obj.radius
-            x_max = obj.position.x + obj.radius
-            y_min = obj.position.y - obj.radius
-            y_max = obj.position.y + obj.radius
-            z_min = obj.position.z
-            z_max = obj.position.z
+            x_min = obj.x - obj.radius
+            x_max = obj.x + obj.radius
+            y_min = obj.y - obj.radius
+            y_max = obj.y + obj.radius
+            z_min = obj.z
+            z_max = obj.z
         elif obj.__class__ == Stack:
             w = (obj.width - 1)/2
             d = (obj.depth - 1)/2
@@ -682,9 +682,9 @@ class Gripper:
         Valid classes: All
         """
         if obj.__class__ == Box or obj.__class__ == Lid:
-            check_x = obj.position.x - obj.radius
+            check_x = obj.x - obj.radius
         elif obj.__class__ == Drawer or obj.__class__ == Stack:
-            check_x = obj.position.x - (obj.width - 1)/2
+            check_x = obj.x - (obj.width - 1)/2
         else:
             check_x = obj.x
 
@@ -696,11 +696,11 @@ class Gripper:
         Valid classes: All
         """
         if obj.__class__ == Box or obj.__class__ == Lid:
-            check_x = obj.position.x + obj.radius
+            check_x = obj.x + obj.radius
         elif obj.__class__ == Container:
             check_x = obj.x + obj.width - 1
         elif obj.__class__ == Drawer or obj.__class__ == Stack:
-            check_x = obj.position.x + (obj.width - 1)/2
+            check_x = obj.x + (obj.width - 1)/2
         else:
             check_x = obj.x
 
@@ -712,11 +712,11 @@ class Gripper:
         Valid classes: All
         """
         if obj.__class__ == Box or obj.__class__ == Lid:
-            check_y = obj.position.y + obj.radius
+            check_y = obj.y + obj.radius
         elif obj.__class__ == Container:
-            check_y = obj.position.y + obj.depth - 1
+            check_y = obj.y + obj.depth - 1
         elif obj.__class__ == Drawer or obj.__class__ == Stack:
-            check_y = obj.position.y + (obj.depth - 1)/2
+            check_y = obj.y + (obj.depth - 1)/2
         else:
             check_y = obj.y
 
@@ -728,9 +728,9 @@ class Gripper:
         Valid classes: All
         """
         if obj.__class__ == Box or obj.__class__ == Lid:
-            check_y = obj.position.y
+            check_y = obj.y - obj.radius
         elif obj.__class__ == Drawer or obj.__class__ == Stack:
-            check_y = obj.position.y
+            check_y = obj.y - (obj.depth - 1)/2
         else:
             check_y = obj.y
 
@@ -833,12 +833,12 @@ class Drawer:
             z_min = 0
             z_max = 1
         elif obj.__class__ == Container:
-            x_min = obj.position.x
-            x_max = obj.position.x + obj.width - 1
-            y_min = obj.position.y
-            y_max = obj.position.y + obj.depth - 1
-            z_min = obj.position.z
-            z_max = obj.position.z
+            x_min = obj.x
+            x_max = obj.x + obj.width - 1
+            y_min = obj.y
+            y_max = obj.y + obj.depth - 1
+            z_min = obj.z
+            z_max = obj.z
         elif obj.__class__ == Drawer:
             w = (obj.width - 1)/2
             d = (obj.depth - 1)/2
@@ -849,12 +849,12 @@ class Drawer:
             z_min = 1
             z_max = 2
         elif obj.__class__ == Lid:
-            x_min = obj.position.x - obj.radius
-            x_max = obj.position.x + obj.radius
-            y_min = obj.position.y - obj.radius
-            y_max = obj.position.y + obj.radius
-            z_min = obj.position.z
-            z_max = obj.position.z
+            x_min = obj.x - obj.radius
+            x_max = obj.x + obj.radius
+            y_min = obj.y - obj.radius
+            y_max = obj.y + obj.radius
+            z_min = obj.z
+            z_max = obj.z
         elif obj.__class__ == Stack:
             w = (obj.width - 1)/2
             d = (obj.depth - 1)/2
@@ -889,7 +889,7 @@ class Drawer:
 
 class Stack:
 
-    def __init__(self, x=0, y=0, width=5, depth=7, name='', unique_name='', msg=None):
+    def __init__(self, x=0, y=0, width=7, depth=5, name='', unique_name='', msg=None):
         if msg is not None:
             self.from_ros(msg)
         else:
@@ -994,7 +994,7 @@ class Lid:
 
         Valid classes: Box
         """
-        return self.x == obj.x and self.y == obj.y and self.z == 2
+        return self.x == obj.x and self.y == obj.y and self.z == 1
 
     def atop(self, obj):
         """True if on object is resting on top of another object
@@ -1049,12 +1049,12 @@ class Lid:
             z_min = 0
             z_max = 1
         elif obj.__class__ == Container:
-            x_min = obj.position.x
-            x_max = obj.position.x + obj.width - 1
-            y_min = obj.position.y
-            y_max = obj.position.y + obj.depth - 1
-            z_min = obj.position.z
-            z_max = obj.position.z
+            x_min = obj.x
+            x_max = obj.x + obj.width - 1
+            y_min = obj.y
+            y_max = obj.y + obj.depth - 1
+            z_min = obj.z
+            z_max = obj.z
         elif obj.__class__ == Drawer:
             w = (obj.width - 1)/2
             d = (obj.depth - 1)/2
@@ -1065,12 +1065,12 @@ class Lid:
             z_min = 1
             z_max = 2
         elif obj.__class__ == Lid:
-            x_min = obj.position.x - obj.radius
-            x_max = obj.position.x + obj.radius
-            y_min = obj.position.y - obj.radius
-            y_max = obj.position.y + obj.radius
-            z_min = obj.position.z
-            z_max = obj.position.z
+            x_min = obj.x - obj.radius
+            x_max = obj.x + obj.radius
+            y_min = obj.y - obj.radius
+            y_max = obj.y + obj.radius
+            z_min = obj.z
+            z_max = obj.z
         elif obj.__class__ == Stack:
             w = (obj.width - 1)/2
             d = (obj.depth - 1)/2
@@ -1104,9 +1104,9 @@ class Lid:
         Valid classes: All
         """
         if obj.__class__ == Box or obj.__class__ == Lid:
-            check_x = obj.position.x - obj.radius
+            check_x = obj.x - obj.radius
         elif obj.__class__ == Drawer or obj.__class__ == Stack:
-            check_x = obj.position.x - (obj.width - 1)/2
+            check_x = obj.x - (obj.width - 1)/2
         else:
             check_x = obj.x
 
@@ -1118,11 +1118,11 @@ class Lid:
         Valid classes: All
         """
         if obj.__class__ == Box or obj.__class__ == Lid:
-            check_x = obj.position.x + obj.radius
+            check_x = obj.x + obj.radius
         elif obj.__class__ == Container:
             check_x = obj.x + obj.width - 1
         elif obj.__class__ == Drawer or obj.__class__ == Stack:
-            check_x = obj.position.x + (obj.width - 1)/2
+            check_x = obj.x + (obj.width - 1)/2
         else:
             check_x = obj.x
 
@@ -1134,11 +1134,11 @@ class Lid:
         Valid classes: All
         """
         if obj.__class__ == Box or obj.__class__ == Lid:
-            check_y = obj.position.y + obj.radius
+            check_y = obj.y + obj.radius
         elif obj.__class__ == Container:
-            check_y = obj.position.y + obj.depth - 1
+            check_y = obj.y + obj.depth - 1
         elif obj.__class__ == Drawer or obj.__class__ == Stack:
-            check_y = obj.position.y + (obj.depth - 1)/2
+            check_y = obj.y + (obj.depth - 1)/2
         else:
             check_y = obj.y
 
@@ -1150,9 +1150,9 @@ class Lid:
         Valid classes: All
         """
         if obj.__class__ == Box or obj.__class__ == Lid:
-            check_y = obj.position.y
+            check_y = obj.y - obj.radius
         elif obj.__class__ == Drawer or obj.__class__ == Stack:
-            check_y = obj.position.y
+            check_y = obj.y - (obj.depth - 1)/2
         else:
             check_y = obj.y
 

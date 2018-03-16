@@ -21,6 +21,8 @@ from task_sim.msg import Action, State, Object, SmallContainer, Log
 from task_sim.grasp_state import GraspState
 from task_sim.plan_action import PlanAction
 
+from task_sim.oomdp.oo_state import OOState
+
 class TableSim:
 
     def __init__(self):
@@ -396,6 +398,10 @@ class TableSim:
         self.show()
 
         # # debug
+        # state = OOState(self.state_)
+        # state.relations.sort()
+        # for rel in state.relations:
+        #     print rel
         # # print DataUtils.readable_state(DataUtils.semantic_state_vector(self.state_, return_dict=True)[0])
         # if self.prev_state is not None:
         #     pa = PlanAction(self.prev_state, (action or Action(action_type=Action.NOOP)), self.state_)

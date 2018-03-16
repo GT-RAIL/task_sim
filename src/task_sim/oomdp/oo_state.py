@@ -41,14 +41,14 @@ class OOState:
         self.clear_state()
 
         for o in state.objects:
-            item = Item(o)
+            item = Item(o.position.x, o.position.y, o.position.z, o.name, o.unique_name)
             self.items[item.unique_name] = item
 
         for c in state.containers:
-            container = Container(c)
-            self.items[c.unique_name] = container
+            container = Container(c.position.x, c.position.y, c.position.z, c.width, c.height, c.name, c.unique_name)
+            self.containers[c.unique_name] = container
 
-        box = Box(state.box_position.x, state.box.position.y, name='box', unique_name='box')
+        box = Box(state.box_position.x, state.box_position.y, name='box', unique_name='box')
         self.boxes[box.unique_name] = box
 
         drawer = Drawer(state.drawer_position.x + state.drawer_opening, state.drawer_position.y, name='drawer',
@@ -79,15 +79,15 @@ class OOState:
             reverse = None
             rel = None
             if sort:
-                name_order = [obj1.unique_name, obj2.unique_name]
+                name_order = [obj1.name, obj2.name]
                 name_order.sort()
                 if result:
                     rel = name_order[0] + '_' + relation_name + '_' + name_order[1]
             else:
                 if result:
-                    rel = obj1.unique_name + '_' + relation_name + '_' + obj2.unique_name
+                    rel = obj1.name + '_' + relation_name + '_' + obj2.name
                     if relation_name in reverse_relation:
-                        reverse = obj2.unique_name + '_' + reverse_relation[relation_name] + '_' + obj1.unique_name
+                        reverse = obj2.name + '_' + reverse_relation[relation_name] + '_' + obj1.name
 
             if rel is not None and rel not in self.relations:
                 self.relations.append(rel)
@@ -106,7 +106,6 @@ class OOState:
 
         for i in range(len(self.items)):
             item = self.items[self.items.keys()[i]]
-
             # item-item relations
             for j in range(i + 1, len(self.items)):
                 item2 = self.items[self.items.keys()[j]]
@@ -260,7 +259,7 @@ class OOState:
             lid = self.lids[self.lids.keys()[i]]
 
             # lid-lid relations
-            for j in range(i + 1, len(self.containers)):
+            for j in range(i + 1, len(self.lids)):
                 lid2 = self.lids[self.lids.keys()[j]]
                 add_relation(lid, lid2, lid.inside(lid2), 'atop')
                 add_relation(lid, lid2, lid.touching(lid2), 'touching', sort=True)
@@ -314,7 +313,7 @@ class OOState:
                 add_relation(lid, s, lid.level_with(s), 'level_with')
 
         for i in range(len(self.drawers)):
-            drawer = self.drawers[self.containers.keys()[i]]
+            drawer = self.drawers[self.drawers.keys()[i]]
 
             # drawer-drawer relations
             for j in range(i + 1, len(self.drawers)):
@@ -425,19 +424,19 @@ class OOState:
     def clear_relations(self):
         self.relations = []
 
-        for b in self.boxes:
+        for b in self.boxes.values():
             b.relations = []
-        for c in self.containers:
+        for c in self.containers.values():
             c.relations = []
-        for d in self.drawers:
+        for d in self.drawers.values():
             d.relations = []
-        for g in self.grippers:
+        for g in self.grippers.values():
             g.relations = []
-        for i in self.items:
+        for i in self.items.values():
             i.relations = []
-        for l in self.lids:
+        for l in self.lids.values():
             l.relations = []
-        for s in self.stacks:
+        for s in self.stacks.values():
             s.relations = []
 
     def to_ros(self):
