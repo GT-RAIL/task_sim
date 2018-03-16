@@ -34,6 +34,8 @@ class TableSim:
         self.reset_service_ = rospy.Service('~reset_simulation', Empty, self.reset_sim)
         self.log_pub_ = rospy.Publisher('~task_log', Log, queue_size=1)
 
+        self.complexity = rospy.get_param('~complexity', 2)
+
         self.quiet_mode = rospy.get_param('~quiet_mode', False)
         self.terminal_input = rospy.get_param('~terminal_input', True)
         self.history_buffer = rospy.get_param('~history_buffer', 10)
@@ -197,77 +199,79 @@ class TableSim:
             object_set = not self.inCollision(obj1.position) and self.reachable(obj1.position)
         self.state_.objects.append(obj1)
 
-        obj2 = Object()
-        obj2.name = "batteries"
-        # handle name
-        obj2.unique_name = obj2.name
-        mod = 0
-        for o in self.state_.objects:
-            if o.name == obj2.name:
-                mod += 1
-        obj2.unique_name += str(mod)
-        # place object
-        object_set = False
-        while not object_set:
-            obj2.position.x = randint(1, self.tableWidth - 1)
-            obj2.position.y = randint(1, self.tableDepth - 1)
-            obj2.position.z = 0
-            object_set = not self.inCollision(obj2.position) and self.reachable(obj2.position)
-        self.state_.objects.append(obj2)
+        if self.complexity >= 1:
+            obj2 = Object()
+            obj2.name = "batteries"
+            # handle name
+            obj2.unique_name = obj2.name
+            mod = 0
+            for o in self.state_.objects:
+                if o.name == obj2.name:
+                    mod += 1
+            obj2.unique_name += str(mod)
+            # place object
+            object_set = False
+            while not object_set:
+                obj2.position.x = randint(1, self.tableWidth - 1)
+                obj2.position.y = randint(1, self.tableDepth - 1)
+                obj2.position.z = 0
+                object_set = not self.inCollision(obj2.position) and self.reachable(obj2.position)
+            self.state_.objects.append(obj2)
 
-        obj3 = Object()
-        obj3.name = "flashlight"
-        # handle name
-        obj3.unique_name = obj3.name
-        mod = 0
-        for o in self.state_.objects:
-            if o.name == obj3.name:
-                mod += 1
-        obj3.unique_name += str(mod)
-        # place object
-        object_set = False
-        while not object_set:
-            obj3.position.x = randint(1, self.tableWidth - 1)
-            obj3.position.y = randint(1, self.tableDepth - 1)
-            obj3.position.z = 0
-            object_set = not self.inCollision(obj3.position) and self.reachable(obj3.position)
-        self.state_.objects.append(obj3)
+        if self.complexity >= 2:
+            obj3 = Object()
+            obj3.name = "flashlight"
+            # handle name
+            obj3.unique_name = obj3.name
+            mod = 0
+            for o in self.state_.objects:
+                if o.name == obj3.name:
+                    mod += 1
+            obj3.unique_name += str(mod)
+            # place object
+            object_set = False
+            while not object_set:
+                obj3.position.x = randint(1, self.tableWidth - 1)
+                obj3.position.y = randint(1, self.tableDepth - 1)
+                obj3.position.z = 0
+                object_set = not self.inCollision(obj3.position) and self.reachable(obj3.position)
+            self.state_.objects.append(obj3)
 
-        obj4 = Object()
-        obj4.name = "granola"
-        # handle name
-        obj4.unique_name = obj4.name
-        mod = 0
-        for o in self.state_.objects:
-            if o.name == obj4.name:
-                mod += 1
-        obj4.unique_name += str(mod)
-        # place object
-        object_set = False
-        while not object_set:
-            obj4.position.x = randint(1, self.tableWidth - 1)
-            obj4.position.y = randint(1, self.tableDepth - 1)
-            obj4.position.z = 0
-            object_set = not self.inCollision(obj4.position) and self.reachable(obj4.position)
-        self.state_.objects.append(obj4)
+            obj4 = Object()
+            obj4.name = "granola"
+            # handle name
+            obj4.unique_name = obj4.name
+            mod = 0
+            for o in self.state_.objects:
+                if o.name == obj4.name:
+                    mod += 1
+            obj4.unique_name += str(mod)
+            # place object
+            object_set = False
+            while not object_set:
+                obj4.position.x = randint(1, self.tableWidth - 1)
+                obj4.position.y = randint(1, self.tableDepth - 1)
+                obj4.position.z = 0
+                object_set = not self.inCollision(obj4.position) and self.reachable(obj4.position)
+            self.state_.objects.append(obj4)
 
-        obj5 = Object()
-        obj5.name = "knife"
-        # handle name
-        obj5.unique_name = obj5.name
-        mod = 0
-        for o in self.state_.objects:
-            if o.name == obj5.name:
-                mod += 1
-        obj5.unique_name += str(mod)
-        # place object
-        object_set = False
-        while not object_set:
-            obj5.position.x = randint(1, self.tableWidth - 1)
-            obj5.position.y = randint(1, self.tableDepth - 1)
-            obj5.position.z = 0
-            object_set = not self.inCollision(obj5.position) and self.reachable(obj5.position)
-        self.state_.objects.append(obj5)
+            obj5 = Object()
+            obj5.name = "knife"
+            # handle name
+            obj5.unique_name = obj5.name
+            mod = 0
+            for o in self.state_.objects:
+                if o.name == obj5.name:
+                    mod += 1
+            obj5.unique_name += str(mod)
+            # place object
+            object_set = False
+            while not object_set:
+                obj5.position.x = randint(1, self.tableWidth - 1)
+                obj5.position.y = randint(1, self.tableDepth - 1)
+                obj5.position.z = 0
+                object_set = not self.inCollision(obj5.position) and self.reachable(obj5.position)
+            self.state_.objects.append(obj5)
 
         # Containers
         def place_container(c):
@@ -293,23 +297,25 @@ class TableSim:
                                         and not self.inContainer(Point(c.position.x + x, c.position.y + y, c.position.z))
             self.state_.containers.append(c)
 
-        c1 = SmallContainer()
-        c1.name = "small"
-        c1.width = 2
-        c1.height = 2
-        place_container(c1)
+        if self.complexity >= 1:
+            c1 = SmallContainer()
+            c1.name = "small"
+            c1.width = 2
+            c1.height = 2
+            place_container(c1)
 
-        c2 = SmallContainer()
-        c2.name = "small"
-        c2.width = 2
-        c2.height = 2
-        place_container(c2)
+        if self.complexity >= 2:
+            c2 = SmallContainer()
+            c2.name = "small"
+            c2.width = 2
+            c2.height = 2
+            place_container(c2)
 
-        c3 = SmallContainer()
-        c3.name = "large"
-        c3.width = 3
-        c3.height = 3
-        place_container(c3)
+            c3 = SmallContainer()
+            c3.name = "large"
+            c3.width = 3
+            c3.height = 3
+            place_container(c3)
 
         # Initial robot configuration (home)
         self.state_.gripper_position.x = 8
