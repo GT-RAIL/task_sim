@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from string import digits
+
 from task_sim.msg import OOState as OOStateMsg
 from task_sim.oomdp.oomdp_classes import Box, Container, Drawer, Gripper, Item, Lid, Stack
 
@@ -55,7 +57,7 @@ class OOState:
                         unique_name='drawer')
         self.drawers[drawer.unique_name] = drawer
 
-        holding = state.object_in_gripper
+        holding = state.object_in_gripper.translate(None, digits)
         gripper = Gripper(state.gripper_position.x, state.gripper_position.y, state.gripper_position.z,
                           not state.gripper_open, holding, 'gripper', 'gripper')
         self.grippers[gripper.unique_name] = gripper
