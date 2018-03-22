@@ -368,7 +368,7 @@ class TableSim:
             container.lost = True
             for x in range(container.position.x, container.position.x + container.width):
                 for y in range(container.position.y, container.position.y + container.height):
-                    container.lost = container.lost and (x <= 0 or x >= self.tableWidth 
+                    container.lost = container.lost and (x <= 0 or x >= self.tableWidth
                                                          or y <= 0 or y >= self.tableDepth) \
                                      and not self.state_.object_in_gripper == container.unique_name \
                                      and not container.on_lid
@@ -893,9 +893,8 @@ class TableSim:
                                     and testPos.z == object.position.z:
                                 continue
                             if self.environmentCollision(testPos) \
-                                    or (c is None and self.containerCollision(object.position, testPos)) \
-                                    or (c is not None and self.containerCollision(object.position, testPos,
-                                                                                  ignore=c.unique_name)):
+                            or (c is None and self.containerCollision(object.position, testPos)) \
+                            or (c is not None and self.containerCollision(object.position, testPos, ignore=c.unique_name)):
                                 break
                             object.position = self.copyPoint(testPos)
                             if self.gravity(object):
@@ -1186,9 +1185,9 @@ class TableSim:
                     for j in range(container.height):
                         checkPos = Point(tempPos.x + i, tempPos.y + j, tempPos.z)
                         edge = edge or self.onEdge(checkPos)
-                        if self.environmentCollision(checkPos) or self.inContainer(checkPos,
-                                                                                   ignore=container.unique_name) \
-                                or self.objectCollision(checkPos):
+                        if self.environmentCollision(checkPos) \
+                        or self.inContainer(checkPos, ignore=container.unique_name) \
+                        or self.objectCollision(checkPos):
                             collision += 1
                 if collision / float(container.width*container.height) > 0.35:
                     break
