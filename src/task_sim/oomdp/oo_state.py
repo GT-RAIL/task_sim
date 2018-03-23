@@ -18,14 +18,7 @@ reverse_relation = {
 class OOState:
 
     def __init__(self, state=None):
-        self.boxes = {}
-        self.containers = {}
-        self.drawers = {}
-        self.grippers = {}
-        self.items = {}
-        self.lids = {}
-        self.stacks = {}
-        self.relations = []
+        self.clear_state()
         if state is not None:
             self.init_from_state(state)
 
@@ -81,8 +74,7 @@ class OOState:
             reverse = None
             rel = None
             if sort:
-                name_order = [obj1.name, obj2.name]
-                name_order.sort()
+                name_order = sorted([obj1.name, obj2.name])
                 if result:
                     rel = name_order[0] + '_' + relation_name + '_' + name_order[1]
             else:
@@ -466,6 +458,7 @@ class OOState:
             msg.stacks.append(obj.to_ros())
 
         msg.relations = self.relations
+        return msg
 
     def from_ros(self, msg):
         self.clear_state()
@@ -490,3 +483,5 @@ class OOState:
 
         for obj in msg.stacks:
             self.stacks[obj.unique_name] = obj
+
+        return self

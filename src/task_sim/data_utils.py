@@ -18,6 +18,7 @@ from task_sim.msg import Action
 # Globals
 
 class Globals:
+    # FIXME: This global map won't work with small containers
     OBJECT_TO_INT_MAP = bidict.frozenbidict({
         '': 0, # Also corresponds to the table
         'gripper': 1,
@@ -43,6 +44,7 @@ class Globals:
         'table_height': 15,
     }
 
+    # FIXME: This global map won't work with small containers
     TOUCH_SEARCH_OFFSETS = [
         Point(x,y,0) for x in xrange(-1,2) for y in xrange(-1,2)
     ]
@@ -830,6 +832,8 @@ def semantic_state_vector(
     state, history_buffer=0, feature_type=int, return_dict=False
 ):
     """
+    FIXME: This does not work with containers
+
     Creates a semantic state vector with the following information (boolean
     unless otherwise specified in {}):
 
