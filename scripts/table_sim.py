@@ -37,6 +37,7 @@ class TableSim:
         self.intervention_service_ = rospy.Service('~request_intervention', RequestIntervention, self.request_intervention)
         self.reset_service_ = rospy.Service('~reset_simulation', Empty, self.reset_sim)
         self.log_pub_ = rospy.Publisher('~task_log', Log, queue_size=1)
+        self.oomdp_pub_ = rospy.Publisher('~oomdp_state', OOStateMsg, queue_size=1)
 
         self.complexity = rospy.get_param('~complexity', 2)
 
@@ -409,6 +410,7 @@ class TableSim:
             state=self.state_.get_state()
         )
         self.log_pub_.publish(log_msg)
+        self.oomdp_pub_.publish(self.state_.get_oo_state().to_ros())
 
         self.show()
 

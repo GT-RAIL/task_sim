@@ -12,6 +12,8 @@ from task_sim.msg import OOState as OOStateMsg
 from task_sim.oomdp.oomdp_classes import Box, Container, Drawer, Gripper, Item, Lid, Stack
 from task_sim.oomdp.oomdp_relations import Relation, REVERSE_RELATIONS, RELATIONS
 
+import time
+
 
 class OOState:
 
@@ -176,16 +178,39 @@ class OOState:
 
 
     def calculate_relations(self):
-        """Calculate all relations between all objects. TODO: Be
-        smarter about this
+        """Calculate all relations between all objects. Call this just before
+        we're ready to send out the updated state
         """
-        # TODO: Maybe parallel for loops will solve speed here?
-        pass
 
+        # Iterate through the update list and update all the relations for all
+        # the items in there
+        print("Update Set Size: {}".format(self.update_set))
+        count = 0
+        start = time.time()
+        for obj in self.update_set:
+            print("#Relations: {}".format(len(obj.relations)))
+            for relation in obj.relations:
+                count += 1
+                self.relation_values[self.relation_names[relation.name]] = relation.value
+            obj.relations_updated()
+
+        # Done updating relations. Clear out the set
+        self.update_set.clear()
+        end = time.time()
+        print(
+            "Updated: {}/{}. Time: {}"
+            .format(count, len(self.relation_values), end-start)
+        )
+
+        return self.relation_values
 
     def to_ros(self):
         msg = OOStateMsg()
 
+        # If there are leftover updates, apply them
+        self.calculate_relations()
+
+        # Convert each of the sub items
         for obj in self.boxes.values():
             msg.boxes.append(obj.to_ros())
 
