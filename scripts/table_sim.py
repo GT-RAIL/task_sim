@@ -514,6 +514,7 @@ class TableSim:
                 self.state_.gripper_position = point
                 self.state_.gripper_open = False
                 self.state_.object_in_gripper = object
+                return True
             else:
                 self.error = 'Object ' + object + ' does not exist.'
                 return False
