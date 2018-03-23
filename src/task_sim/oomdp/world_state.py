@@ -2,9 +2,6 @@
 # Create a state object that encapsulates the OOMDP state and the regular state.
 # The API of this state is the same as that of the regular state, but it also
 # updates the OOMDP when attributes are accessed.
-#
-# Scope for improvement: Check the old value before updating. If the value
-# hasn't changed, then no need to update the relations
 
 from __future__ import print_function, division
 
@@ -42,11 +39,12 @@ class OOMDPPoint(object):
 
     @x.setter
     def x(self, val):
-        self.point.x = val
-        for oomdp_obj in self.oomdp_objs:
-            if hasattr(oomdp_obj, 'x'):
-                oomdp_obj.x = val
-                self.oo_state.update_set.add(oomdp_obj)
+        if self.point.x != val:
+            self.point.x = val
+            for oomdp_obj in self.oomdp_objs:
+                if hasattr(oomdp_obj, 'x'):
+                    oomdp_obj.x = val
+                    self.oo_state.update_set.add(oomdp_obj)
 
     @property
     def y(self):
@@ -54,11 +52,12 @@ class OOMDPPoint(object):
 
     @y.setter
     def y(self, val):
-        self.point.y = val
-        for oomdp_obj in self.oomdp_objs:
-            if hasattr(oomdp_obj, 'y'):
-                oomdp_obj.y = val
-                self.oo_state.update_set.add(oomdp_obj)
+        if self.point.y != val:
+            self.point.y = val
+            for oomdp_obj in self.oomdp_objs:
+                if hasattr(oomdp_obj, 'y'):
+                    oomdp_obj.y = val
+                    self.oo_state.update_set.add(oomdp_obj)
 
     @property
     def z(self):
@@ -66,11 +65,12 @@ class OOMDPPoint(object):
 
     @z.setter
     def z(self, val):
-        self.point.z = val
-        for oomdp_obj in self.oomdp_objs:
-            if hasattr(oomdp_obj, 'z'):
-                oomdp_obj.z = val
-                self.oo_state.update_set.add(oomdp_obj)
+        if self.point.z != val:
+            self.point.z = val
+            for oomdp_obj in self.oomdp_objs:
+                if hasattr(oomdp_obj, 'z'):
+                    oomdp_obj.z = val
+                    self.oo_state.update_set.add(oomdp_obj)
 
 
 class OOMDPPose2D(object):
@@ -95,11 +95,12 @@ class OOMDPPose2D(object):
 
     @x.setter
     def x(self, val):
-        self.pose.x = val
-        for oomdp_obj in self.oomdp_objs:
-            if hasattr(oomdp_obj, 'x'):
-                oomdp_obj.x = val
-                self.oo_state.update_set.add(oomdp_obj)
+        if self.pose.x != val:
+            self.pose.x = val
+            for oomdp_obj in self.oomdp_objs:
+                if hasattr(oomdp_obj, 'x'):
+                    oomdp_obj.x = val
+                    self.oo_state.update_set.add(oomdp_obj)
 
     @property
     def y(self):
@@ -107,11 +108,12 @@ class OOMDPPose2D(object):
 
     @y.setter
     def y(self, val):
-        self.pose.y = val
-        for oomdp_obj in self.oomdp_objs:
-            if hasattr(oomdp_obj, 'y'):
-                oomdp_obj.y = val
-                self.oo_state.update_set.add(oomdp_obj)
+        if self.pose.y != val:
+            self.pose.y = val
+            for oomdp_obj in self.oomdp_objs:
+                if hasattr(oomdp_obj, 'y'):
+                    oomdp_obj.y = val
+                    self.oo_state.update_set.add(oomdp_obj)
 
     @property
     def theta(self):
@@ -166,9 +168,10 @@ class OOMDPObject(object):
 
     @in_drawer.setter
     def in_drawer(self, val):
-        self.obj.in_drawer = val
-        self.oomdp_obj._modified = True
-        self.oo_state.update_set.add(self.oomdp_obj)
+        if self.obj.in_drawer != val:
+            self.obj.in_drawer = val
+            self.oomdp_obj._modified = True
+            self.oo_state.update_set.add(self.oomdp_obj)
 
     @property
     def in_box(self):
@@ -176,9 +179,10 @@ class OOMDPObject(object):
 
     @in_box.setter
     def in_box(self, val):
-        self.obj.in_box = val
-        self.oomdp_obj._modified = True
-        self.oo_state.update_set.add(self.oomdp_obj)
+        if self.obj.in_box != val:
+            self.obj.in_box = val
+            self.oomdp_obj._modified = True
+            self.oo_state.update_set.add(self.oomdp_obj)
 
     @property
     def on_lid(self):
@@ -186,9 +190,10 @@ class OOMDPObject(object):
 
     @on_lid.setter
     def on_lid(self, val):
-        self.obj.on_lid = val
-        self.oomdp_obj._modified = True
-        self.oo_state.update_set.add(self.oomdp_obj)
+        if self.obj.on_lid != val:
+            self.obj.on_lid = val
+            self.oomdp_obj._modified = True
+            self.oo_state.update_set.add(self.oomdp_obj)
 
     @property
     def on_stack(self):
@@ -196,9 +201,10 @@ class OOMDPObject(object):
 
     @on_stack.setter
     def on_stack(self, val):
-        self.obj.on_stack = val
-        self.oomdp_obj._modified = True
-        self.oo_state.update_set.add(self.oomdp_obj)
+        if self.obj.on_stack != val:
+            self.obj.on_stack = val
+            self.oomdp_obj._modified = True
+            self.oo_state.update_set.add(self.oomdp_obj)
 
     @property
     def in_gripper(self):
@@ -206,9 +212,10 @@ class OOMDPObject(object):
 
     @in_gripper.setter
     def in_gripper(self, val):
-        self.obj.in_gripper = val
-        self.oomdp_obj._modified = True
-        self.oo_state.update_set.add(self.oomdp_obj)
+        if self.obj.in_gripper != val:
+            self.obj.in_gripper = val
+            self.oomdp_obj._modified = True
+            self.oo_state.update_set.add(self.oomdp_obj)
 
     @property
     def occluded(self):
@@ -216,9 +223,10 @@ class OOMDPObject(object):
 
     @occluded.setter
     def occluded(self, val):
-        self.obj.occluded = val
-        self.oomdp_obj._modified = True
-        self.oo_state.update_set.add(self.oomdp_obj)
+        if self.obj.occluded != val:
+            self.obj.occluded = val
+            self.oomdp_obj._modified = True
+            self.oo_state.update_set.add(self.oomdp_obj)
 
     @property
     def lost(self):
@@ -226,9 +234,10 @@ class OOMDPObject(object):
 
     @lost.setter
     def lost(self, val):
-        self.obj.lost = val
-        self.oomdp_obj._modified = True
-        self.oo_state.update_set.add(self.oomdp_obj)
+        if self.obj.occluded != val:
+            self.obj.lost = val
+            self.oomdp_obj._modified = True
+            self.oo_state.update_set.add(self.oomdp_obj)
 
 
 class OOMDPContainer(object):
@@ -283,9 +292,10 @@ class OOMDPContainer(object):
 
     @contains.setter
     def contains(self, val):
-        self.container.contains = val
-        self.oomdp_container._modified = True
-        self.oo_state.update_set.add(self.oomdp_container)
+        if self.container.contains != val:
+            self.container.contains = val
+            self.oomdp_container._modified = True
+            self.oo_state.update_set.add(self.oomdp_container)
 
     @property
     def in_drawer(self):
@@ -293,9 +303,10 @@ class OOMDPContainer(object):
 
     @in_drawer.setter
     def in_drawer(self, val):
-        self.container.in_drawer = val
-        self.oomdp_container._modified = True
-        self.oo_state.update_set.add(self.oomdp_container)
+        if self.container.in_drawer != val:
+            self.container.in_drawer = val
+            self.oomdp_container._modified = True
+            self.oo_state.update_set.add(self.oomdp_container)
 
     @property
     def in_box(self):
@@ -303,9 +314,10 @@ class OOMDPContainer(object):
 
     @in_box.setter
     def in_box(self, val):
-        self.container.in_box = val
-        self.oomdp_container._modified = True
-        self.oo_state.update_set.add(self.oomdp_container)
+        if self.container.in_box != val:
+            self.container.in_box = val
+            self.oomdp_container._modified = True
+            self.oo_state.update_set.add(self.oomdp_container)
 
     @property
     def on_lid(self):
@@ -313,9 +325,10 @@ class OOMDPContainer(object):
 
     @on_lid.setter
     def on_lid(self, val):
-        self.container.on_lid = val
-        self.oomdp_container._modified = True
-        self.oo_state.update_set.add(self.oomdp_container)
+        if self.container.on_lid != val:
+            self.container.on_lid = val
+            self.oomdp_container._modified = True
+            self.oo_state.update_set.add(self.oomdp_container)
 
     @property
     def on_stack(self):
@@ -323,9 +336,10 @@ class OOMDPContainer(object):
 
     @on_stack.setter
     def on_stack(self, val):
-        self.container.on_stack = val
-        self.oomdp_container._modified = True
-        self.oo_state.update_set.add(self.oomdp_container)
+        if self.container.on_stack != val:
+            self.container.on_stack = val
+            self.oomdp_container._modified = True
+            self.oo_state.update_set.add(self.oomdp_container)
 
     @property
     def in_gripper(self):
@@ -333,9 +347,10 @@ class OOMDPContainer(object):
 
     @in_gripper.setter
     def in_gripper(self, val):
-        self.container.in_gripper = val
-        self.oomdp_container._modified = True
-        self.oo_state.update_set.add(self.oomdp_container)
+        if self.container.in_gripper != val:
+            self.container.in_gripper = val
+            self.oomdp_container._modified = True
+            self.oo_state.update_set.add(self.oomdp_container)
 
     @property
     def occluded(self):
@@ -343,9 +358,10 @@ class OOMDPContainer(object):
 
     @occluded.setter
     def occluded(self, val):
-        self.container.occluded = val
-        self.oomdp_container._modified = True
-        self.oo_state.update_set.add(self.oomdp_container)
+        if self.container.occluded != val:
+            self.container.occluded = val
+            self.oomdp_container._modified = True
+            self.oo_state.update_set.add(self.oomdp_container)
 
     @property
     def lost(self):
@@ -353,9 +369,10 @@ class OOMDPContainer(object):
 
     @lost.setter
     def lost(self, val):
-        self.container.lost = val
-        self.oomdp_container._modified = True
-        self.oo_state.update_set.add(self.oomdp_container)
+        if self.container.lost != val:
+            self.container.lost = val
+            self.oomdp_container._modified = True
+            self.oo_state.update_set.add(self.oomdp_container)
 
 
 # Define the World State
@@ -463,10 +480,11 @@ class WorldState(object):
 
     @drawer_opening.setter
     def drawer_opening(self, val):
-        self._state_msg.drawer_opening = val
-        if self._oo_state is not None:
-            self._drawer._modified = True
-            self._oo_state.update_set.add(self._drawer)
+        if self._state_msg.drawer_opening != val:
+            self._state_msg.drawer_opening = val
+            if self._oo_state is not None:
+                self._drawer._modified = True
+                self._oo_state.update_set.add(self._drawer)
 
 
     @property
@@ -475,10 +493,11 @@ class WorldState(object):
 
     @gripper_open.setter
     def gripper_open(self, val):
-        self._state_msg.gripper_open = val
-        if self._oo_state is not None:
-            self._gripper.closed = val
-            self._oo_state.update_set.add(self._gripper)
+        if self._state_msg.gripper_open != val:
+            self._state_msg.gripper_open = val
+            if self._oo_state is not None:
+                self._gripper.closed = val
+                self._oo_state.update_set.add(self._gripper)
 
 
     @property
@@ -487,10 +506,11 @@ class WorldState(object):
 
     @object_in_gripper.setter
     def object_in_gripper(self, val):
-        self._state_msg.object_in_gripper = val
-        if self._oo_state is not None:
-            self._gripper.holding = val.translate(None, string.digits)
-            self._oo_state.update_set.add(self._gripper)
+        if self._state_msg.object_in_gripper != val:
+            self._state_msg.object_in_gripper = val
+            if self._oo_state is not None:
+                self._gripper.holding = val.translate(None, string.digits)
+                self._oo_state.update_set.add(self._gripper)
 
 
     @property

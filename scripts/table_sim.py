@@ -375,13 +375,16 @@ class TableSim:
         # TODO: container grasp state
         self.updateContainerStates()
         for container in self.state_.containers:
-            container.lost = True
+            container_lost = True
             for x in range(container.position.x, container.position.x + container.width):
                 for y in range(container.position.y, container.position.y + container.height):
-                    container.lost = container.lost and (x <= 0 or x >= self.tableWidth
-                                                         or y <= 0 or y >= self.tableDepth) \
-                                     and not self.state_.object_in_gripper == container.unique_name \
-                                     and not container.on_lid
+                    container_lost = (
+                        container_lost
+                        and (x <= 0 or x >= self.tableWidth or y <= 0 or y >= self.tableDepth)
+                        and not self.state_.object_in_gripper == container.unique_name
+                        and not container.on_lid
+                    )
+            container.lost = container_lost
         self.updateObjectStates()
         for object in self.state_.objects:
             object.lost = (object.position.x <= 0 or object.position.x >= self.tableWidth

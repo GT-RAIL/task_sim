@@ -184,23 +184,13 @@ class OOState:
 
         # Iterate through the update list and update all the relations for all
         # the items in there
-        print("Update Set Size: {}".format(self.update_set))
-        count = 0
-        start = time.time()
         for obj in self.update_set:
-            print("#Relations: {}".format(len(obj.relations)))
             for relation in obj.relations:
-                count += 1
                 self.relation_values[self.relation_names[relation.name]] = relation.value
             obj.relations_updated()
 
         # Done updating relations. Clear out the set
         self.update_set.clear()
-        end = time.time()
-        print(
-            "Updated: {}/{}. Time: {}"
-            .format(count, len(self.relation_values), end-start)
-        )
 
         return self.relation_values
 

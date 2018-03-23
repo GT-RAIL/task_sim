@@ -27,6 +27,12 @@ class Item(object):
         # Private variable to keep track of if relations need to be updated
         self._modified = False
 
+    def __str__(self):
+        return self.unique_name
+
+    def __repr__(self):
+        return self.__str__()
+
     def to_ros(self):
         return self.msg
 
@@ -300,6 +306,12 @@ class Container(object):
 
         # Private variable to keep track of if relations need to be updated
         self._modified = False
+
+    def __str__(self):
+        return self.unique_name
+
+    def __repr__(self):
+        return self.__str__()
 
     def to_ros(self):
         return self.msg
@@ -607,6 +619,12 @@ class Gripper(object):
         # Private variable to keep track of if relations need to be updated
         self._modified = False
 
+    def __str__(self):
+        return self.unique_name
+
+    def __repr__(self):
+        return self.__str__()
+
     def to_ros(self):
         return self.msg
 
@@ -874,6 +892,12 @@ class Drawer(object):
         # Private variable to keep track of if relations need to be updated
         self._modified = False
 
+    def __str__(self):
+        return self.unique_name
+
+    def __repr__(self):
+        return self.__str__()
+
     def to_ros(self):
         return self.msg
 
@@ -1002,6 +1026,12 @@ class Stack(object):
         # Private variable to keep track of if relations need to be updated
         self._modified = False
 
+    def __str__(self):
+        return self.unique_name
+
+    def __repr__(self):
+        return self.__str__()
+
     def to_ros(self):
         return self.msg
 
@@ -1057,6 +1087,12 @@ class Box(object):
         # Private variable to keep track of if relations need to be updated
         self._modified = False
 
+    def __str__(self):
+        return self.unique_name
+
+    def __repr__(self):
+        return self.__str__()
+
     def to_ros(self):
         return self.msg
 
@@ -1107,6 +1143,12 @@ class Lid(object):
 
         # Private variable to keep track of if relations need to be updated
         self._modified = False
+
+    def __str__(self):
+        return self.unique_name
+
+    def __repr__(self):
+        return self.__str__()
 
     def to_ros(self):
         return self.msg
