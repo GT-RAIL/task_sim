@@ -24,6 +24,9 @@ class Item(object):
         self.msg = msg or ItemMsg(x=x, y=y, z=z, name=name, unique_name=unique_name)
         self.relations = set()
 
+        # Private variable to keep track of if relations need to be updated
+        self._modified = False
+
     def to_ros(self):
         return self.msg
 
@@ -31,17 +34,36 @@ class Item(object):
         self.msg = msg
         return self
 
+    def relations_updated(self):
+        """Mark the relations as having been updated"""
+        self._modified = False
+
     @property
     def x(self):
         return int(self.msg.x)
+
+    @x.setter
+    def x(self, value):
+        self._modified = True
+        self.msg.x = value
 
     @property
     def y(self):
         return int(self.msg.y)
 
+    @y.setter
+    def y(self, value):
+        self._modified = True
+        self.msg.y = value
+
     @property
     def z(self):
         return int(self.msg.z)
+
+    @z.setter
+    def z(self, value):
+        self._modified = True
+        self.msg.z = value
 
     @property
     def name(self):
@@ -276,6 +298,9 @@ class Container(object):
         self.msg = msg or ContainerMsg(x=x, y=y, z=z, width=width, depth=depth, name=name, unique_name=unique_name)
         self.relations = set()
 
+        # Private variable to keep track of if relations need to be updated
+        self._modified = False
+
     def to_ros(self):
         return self.msg
 
@@ -283,17 +308,36 @@ class Container(object):
         self.msg = msg
         return self
 
+    def relations_updated(self):
+        """Mark the relations as having been updated"""
+        self._modified = False
+
     @property
     def x(self):
         return int(self.msg.x)
+
+    @x.setter
+    def x(self, value):
+        self._modified = True
+        self.msg.x = value
 
     @property
     def y(self):
         return int(self.msg.y)
 
+    @y.setter
+    def y(self, value):
+        self._modified = True
+        self.msg.y = value
+
     @property
     def z(self):
         return int(self.msg.z)
+
+    @z.setter
+    def z(self, value):
+        self._modified = True
+        self.msg.z = value
 
     @property
     def width(self):
@@ -560,6 +604,9 @@ class Gripper(object):
         self.msg = msg or GripperMsg(x=x, y=y, z=z, closed=closed, holding=holding, name=name, unique_name=unique_name)
         self.relations = set()
 
+        # Private variable to keep track of if relations need to be updated
+        self._modified = False
+
     def to_ros(self):
         return self.msg
 
@@ -567,25 +614,54 @@ class Gripper(object):
         self.msg = msg
         return self
 
+    def relations_updated(self):
+        """Mark the relations as having been updated"""
+        self._modified = False
+
     @property
     def x(self):
         return int(self.msg.x)
+
+    @x.setter
+    def x(self, value):
+        self._modified = True
+        self.msg.x = value
 
     @property
     def y(self):
         return int(self.msg.y)
 
+    @y.setter
+    def y(self, value):
+        self._modified = True
+        self.msg.y = value
+
     @property
     def z(self):
         return int(self.msg.z)
+
+    @z.setter
+    def z(self, value):
+        self._modified = True
+        self.msg.z = value
 
     @property
     def closed(self):
         return self.msg.closed
 
+    @closed.setter
+    def closed(self, value):
+        self._modified = True
+        self.msg.closed = value
+
     @property
     def holding(self):
         return self.msg.holding
+
+    @holding.setter
+    def holding(self, value):
+        self._modified = True
+        self.msg.holding = value
 
     @property
     def name(self):
@@ -795,6 +871,9 @@ class Drawer(object):
         self.msg = msg or DrawerMsg(x=x, y=y, width=width, depth=depth, name=name, unique_name=unique_name)
         self.relations = set()
 
+        # Private variable to keep track of if relations need to be updated
+        self._modified = False
+
     def to_ros(self):
         return self.msg
 
@@ -802,13 +881,27 @@ class Drawer(object):
         self.msg = msg
         return self
 
+    def relations_updated(self):
+        """Mark the relations as having been updated"""
+        self._modified = False
+
     @property
     def x(self):
         return int(self.msg.x)
 
+    @x.setter
+    def x(self, value):
+        self._modified = True
+        self.msg.x = value
+
     @property
     def y(self):
         return int(self.msg.y)
+
+    @y.setter
+    def y(self, value):
+        self._modified = True
+        self.msg.y = value
 
     @property
     def width(self):
@@ -906,6 +999,9 @@ class Stack(object):
         self.msg = msg or StackMsg(x=x, y=y, width=width, depth=depth, name=name, unique_name=unique_name)
         self.relations = set()
 
+        # Private variable to keep track of if relations need to be updated
+        self._modified = False
+
     def to_ros(self):
         return self.msg
 
@@ -913,13 +1009,27 @@ class Stack(object):
         self.msg = msg
         return self
 
+    def relations_updated(self):
+        """Mark the relations as having been updated"""
+        self._modified = False
+
     @property
     def x(self):
         return int(self.msg.x)
 
+    @x.setter
+    def x(self, value):
+        self._modified = True
+        self.msg.x = value
+
     @property
     def y(self):
         return int(self.msg.y)
+
+    @y.setter
+    def y(self, value):
+        self._modified = True
+        self.msg.y = value
 
     @property
     def width(self):
@@ -944,6 +1054,9 @@ class Box(object):
         self.msg = msg or BoxMsg(x=x, y=y, radius=radius, name=name, unique_name=unique_name)
         self.relations = set()
 
+        # Private variable to keep track of if relations need to be updated
+        self._modified = False
+
     def to_ros(self):
         return self.msg
 
@@ -951,13 +1064,27 @@ class Box(object):
         self.msg = msg
         return self
 
+    def relations_updated(self):
+        """Mark the relations as having been updated"""
+        self._modified = False
+
     @property
     def x(self):
         return int(self.msg.x)
 
+    @x.setter
+    def x(self, value):
+        self._modified = True
+        self.msg.x = value
+
     @property
     def y(self):
         return int(self.msg.y)
+
+    @y.setter
+    def y(self, value):
+        self._modified = True
+        self.msg.y = value
 
     @property
     def radius(self):
@@ -978,6 +1105,9 @@ class Lid(object):
         self.msg = msg or LidMsg(x=x, y=y, z=z, radius=radius, name=name, unique_name=unique_name)
         self.relations = set()
 
+        # Private variable to keep track of if relations need to be updated
+        self._modified = False
+
     def to_ros(self):
         return self.msg
 
@@ -985,17 +1115,36 @@ class Lid(object):
         self.msg = msg
         return self
 
+    def relations_updated(self):
+        """Mark the relations as having been updated"""
+        self._modified = False
+
     @property
     def x(self):
         return int(self.msg.x)
+
+    @x.setter
+    def x(self, value):
+        self._modified = True
+        self.msg.x = value
 
     @property
     def y(self):
         return int(self.msg.y)
 
+    @y.setter
+    def y(self, value):
+        self._modified = True
+        self.msg.y = value
+
     @property
     def z(self):
         return int(self.msg.z)
+
+    @z.setter
+    def z(self, value):
+        self._modified = True
+        self.msg.z = value
 
     @property
     def radius(self):

@@ -15,10 +15,10 @@ from task_sim.oomdp.oomdp_relations import Relation, REVERSE_RELATIONS, RELATION
 
 class OOState:
 
-    def __init__(self, state=None):
+    def __init__(self, state=None, *args, **kwargs):
         self.clear_state()
         if state is not None:
-            self.init_from_state(state)
+            self.init_from_state(state, *args, **kwargs)
 
     def clear_state(self):
         """
@@ -47,8 +47,35 @@ class OOState:
 
         self.clear_relations()
 
+    def clear_relations(self):
+        self.relations = defaultdict(set)
+        self.relation_names = {}
+        # Speed up ROS message construction by caching the values?
+        self.relation_values = []
 
-    def init_from_state(self, state):
+        for b in self.boxes.values():
+            b.relations.clear()
+        for c in self.containers.values():
+            c.relations.clear()
+        for d in self.drawers.values():
+            d.relations.clear()
+        for g in self.grippers.values():
+            g.relations.clear()
+        for i in self.items.values():
+            i.relations.clear()
+        for l in self.lids.values():
+            l.relations.clear()
+        for s in self.stacks.values():
+            s.relations.clear()
+
+        # Cache of the objects that have been touched and need to be updated
+        self.update_set = set()
+
+    def init_from_state(
+        self, state,
+        gripper_name="gripper", box_name="box", lid_name="lid",
+        drawer_name="drawer", stack_name="stack"
+    ):
         self.clear_state()
 
         for o in state.objects:
@@ -61,25 +88,33 @@ class OOState:
             self.containers[c.unique_name] = container
         self.container_names = sorted(self.containers.keys())
 
-        box = Box(state.box_position.x, state.box_position.y, name='box', unique_name='box')
+        box = Box(
+            state.box_position.x, state.box_position.y,
+            name=box_name, unique_name=box_name
+        )
         self.boxes[box.unique_name] = box
 
-        drawer = Drawer(state.drawer_position.x + state.drawer_opening, state.drawer_position.y, name='drawer',
-                        unique_name='drawer')
+        drawer = Drawer(
+            state.drawer_position.x + state.drawer_opening, state.drawer_position.y,
+            name=drawer_name, unique_name=drawer_name
+        )
         self.drawers[drawer.unique_name] = drawer
         self.drawer_names = sorted(self.drawers.keys())
 
         holding = state.object_in_gripper.translate(None, digits)
-        gripper = Gripper(state.gripper_position.x, state.gripper_position.y, state.gripper_position.z,
-                          not state.gripper_open, holding, 'gripper', 'gripper')
+        gripper = Gripper(
+            state.gripper_position.x, state.gripper_position.y, state.gripper_position.z,
+            not state.gripper_open, holding,
+            gripper_name, gripper_name
+        )
         self.grippers[gripper.unique_name] = gripper
         self.gripper_names = sorted(self.grippers.keys())
 
-        lid = Lid(state.lid_position.x, state.lid_position.y, state.lid_position.z, name="lid", unique_name="lid")
+        lid = Lid(state.lid_position.x, state.lid_position.y, state.lid_position.z, name=lid_name, unique_name=lid_name)
         self.lids[lid.unique_name] = lid
         self.lid_names = sorted(self.lids.keys())
 
-        stack = Stack(state.drawer_position.x, state.drawer_position.y, name='stack', unique_name='stack')
+        stack = Stack(state.drawer_position.x, state.drawer_position.y, name=stack_name, unique_name=stack_name)
         self.stacks[stack.unique_name] = stack
 
         self.reinit_relations()
@@ -87,7 +122,7 @@ class OOState:
 
     def reinit_relations(self):
         """
-        Initialize the set of all the relations
+        Initialize the set of all the relations. Try to run at most once
         """
         self.clear_relations()
 
@@ -148,27 +183,6 @@ class OOState:
         pass
 
 
-    def clear_relations(self):
-        self.relations = defaultdict(set)
-        self.relation_names = {}
-        # Speed up ROS message construction by caching the values?
-        self.relation_values = []
-
-        for b in self.boxes.values():
-            b.relations.clear()
-        for c in self.containers.values():
-            c.relations.clear()
-        for d in self.drawers.values():
-            d.relations.clear()
-        for g in self.grippers.values():
-            g.relations.clear()
-        for i in self.items.values():
-            i.relations.clear()
-        for l in self.lids.values():
-            l.relations.clear()
-        for s in self.stacks.values():
-            s.relations.clear()
-
     def to_ros(self):
         msg = OOStateMsg()
 
@@ -197,6 +211,7 @@ class OOState:
         return msg
 
     def from_ros(self, msg):
+        """msg is of type OOState"""
         self.clear_state()
 
         for obj in msg.boxes:

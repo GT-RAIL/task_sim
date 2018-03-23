@@ -23,6 +23,7 @@ from task_sim.grasp_state import GraspState
 from task_sim.plan_action import PlanAction
 
 from task_sim.oomdp.oo_state import OOState
+from task_sim.oomdp.world_state import WorldState
 from task_sim.msg import OOState as OOStateMsg
 
 
@@ -56,7 +57,7 @@ class TableSim:
 
     def query_state(self, req):
         # return (self.state_, self.oo_state_.to_ros())
-        return self.state_
+        return self.state_.get_state()
 
     def reset_sim(self, req):
         # In case we want to reset to a different world
@@ -99,8 +100,8 @@ class TableSim:
         """
         seed(rand_seed)
 
-        self.state_ = State()
-        self.oo_state_ = OOState(self.state_)
+        # self.state_ = State()
+        self.state_ = WorldState()
 
         # Empty action history
         for i in range(self.history_buffer):
@@ -335,6 +336,9 @@ class TableSim:
                                                         self.copyPoint(object.position))
 
 
+        # Reinitialize the state
+        self.state_.reinit_oo_state()
+
     # TODO: container version
     def getNeighborCount(self, position):
         return DataUtils.get_neighbor_count(
@@ -402,15 +406,14 @@ class TableSim:
         # Create a log message and send it along
         log_msg = Log(
             action=(action or Action(action_type=Action.NOOP)),
-            state=self.state_
+            state=self.state_.get_state()
         )
         self.log_pub_.publish(log_msg)
 
         self.show()
 
         # debug
-        state = OOState(self.state_)
-        pprint(dict(state.relations))
+        # pprint(dict(self.state_.get_oo_state().relations))
         # state.relations.sort()
         # for rel in state.relations:
         #     print rel
@@ -426,7 +429,7 @@ class TableSim:
         req.action.position.y = int(req.action.position.y)
         req.action.position.z = int(req.action.position.z)
         self.worldUpdate(req.action)
-        return ExecuteResponse(state=self.state_)
+        return ExecuteResponse(state=self.state_.get_state())
 
 
     def grasp(self, object):

@@ -126,6 +126,6 @@ class Relation(object):
         return self._value
 
     def _recalculate_value(self, force=False):
-        # TODO: Check the force flag and some other properties of objects that
-        # we can use to cache the relations
-        self._value = getattr(self.obj1, self.kind)(self.obj2)
+        # Check the force flag and if the objects have been modified
+        if force or self.obj1._modified or self.obj2._modified or self._value is None:
+            self._value = getattr(self.obj1, self.kind)(self.obj2)
