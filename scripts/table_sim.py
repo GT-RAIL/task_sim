@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
-
 # Python
 import copy
 from math import floor
@@ -10,6 +8,7 @@ from random import seed
 from random import shuffle
 from random import randint
 from random import random
+from pprint import pprint
 
 # ROS
 import rospy
@@ -24,6 +23,8 @@ from task_sim.grasp_state import GraspState
 from task_sim.plan_action import PlanAction
 
 from task_sim.oomdp.oo_state import OOState
+from task_sim.msg import OOState as OOStateMsg
+
 
 class TableSim:
 
@@ -54,6 +55,7 @@ class TableSim:
 
 
     def query_state(self, req):
+        # return (self.state_, self.oo_state_.to_ros())
         return self.state_
 
     def reset_sim(self, req):
@@ -70,7 +72,7 @@ class TableSim:
         res = RequestInterventionResponse()
 
         if self.terminal_input:
-            print('Interventions are not supported in terminal input mode.')
+            print 'Interventions are not supported in terminal input mode.'
             return res
 
         loop_rate = rospy.Rate(30)
@@ -98,6 +100,7 @@ class TableSim:
         seed(rand_seed)
 
         self.state_ = State()
+        self.oo_state_ = OOState(self.state_)
 
         # Empty action history
         for i in range(self.history_buffer):
@@ -370,12 +373,10 @@ class TableSim:
             container.lost = True
             for x in range(container.position.x, container.position.x + container.width):
                 for y in range(container.position.y, container.position.y + container.height):
-                    container.lost = (
-                        container.lost
-                        and (x <= 0 or x >= self.tableWidth or y <= 0 or y >= self.tableDepth)
-                        and not self.state_.object_in_gripper == container.unique_name
-                        and not container.on_lid
-                    )
+                    container.lost = container.lost and (x <= 0 or x >= self.tableWidth
+                                                         or y <= 0 or y >= self.tableDepth) \
+                                     and not self.state_.object_in_gripper == container.unique_name \
+                                     and not container.on_lid
         self.updateObjectStates()
         for object in self.state_.objects:
             object.lost = (object.position.x <= 0 or object.position.x >= self.tableWidth
@@ -403,20 +404,20 @@ class TableSim:
             action=(action or Action(action_type=Action.NOOP)),
             state=self.state_
         )
-        print(self.state_.result_history)
         self.log_pub_.publish(log_msg)
 
         self.show()
 
-        # # debug
-        # state = OOState(self.state_)
+        # debug
+        state = OOState(self.state_)
+        pprint(dict(state.relations))
         # state.relations.sort()
         # for rel in state.relations:
-        #     print(rel)
-        # # print(DataUtils.readable_state(DataUtils.semantic_state_vector(self.state_, return_dict=True)[0]))
+        #     print rel
+        # # print DataUtils.readable_state(DataUtils.semantic_state_vector(self.state_, return_dict=True)[0])
         # if self.prev_state is not None:
         #     pa = PlanAction(self.prev_state, (action or Action(action_type=Action.NOOP)), self.state_)
-        #     print(str(pa))
+        #     print str(pa)
         # self.prev_state = copy.deepcopy(self.state_)
 
     def execute(self, req):
@@ -2145,9 +2146,9 @@ class TableSim:
 
             # s1 = copy.deepcopy(self.state_)
             # test = PlanAction(s0, action_msg, s1)
-            # print('\n\nPlanAction Check:\n')
-            # print(str(test))
-            # print('\n\n')
+            # print '\n\nPlanAction Check:\n'
+            # print str(test)
+            # print '\n\n'
 
             return action_msg
         except (KeyboardInterrupt, EOFError) as e:

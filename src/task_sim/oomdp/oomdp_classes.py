@@ -18,36 +18,38 @@ Edges?
 """
 
 
-class Item:
+class Item(object):
 
     def __init__(self, x=0, y=0, z=0, name='', unique_name='', msg=None):
-        if msg is not None:
-            self.from_ros(msg)
-        else:
-            # mutable
-            self.x = x
-            self.y = y
-            self.z = z
-
-            # immutable
-            self.name = name
-            self.unique_name = unique_name
+        self.msg = msg or ItemMsg(x=x, y=y, z=z, name=name, unique_name=unique_name)
+        self.relations = set()
 
     def to_ros(self):
-        msg = ItemMsg()
-        msg.x = self.x
-        msg.y = self.y
-        msg.z = self.z
-        msg.name = self.name
-        msg.unique_name = self.unique_name
-        return msg
+        return self.msg
 
     def from_ros(self, msg):
-        self.x = msg.x
-        self.y = msg.y
-        self.z = msg.z
-        self.name = msg.name
-        self.unique_name = msg.unique_name
+        self.msg = msg
+        return self
+
+    @property
+    def x(self):
+        return int(self.msg.x)
+
+    @property
+    def y(self):
+        return int(self.msg.y)
+
+    @property
+    def z(self):
+        return int(self.msg.z)
+
+    @property
+    def name(self):
+        return self.msg.name
+
+    @property
+    def unique_name(self):
+        return self.msg.unique_name
 
     # Relations
     def atop(self, obj):
@@ -268,42 +270,46 @@ class Item:
         return not(self.above(obj) or self.below(obj))
 
 
-class Container:
+class Container(object):
 
     def __init__(self, x=0, y=0, z=0, width=2, depth=2, name='', unique_name='', msg=None):
-        if msg is not None:
-            self.from_ros(msg)
-        else:
-            # mutable
-            self.x = x
-            self.y = y
-            self.z = z
-
-            # immutable
-            self.width = width
-            self.depth = depth
-            self.name = name
-            self.unique_name = unique_name
+        self.msg = msg or ContainerMsg(x=x, y=y, z=z, width=width, depth=depth, name=name, unique_name=unique_name)
+        self.relations = set()
 
     def to_ros(self):
-        msg = ContainerMsg()
-        msg.x = self.x
-        msg.y = self.y
-        msg.z = self.z
-        msg.width = self.width
-        msg.depth = self.depth
-        msg.name = self.name
-        msg.unique_name = self.unique_name
-        return msg
+        return self.msg
 
     def from_ros(self, msg):
-        self.x = msg.x
-        self.y = msg.y
-        self.z = msg.z
-        self.width = msg.width
-        self.depth = msg.depth
-        self.name = msg.name
-        self.unique_name = msg.unique_name
+        self.msg = msg
+        return self
+
+    @property
+    def x(self):
+        return int(self.msg.x)
+
+    @property
+    def y(self):
+        return int(self.msg.y)
+
+    @property
+    def z(self):
+        return int(self.msg.z)
+
+    @property
+    def width(self):
+        return int(self.msg.width)
+
+    @property
+    def depth(self):
+        return int(self.msg.depth)
+
+    @property
+    def name(self):
+        return self.msg.name
+
+    @property
+    def unique_name(self):
+        return self.msg.unique_name
 
     # Relations
     def atop(self, obj):
@@ -548,42 +554,46 @@ class Container:
         return not(self.above(obj) or self.below(obj))
 
 
-class Gripper:
+class Gripper(object):
 
     def __init__(self, x=0, y=0, z=0, closed=False, holding='', name='', unique_name='', msg=None):
-        if msg is not None:
-            self.from_ros(msg)
-        else:
-            # mutable
-            self.x = x
-            self.y = y
-            self.z = z
-            self.closed = closed
-            self.holding = holding
-
-            # immutable
-            self.name = name
-            self.unique_name = unique_name
+        self.msg = msg or GripperMsg(x=x, y=y, z=z, closed=closed, holding=holding, name=name, unique_name=unique_name)
+        self.relations = set()
 
     def to_ros(self):
-        msg = GripperMsg()
-        msg.x = self.x
-        msg.y = self.y
-        msg.z = self.z
-        msg.closed = self.closed
-        msg.holding = self.holding
-        msg.name = self.name
-        msg.unique_name = self.unique_name
-        return msg
+        return self.msg
 
     def from_ros(self, msg):
-        self.x = msg.x
-        self.y = msg.y
-        self.z = msg.z
-        self.closed = msg.closed
-        self.holding = msg.holding
-        self.name = msg.name
-        self.unique_name = msg.unique_name
+        self.msg = msg
+        return self
+
+    @property
+    def x(self):
+        return int(self.msg.x)
+
+    @property
+    def y(self):
+        return int(self.msg.y)
+
+    @property
+    def z(self):
+        return int(self.msg.z)
+
+    @property
+    def closed(self):
+        return self.msg.closed
+
+    @property
+    def holding(self):
+        return self.msg.holding
+
+    @property
+    def name(self):
+        return self.msg.name
+
+    @property
+    def unique_name(self):
+        return self.msg.unique_name
 
     # Relations
     def inside(self, obj):
@@ -779,39 +789,42 @@ class Gripper:
         return not(self.above(obj) or self.below(obj))
 
 
-class Drawer:
+class Drawer(object):
 
     def __init__(self, x=0, y=0, width=7, depth=5, name='', unique_name='', msg=None):
-        if msg is not None:
-            self.from_ros(msg)
-        else:
-            # mutable
-            self.x = x
-            self.y = y
-
-            # immutable
-            self.width = width
-            self.depth = depth
-            self.name = name
-            self.unique_name = unique_name
+        self.msg = msg or DrawerMsg(x=x, y=y, width=width, depth=depth, name=name, unique_name=unique_name)
+        self.relations = set()
 
     def to_ros(self):
-        msg = DrawerMsg()
-        msg.x = self.x
-        msg.y = self.y
-        msg.width = self.width
-        msg.depth = self.depth
-        msg.name = self.name
-        msg.unique_name = self.unique_name
-        return msg
+        return self.msg
 
     def from_ros(self, msg):
-        self.x = msg.x
-        self.y = msg.y
-        self.width = msg.width
-        self.depth = msg.depth
-        self.name = msg.name
-        self.unique_name = msg.unique_name
+        self.msg = msg
+        return self
+
+    @property
+    def x(self):
+        return int(self.msg.x)
+
+    @property
+    def y(self):
+        return int(self.msg.y)
+
+    @property
+    def width(self):
+        return int(self.msg.width)
+
+    @property
+    def depth(self):
+        return int(self.msg.depth)
+
+    @property
+    def name(self):
+        return self.msg.name
+
+    @property
+    def unique_name(self):
+        return self.msg.unique_name
 
     # Relations
     def closing(self, obj):
@@ -887,106 +900,114 @@ class Drawer:
         return False
 
 
-class Stack:
+class Stack(object):
 
     def __init__(self, x=0, y=0, width=7, depth=5, name='', unique_name='', msg=None):
-        if msg is not None:
-            self.from_ros(msg)
-        else:
-            # mutable
-            self.x = x
-            self.y = y
-
-            # immutable
-            self.width = width
-            self.depth = depth
-            self.name = name
-            self.unique_name = unique_name
+        self.msg = msg or StackMsg(x=x, y=y, width=width, depth=depth, name=name, unique_name=unique_name)
+        self.relations = set()
 
     def to_ros(self):
-        msg = StackMsg()
-        msg.x = self.x
-        msg.y = self.y
-        msg.width = self.width
-        msg.depth = self.depth
-        msg.name = self.name
-        msg.unique_name = self.unique_name
-        return msg
+        return self.msg
 
     def from_ros(self, msg):
-        self.x = msg.x
-        self.y = msg.y
-        self.width = msg.width
-        self.depth = msg.depth
-        self.name = msg.name
-        self.unique_name = msg.unique_name
+        self.msg = msg
+        return self
+
+    @property
+    def x(self):
+        return int(self.msg.x)
+
+    @property
+    def y(self):
+        return int(self.msg.y)
+
+    @property
+    def width(self):
+        return int(self.msg.width)
+
+    @property
+    def depth(self):
+        return int(self.msg.depth)
+
+    @property
+    def name(self):
+        return self.msg.name
+
+    @property
+    def unique_name(self):
+        return self.msg.unique_name
 
 
-class Box:
+class Box(object):
 
     def __init__(self, x=0, y=0, radius=2, name='', unique_name='', msg=None):
-        if msg is not None:
-            self.from_ros(msg)
-        else:
-            # mutable
-            self.x = x
-            self.y = y
-
-            # immutable
-            self.radius = radius
-            self.name = name
-            self.unique_name = unique_name
+        self.msg = msg or BoxMsg(x=x, y=y, radius=radius, name=name, unique_name=unique_name)
+        self.relations = set()
 
     def to_ros(self):
-        msg = BoxMsg()
-        msg.x = self.x
-        msg.y = self.y
-        msg.radius = self.radius
-        msg.name = self.name
-        msg.unique_name = self.unique_name
-        return msg
+        return self.msg
 
     def from_ros(self, msg):
-        self.x = msg.x
-        self.y = msg.y
-        self.radius = msg.radius
-        self.name = msg.name
-        self.unique_name = msg.unique_name
+        self.msg = msg
+        return self
+
+    @property
+    def x(self):
+        return int(self.msg.x)
+
+    @property
+    def y(self):
+        return int(self.msg.y)
+
+    @property
+    def radius(self):
+        return int(self.msg.radius)
+
+    @property
+    def name(self):
+        return self.msg.name
+
+    @property
+    def unique_name(self):
+        return self.msg.unique_name
 
 
-class Lid:
+class Lid(object):
 
     def __init__(self, x=0, y=0, z=0, radius=2, name='', unique_name='', msg=None):
-        if msg is not None:
-            self.from_ros(msg)
-        else:
-            # mutable
-            self.x = x
-            self.y = y
-            self.z = z
-
-            # immutable
-            self.radius = radius
-            self.name = name
-            self.unique_name = unique_name
+        self.msg = msg or LidMsg(x=x, y=y, z=z, radius=radius, name=name, unique_name=unique_name)
+        self.relations = set()
 
     def to_ros(self):
-        msg = LidMsg()
-        msg.x = self.x
-        msg.y = self.y
-        msg.z = self.z
-        msg.radius = self.radius
-        msg.name = self.name
-        msg.unique_name = self.unique_name
-        return msg
+        return self.msg
 
     def from_ros(self, msg):
-        self.x = msg.x
-        self.y = msg.y
-        self.z = msg.z
-        self.radius = msg.radius
-        self.name = msg.name
-        self.unique_name = msg.unique_name
+        self.msg = msg
+        return self
+
+    @property
+    def x(self):
+        return int(self.msg.x)
+
+    @property
+    def y(self):
+        return int(self.msg.y)
+
+    @property
+    def z(self):
+        return int(self.msg.z)
+
+    @property
+    def radius(self):
+        return int(self.msg.radius)
+
+    @property
+    def name(self):
+        return self.msg.name
+
+    @property
+    def unique_name(self):
+        return self.msg.unique_name
 
     # Relations
     def closing(self, obj):
