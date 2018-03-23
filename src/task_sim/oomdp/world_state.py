@@ -2,6 +2,9 @@
 # Create a state object that encapsulates the OOMDP state and the regular state.
 # The API of this state is the same as that of the regular state, but it also
 # updates the OOMDP when attributes are accessed.
+#
+# Scope for improvement: Check the old value before updating. If the value
+# hasn't changed, then no need to update the relations
 
 from __future__ import print_function, division
 
@@ -22,9 +25,9 @@ class OOMDPPoint(object):
     Intercept the incoming x,y,z modifications and propagate them to the
     _state_msg and the _oo_state sections
     """
-    def __init__(self, point, oomdp_classes, oo_state):
+    def __init__(self, point, oomdp_objs, oo_state):
         self.point = point
-        self.oomdp_classes = oomdp_classes
+        self.oomdp_objs = oomdp_objs
         self.oo_state = oo_state
 
     def __eq__(self, other):
@@ -40,10 +43,10 @@ class OOMDPPoint(object):
     @x.setter
     def x(self, val):
         self.point.x = val
-        for oomdp_class in self.oomdp_classes:
-            if hasattr(oomdp_class, 'x'):
-                oomdp_class.x = val
-                self.oo_state.update_set.add(oomdp_class)
+        for oomdp_obj in self.oomdp_objs:
+            if hasattr(oomdp_obj, 'x'):
+                oomdp_obj.x = val
+                self.oo_state.update_set.add(oomdp_obj)
 
     @property
     def y(self):
@@ -52,10 +55,10 @@ class OOMDPPoint(object):
     @y.setter
     def y(self, val):
         self.point.y = val
-        for oomdp_class in self.oomdp_classes:
-            if hasattr(oomdp_class, 'y'):
-                oomdp_class.y = val
-                self.oo_state.update_set.add(oomdp_class)
+        for oomdp_obj in self.oomdp_objs:
+            if hasattr(oomdp_obj, 'y'):
+                oomdp_obj.y = val
+                self.oo_state.update_set.add(oomdp_obj)
 
     @property
     def z(self):
@@ -64,10 +67,10 @@ class OOMDPPoint(object):
     @z.setter
     def z(self, val):
         self.point.z = val
-        for oomdp_class in self.oomdp_classes:
-            if hasattr(oomdp_class, 'z'):
-                oomdp_class.z = val
-                self.oo_state.update_set.add(oomdp_class)
+        for oomdp_obj in self.oomdp_objs:
+            if hasattr(oomdp_obj, 'z'):
+                oomdp_obj.z = val
+                self.oo_state.update_set.add(oomdp_obj)
 
 
 class OOMDPPose2D(object):
@@ -75,9 +78,9 @@ class OOMDPPose2D(object):
     Intercept the incoming x,y,theta modifications and propagate them to the
     _state_msg and the _oo_state sections
     """
-    def __init__(self, pose, oomdp_classes, oo_state):
+    def __init__(self, pose, oomdp_objs, oo_state):
         self.pose = pose
-        self.oomdp_classes = oomdp_classes
+        self.oomdp_objs = oomdp_objs
         self.oo_state = oo_state
 
     def __eq__(self, other):
@@ -93,10 +96,10 @@ class OOMDPPose2D(object):
     @x.setter
     def x(self, val):
         self.pose.x = val
-        for oomdp_class in self.oomdp_classes:
-            if hasattr(oomdp_class, 'x'):
-                oomdp_class.x = val
-                self.oo_state.update_set.add(oomdp_class)
+        for oomdp_obj in self.oomdp_objs:
+            if hasattr(oomdp_obj, 'x'):
+                oomdp_obj.x = val
+                self.oo_state.update_set.add(oomdp_obj)
 
     @property
     def y(self):
@@ -105,10 +108,10 @@ class OOMDPPose2D(object):
     @y.setter
     def y(self, val):
         self.pose.y = val
-        for oomdp_class in self.oomdp_classes:
-            if hasattr(oomdp_class, 'y'):
-                oomdp_class.y = val
-                self.oo_state.update_set.add(oomdp_class)
+        for oomdp_obj in self.oomdp_objs:
+            if hasattr(oomdp_obj, 'y'):
+                oomdp_obj.y = val
+                self.oo_state.update_set.add(oomdp_obj)
 
     @property
     def theta(self):
@@ -121,7 +124,239 @@ class OOMDPPose2D(object):
 
 class OOMDPObject(object):
     """Abstract away the setting of objects in the old state message"""
-    pass
+
+    def __init__(self, obj, oomdp_obj, oo_state):
+        self.obj = obj
+        self.oomdp_obj = oomdp_obj
+        self.oo_state = oo_state
+
+        self._obj_position = OOMDPPoint(
+            obj.position,
+            [oomdp_obj],
+            oo_state
+        )
+
+    def __eq__(self, other):
+        return self.obj == other
+
+    def __hash__(self):
+        return hash(self.obj)
+
+    @property
+    def name(self):
+        return self.obj.name
+
+    @property
+    def unique_name(self):
+        return self.obj.unique_name
+
+    @property
+    def position(self):
+        return self._obj_position
+
+    @position.setter
+    def position(self, val):
+        self._obj_position.x = val.x
+        self._obj_position.y = val.y
+        self._obj_position.z = val.z
+
+    @property
+    def in_drawer(self):
+        return self.obj.in_drawer
+
+    @in_drawer.setter
+    def in_drawer(self, val):
+        self.obj.in_drawer = val
+        self.oomdp_obj._modified = True
+        self.oo_state.update_set.add(self.oomdp_obj)
+
+    @property
+    def in_box(self):
+        return self.obj.in_box
+
+    @in_box.setter
+    def in_box(self, val):
+        self.obj.in_box = val
+        self.oomdp_obj._modified = True
+        self.oo_state.update_set.add(self.oomdp_obj)
+
+    @property
+    def on_lid(self):
+        return self.obj.on_lid
+
+    @on_lid.setter
+    def on_lid(self, val):
+        self.obj.on_lid = val
+        self.oomdp_obj._modified = True
+        self.oo_state.update_set.add(self.oomdp_obj)
+
+    @property
+    def on_stack(self):
+        return self.obj.on_stack
+
+    @on_stack.setter
+    def on_stack(self, val):
+        self.obj.on_stack = val
+        self.oomdp_obj._modified = True
+        self.oo_state.update_set.add(self.oomdp_obj)
+
+    @property
+    def in_gripper(self):
+        return self.obj.in_gripper
+
+    @in_gripper.setter
+    def in_gripper(self, val):
+        self.obj.in_gripper = val
+        self.oomdp_obj._modified = True
+        self.oo_state.update_set.add(self.oomdp_obj)
+
+    @property
+    def occluded(self):
+        return self.obj.occluded
+
+    @occluded.setter
+    def occluded(self, val):
+        self.obj.occluded = val
+        self.oomdp_obj._modified = True
+        self.oo_state.update_set.add(self.oomdp_obj)
+
+    @property
+    def lost(self):
+        return self.obj.lost
+
+    @lost.setter
+    def lost(self, val):
+        self.obj.lost = val
+        self.oomdp_obj._modified = True
+        self.oo_state.update_set.add(self.oomdp_obj)
+
+
+class OOMDPContainer(object):
+    """Abstract away the settings of the containers in the old state message"""
+
+    def __init__(self, container, oomdp_container, oo_state):
+        self.container = container
+        self.oomdp_container = oomdp_container
+        self.oo_state = oo_state
+
+        self._container_position = OOMDPPoint(
+            container.position,
+            [oomdp_container],
+            oo_state
+        )
+
+    def __eq__(self, other):
+        return self.container == other
+
+    def __hash__(self):
+        return hash(self.container)
+
+    @property
+    def name(self):
+        return self.container.name
+
+    @property
+    def unique_name(self):
+        return self.container.unique_name
+
+    @property
+    def width(self):
+        return self.container.width
+
+    @property
+    def height(self):
+        return self.container.height
+
+    @property
+    def position(self):
+        return self._container_position
+
+    @position.setter
+    def position(self, val):
+        self._container_position.x = val.x
+        self._container_position.y = val.y
+        self._container_position.z = val.z
+
+    @property
+    def contains(self):
+        return self.container.contains
+
+    @contains.setter
+    def contains(self, val):
+        self.container.contains = val
+        self.oomdp_container._modified = True
+        self.oo_state.update_set.add(self.oomdp_container)
+
+    @property
+    def in_drawer(self):
+        return self.container.in_drawer
+
+    @in_drawer.setter
+    def in_drawer(self, val):
+        self.container.in_drawer = val
+        self.oomdp_container._modified = True
+        self.oo_state.update_set.add(self.oomdp_container)
+
+    @property
+    def in_box(self):
+        return self.container.in_box
+
+    @in_box.setter
+    def in_box(self, val):
+        self.container.in_box = val
+        self.oomdp_container._modified = True
+        self.oo_state.update_set.add(self.oomdp_container)
+
+    @property
+    def on_lid(self):
+        return self.container.on_lid
+
+    @on_lid.setter
+    def on_lid(self, val):
+        self.container.on_lid = val
+        self.oomdp_container._modified = True
+        self.oo_state.update_set.add(self.oomdp_container)
+
+    @property
+    def on_stack(self):
+        return self.container.on_stack
+
+    @on_stack.setter
+    def on_stack(self, val):
+        self.container.on_stack = val
+        self.oomdp_container._modified = True
+        self.oo_state.update_set.add(self.oomdp_container)
+
+    @property
+    def in_gripper(self):
+        return self.container.in_gripper
+
+    @in_gripper.setter
+    def in_gripper(self, val):
+        self.container.in_gripper = val
+        self.oomdp_container._modified = True
+        self.oo_state.update_set.add(self.oomdp_container)
+
+    @property
+    def occluded(self):
+        return self.container.occluded
+
+    @occluded.setter
+    def occluded(self, val):
+        self.container.occluded = val
+        self.oomdp_container._modified = True
+        self.oo_state.update_set.add(self.oomdp_container)
+
+    @property
+    def lost(self):
+        return self.container.lost
+
+    @lost.setter
+    def lost(self, val):
+        self.container.lost = val
+        self.oomdp_container._modified = True
+        self.oo_state.update_set.add(self.oomdp_container)
+
 
 # Define the World State
 
@@ -131,7 +366,7 @@ class WorldState(object):
     ultimately not as extensible. So here we are reimplementing state. Joy :|
     """
 
-    def __init__(self,
+    def __init__(self, init_oo_state=False,
         gripper_name="gripper", box_name="box", lid_name="lid",
         drawer_name="drawer", stack_name="stack",
         *args, **kwargs
@@ -139,7 +374,8 @@ class WorldState(object):
         """For initialization, pretend as if it is the state message"""
         self._state_msg = StateMsg(*args, **kwargs)
         self._oo_state = None
-        self.reinit_oo_state(gripper_name, box_name, lid_name, drawer_name, stack_name)
+        if init_oo_state:
+            self.reinit_oo_state(gripper_name, box_name, lid_name, drawer_name, stack_name)
 
     # First the accessors to the two states
     def get_state(self):
@@ -188,6 +424,20 @@ class WorldState(object):
             self._oo_state
         )
 
+        # Adapt the objects and containers
+        self._objects = tuple([
+            OOMDPObject(obj, self._oo_state.items[obj.unique_name], self._oo_state)
+            for obj in self._state_msg.objects
+        ])
+
+        self._containers = tuple([
+            OOMDPContainer(
+                container, self._oo_state.containers[container.unique_name], self._oo_state
+            )
+            for container in self._state_msg.containers
+        ])
+
+
     # Now the adapted properties
 
     @property
@@ -214,8 +464,9 @@ class WorldState(object):
     @drawer_opening.setter
     def drawer_opening(self, val):
         self._state_msg.drawer_opening = val
-        self._drawer._modified = True
-        self._oo_state.update_set.add(self._drawer)
+        if self._oo_state is not None:
+            self._drawer._modified = True
+            self._oo_state.update_set.add(self._drawer)
 
 
     @property
@@ -225,8 +476,9 @@ class WorldState(object):
     @gripper_open.setter
     def gripper_open(self, val):
         self._state_msg.gripper_open = val
-        self._gripper.closed = val
-        self._oo_state.update_set.add(self._gripper)
+        if self._oo_state is not None:
+            self._gripper.closed = val
+            self._oo_state.update_set.add(self._gripper)
 
 
     @property
@@ -236,68 +488,106 @@ class WorldState(object):
     @object_in_gripper.setter
     def object_in_gripper(self, val):
         self._state_msg.object_in_gripper = val
-        self._gripper.holding = val.translate(None, string.digits)
-        self._oo_state.update_set.add(self._gripper)
+        if self._oo_state is not None:
+            self._gripper.holding = val.translate(None, string.digits)
+            self._oo_state.update_set.add(self._gripper)
 
 
     @property
     def gripper_position(self):
-        return self._gripper_position
+        if self._oo_state is None:
+            return self._state_msg.gripper_position
+        else:
+            return self._gripper_position
 
     @gripper_position.setter
     def gripper_position(self, val):
-        self._gripper_position.x = val.x
-        self._gripper_position.y = val.y
-        self._gripper_position.z = val.z
+        if self._oo_state is None:
+            self._state_msg.gripper_position = val
+        else:
+            self._gripper_position.x = val.x
+            self._gripper_position.y = val.y
+            self._gripper_position.z = val.z
 
 
     @property
     def lid_position(self):
-        return self._lid_position
+        if self._oo_state is None:
+            return self._state_msg.lid_position
+        else:
+            return self._lid_position
 
     @lid_position.setter
     def lid_position(self, val):
-        self._lid_position.x = val.x
-        self._lid_position.y = val.y
-        self._lid_position.z = val.z
+        if self._oo_state is None:
+            self._state_msg.lid_position = val
+        else:
+            self._lid_position.x = val.x
+            self._lid_position.y = val.y
+            self._lid_position.z = val.z
 
 
     @property
     def box_position(self):
-        return self._box_position
+        if self._oo_state is None:
+            return self._state_msg.box_position
+        else:
+            return self._box_position
 
     @box_position.setter
     def box_position(self, val):
-        self._box_position.x = val.x
-        self._box_position.y = val.y
-        self._box_position.z = val.z
+        if self._oo_state is None:
+            self._state_msg.box_position = val
+        else:
+            self._box_position.x = val.x
+            self._box_position.y = val.y
+            self._box_position.z = val.z
 
 
     @property
     def drawer_position(self):
-        return self._drawer_position
+        if self._oo_state is None:
+            return self._state_msg.drawer_position
+        else:
+            return self._drawer_position
 
     @drawer_position.setter
     def drawer_position(self, val):
-        self._drawer_position.x = val.x
-        self._drawer_position.y = val.y
-        if hasattr(val, 'theta'):
-            self._drawer_position.theta = val.theta
+        if self._oo_state is None:
+            return self._state_msg.drawer_position
+        else:
+            self._drawer_position.x = val.x
+            self._drawer_position.y = val.y
+            if hasattr(val, 'theta'):
+                self._drawer_position.theta = val.theta
 
 
-    # TODO: After testing, abstract away the objects and containers too
+    # This lists are mutable until we have initialized and OOState. Once that
+    # happens, then we freeze this so that relations don't go wonky
     @property
     def objects(self):
-        return self._state_msg.objects
+        if self._oo_state is None:
+            return self._state_msg.objects
+        else:
+            return self._objects
 
     @objects.setter
     def objects(self, val):
-        self._state_msg.objects = val
+        if self._oo_state is None:
+            self._state_msg.objects = val
+        else:
+            raise NotImplementedError("Once relations are initialized, objects cannot be changed")
 
     @property
     def containers(self):
-        return self._state_msg.containers
+        if self._oo_state is None:
+            return self._state_msg.containers
+        else:
+            return self._containers
 
     @containers.setter
     def containers(self, val):
-        self._state_msg.containers = val
+        if self._oo_state is None:
+            self._state_msg.containers = val
+        else:
+            raise NotImplementedError("Once relations are initialized, containers cannot be changed")
