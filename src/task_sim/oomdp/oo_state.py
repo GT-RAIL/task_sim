@@ -2,6 +2,7 @@
 
 from __future__ import print_function
 
+import time
 import numpy as np
 
 from string import digits
@@ -11,8 +12,6 @@ from pprint import pprint
 from task_sim.msg import OOState as OOStateMsg
 from task_sim.oomdp.oomdp_classes import Box, Container, Drawer, Gripper, Item, Lid, Stack
 from task_sim.oomdp.oomdp_relations import Relation, REVERSE_RELATIONS, RELATIONS
-
-import time
 
 
 class OOState:
@@ -186,7 +185,9 @@ class OOState:
         # the items in there
         for obj in self.update_set:
             for relation in obj.relations:
-                self.relation_values[self.relation_names[relation.name]] = relation.value
+                self.relation_values[self.relation_names[relation.name]] = any(
+                    [r.value for r in self.relations[relation.name]]
+                )
             obj.relations_updated()
 
         # Done updating relations. Clear out the set
