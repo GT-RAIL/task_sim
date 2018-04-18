@@ -70,7 +70,10 @@ class OOState:
         """
         self.clear_relations()
 
+        self.relation_count = 0
+
         def add_relation(obj1, obj2, result, relation_name, sort=False):
+            self.relation_count += 1
             reverse = None
             rel = None
             if sort:

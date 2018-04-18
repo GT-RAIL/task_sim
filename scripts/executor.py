@@ -12,7 +12,7 @@ from task_sim.srv import Execute, QueryState, QueryStatus, RequestIntervention, 
 class Executor:
 
     def __init__(self):
-        self.allow_interventions = rospy.get_param('~allow_interventions', True)
+        self.allow_interventions = rospy.get_param('~allow_interventions', False)
         self.trials = rospy.get_param('~trials', 1)
         self.trial = 0
         self.successes = 0
@@ -119,7 +119,7 @@ if __name__ == '__main__':
 
     executor = Executor()
 
-    loop_rate = rospy.Rate(100)
+    loop_rate = rospy.Rate(1)
 
     if executor.trials == 1:
         while not rospy.is_shutdown():

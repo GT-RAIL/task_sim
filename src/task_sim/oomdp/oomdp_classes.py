@@ -347,8 +347,8 @@ class Container:
             return False
 
         # atop if any part of the container is on top of any part of the object
-        for x in range(self.x, self.x + self.width):
-            for y in range(self.y, self.y + self.depth):
+        for x in range(int(self.x), int(self.x + self.width)):
+            for y in range(int(self.y), int(self.y + self.depth)):
                 if x_min <= x <= x_max and y_min <= y <= y_max and self.z == z:
                     return True
         return False
@@ -378,8 +378,8 @@ class Container:
             return False
 
         # atop if any part of the container is on top of any part of the object
-        for x in range(self.x, self.x + self.width):
-            for y in range(self.y, self.y + self.depth):
+        for x in range(int(self.x), int(self.x + self.width)):
+            for y in range(int(self.y), int(self.y + self.depth)):
                 if not(x_min <= x <= x_max and y_min <= y <= y_max and z_min <= self.z <= z_max):
                     return False
         return True
@@ -435,11 +435,11 @@ class Container:
             z_min = obj.z
             z_max = obj.z
 
-        for x in range(self.x - 1, self.x + self.width + 1):
+        for x in range(int(self.x - 1), int(self.x + self.width + 1)):
             for y in [self.y - 1, self.y + self.depth]:
                 if x_min <= x <= x_max and y_min <= y <= y_max and z_min <= self.z <= z_max:
                     return True
-        for y in range(self.y, self.y + self.depth):
+        for y in range(int(self.y), int(self.y + self.depth)):
             for x in [self.x - 1, self.x + self.width]:
                 if x_min <= x <= x_max and y_min <= y <= y_max and z_min <= self.z <= z_max:
                     return True
@@ -874,12 +874,12 @@ class Drawer:
 
         w = (self.width - 1)/2
         d = (self.width - 1)/2
-        for x in range(self.x - w - 1, self.x + w + 2):
+        for x in range(int(self.x - w - 1), int(self.x + w + 2)):
             for y in [self.y - d - 1, self.y + d + 1]:
                 for z in [1, 2]:
                     if x_min <= x <= x_max and y_min <= y <= y_max and z_min <= z <= z_max:
                         return True
-        for y in range(self.y - d, self.y + d + 1):
+        for y in range(int(self.y - d), int(self.y + d + 1)):
             for x in [self.x - w - 1, self.x + w + 1]:
                 for z in [1, 2]:
                     if x_min <= x <= x_max and y_min <= y <= y_max and z_min <= z <= z_max:
@@ -947,9 +947,9 @@ class Box:
         return msg
 
     def from_ros(self, msg):
-        self.x = msg.x
-        self.y = msg.y
-        self.radius = msg.radius
+        self.x = int(msg.x)
+        self.y = int(msg.y)
+        self.radius = int(msg.radius)
         self.name = msg.name
         self.unique_name = msg.unique_name
 
@@ -981,10 +981,10 @@ class Lid:
         return msg
 
     def from_ros(self, msg):
-        self.x = msg.x
-        self.y = msg.y
-        self.z = msg.z
-        self.radius = msg.radius
+        self.x = int(msg.x)
+        self.y = int(msg.y)
+        self.z = int(msg.z)
+        self.radius = int(msg.radius)
         self.name = msg.name
         self.unique_name = msg.unique_name
 
@@ -1031,8 +1031,8 @@ class Lid:
             return False
 
         # atop if any part of the lid is on top of any part of the object
-        for x in range(self.x - self.radius, self.x + self.radius + 1):
-            for y in range(self.y - self.radius, self.y + self.radius + 1):
+        for x in range(int(self.x - self.radius), int(self.x + self.radius + 1)):
+            for y in range(int(self.y - self.radius), int(self.y + self.radius + 1)):
                 if x_min <= x <= x_max and y_min <= y <= y_max and self.z == z:
                     return True
         return False
@@ -1088,11 +1088,11 @@ class Lid:
             z_min = obj.z
             z_max = obj.z
 
-        for x in range(self.x - self.radius - 1, self.x + self.radius + 2):
+        for x in range(int(self.x - self.radius - 1), int(self.x + self.radius + 2)):
             for y in [self.y - self.radius - 1, self.y + self.radius + 1]:
                 if x_min <= x <= x_max and y_min <= y <= y_max and z_min <= self.z <= z_max:
                     return True
-        for y in range(self.y - self.radius - 1, self.y + self.radius + 1):
+        for y in range(int(self.y - self.radius - 1), int(self.y + self.radius + 1)):
             for x in [self.x - self.radius - 1, self.x + self.radius + 1]:
                 if x_min <= x <= x_max and y_min <= y <= y_max and z_min <= self.z <= z_max:
                     return True
