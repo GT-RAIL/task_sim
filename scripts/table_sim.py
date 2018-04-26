@@ -27,6 +27,8 @@ from task_sim.oomdp.world_state import WorldState
 from task_sim.msg import OOState as OOStateMsg
 
 
+from task_sim.str.amdp_state import AMDPState
+
 class TableSim:
 
     def __init__(self):
@@ -133,48 +135,60 @@ class TableSim:
 
         # Container positions
         if level >= 1:
-            drawer_set = False
-            while not drawer_set:
-                self.state_.drawer_position.x = randint(self.drawerWidth/2 + 1,
-                                                        self.tableWidth - (self.drawerWidth/2 + 1))
-                self.state_.drawer_position.y = randint(self.drawerDepth/2 + 1,
-                                                        self.tableDepth - (self.drawerDepth/2 + 1))
-                self.state_.drawer_position.theta = randint(0, 3)*90 if level >= 2 else 0
+            # NOTE: Change for STR project
+            if self.complexity > 0:
+                drawer_set = False
+                while not drawer_set:
+                    self.state_.drawer_position.x = randint(self.drawerWidth/2 + 1,
+                                                            self.tableWidth - (self.drawerWidth/2 + 1))
+                    self.state_.drawer_position.y = randint(self.drawerDepth/2 + 1,
+                                                            self.tableDepth - (self.drawerDepth/2 + 1))
+                    self.state_.drawer_position.theta = randint(0, 3)*90 if level >= 2 else 0
 
-                xmin, xmax, ymin, ymax, xminDrawer, xmaxDrawer, yminDrawer, ymaxDrawer = self.getDrawerBounds()
-                drawer_set = self.onTable(Point(xmin, ymin, self.drawerHeight)) \
-                             and self.onTable(Point(xmin, ymax, self.drawerHeight)) \
-                             and self.onTable(Point(xmax, ymin, self.drawerHeight)) \
-                             and self.onTable(Point(xmax, ymax, self.drawerHeight)) \
-                             and self.onTable(Point(xmaxDrawer, yminDrawer, self.drawerHeight - 1)) \
-                             and self.onTable(Point(xmaxDrawer, ymaxDrawer, self.drawerHeight - 1))
+                    xmin, xmax, ymin, ymax, xminDrawer, xmaxDrawer, yminDrawer, ymaxDrawer = self.getDrawerBounds()
+                    drawer_set = self.onTable(Point(xmin, ymin, self.drawerHeight)) \
+                                 and self.onTable(Point(xmin, ymax, self.drawerHeight)) \
+                                 and self.onTable(Point(xmax, ymin, self.drawerHeight)) \
+                                 and self.onTable(Point(xmax, ymax, self.drawerHeight)) \
+                                 and self.onTable(Point(xmaxDrawer, yminDrawer, self.drawerHeight - 1)) \
+                                 and self.onTable(Point(xmaxDrawer, ymaxDrawer, self.drawerHeight - 1))
 
-                drawer_points = self.getDrawerValidPoints()
-                for point in drawer_points:
-                    drawer_set = drawer_set and self.reachable(point)
+                    drawer_points = self.getDrawerValidPoints()
+                    for point in drawer_points:
+                        drawer_set = drawer_set and self.reachable(point)
 
-            self.state_.drawer_opening = randint(0, self.drawerDepth - 1)
+                self.state_.drawer_opening = randint(0, self.drawerDepth - 1)
 
-            box_set = False
-            while not box_set:
-                self.state_.box_position.x = randint(self.boxRadius + 1,
-                                                     self.tableWidth - (self.boxRadius + 1))
-                self.state_.box_position.y = randint(self.boxRadius + 1,
-                                                     self.tableDepth - (self.boxRadius + 1))
+                box_set = False
+                while not box_set:
+                    self.state_.box_position.x = randint(self.boxRadius + 1,
+                                                         self.tableWidth - (self.boxRadius + 1))
+                    self.state_.box_position.y = randint(self.boxRadius + 1,
+                                                         self.tableDepth - (self.boxRadius + 1))
+                    self.state_.lid_position.x = self.state_.box_position.x
+                    self.state_.lid_position.y = self.state_.box_position.y
+                    self.state_.lid_position.z = self.boxHeight
+
+                    xmin = self.state_.box_position.x - self.boxRadius
+                    xmax = self.state_.box_position.x + self.boxRadius
+                    ymin = self.state_.box_position.y - self.boxRadius
+                    ymax = self.state_.box_position.y + self.boxRadius
+                    box_set = self.onTable(Point(xmin, ymin, 0)) and self.onTable(Point(xmin, ymax, 0)) \
+                              and self.onTable(Point(xmax, ymin, 0)) and self.onTable(Point(xmax, ymax, 0)) \
+                              and self.reachable(self.state_.lid_position) \
+                              and self.euclidean2D(self.state_.box_position.x, self.state_.box_position.y,
+                                                   self.state_.drawer_position.x, self.state_.drawer_position.y) \
+                                  >= max(self.drawerWidth, self.drawerDepth)*3/2 + self.boxRadius + 2
+            else:
+                self.state_.drawer_position.x = 7
+                self.state_.drawer_position.y = 10
+                self.state_.drawer_position.theta = 0
+                self.state_.drawer_opening = 0
+                self.state_.box_position.x = 45
+                self.state_.box_position.y = 19
                 self.state_.lid_position.x = self.state_.box_position.x
                 self.state_.lid_position.y = self.state_.box_position.y
                 self.state_.lid_position.z = self.boxHeight
-
-                xmin = self.state_.box_position.x - self.boxRadius
-                xmax = self.state_.box_position.x + self.boxRadius
-                ymin = self.state_.box_position.y - self.boxRadius
-                ymax = self.state_.box_position.y + self.boxRadius
-                box_set = self.onTable(Point(xmin, ymin, 0)) and self.onTable(Point(xmin, ymax, 0)) \
-                          and self.onTable(Point(xmax, ymin, 0)) and self.onTable(Point(xmax, ymax, 0)) \
-                          and self.reachable(self.state_.lid_position) \
-                          and self.euclidean2D(self.state_.box_position.x, self.state_.box_position.y,
-                                               self.state_.drawer_position.x, self.state_.drawer_position.y) \
-                              >= max(self.drawerWidth, self.drawerDepth)*3/2 + self.boxRadius + 2
         else:
             self.state_.drawer_position.x = 10
             self.state_.drawer_position.y = 12
@@ -192,19 +206,26 @@ class TableSim:
         obj1.name = "apple"
         # handle name
         obj1.unique_name = obj1.name
-        mod = 0
-        for o in self.state_.objects:
-            if o.name == obj1.name:
-                mod += 1
-        obj1.unique_name += str(mod)
-        # place object
-        object_set = False
-        while not object_set:
-            obj1.position.x = randint(1, self.tableWidth - 1)
-            obj1.position.y = randint(1, self.tableDepth - 1)
+        # NOTE: Change for STR project
+        if self.complexity > 0:
+            mod = 0
+            for o in self.state_.objects:
+                if o.name == obj1.name:
+                    mod += 1
+            obj1.unique_name += str(mod)
+            # place object
+            object_set = False
+            while not object_set:
+                obj1.position.x = randint(1, self.tableWidth - 1)
+                obj1.position.y = randint(1, self.tableDepth - 1)
+                obj1.position.z = 0
+                object_set = not self.inCollision(obj1.position) and self.reachable(obj1.position)
+            self.state_.objects.append(obj1)
+        else:
+            obj1.position.x = 25
+            obj1.position.y = 5
             obj1.position.z = 0
-            object_set = not self.inCollision(obj1.position) and self.reachable(obj1.position)
-        self.state_.objects.append(obj1)
+            self.state_.objects.append(obj1)
 
         if self.complexity >= 1:
             obj2 = Object()

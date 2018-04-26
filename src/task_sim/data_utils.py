@@ -774,7 +774,7 @@ def get_task_frame(state, position):
         return 'box'
 
     # default
-    return 'Table'
+    return 'table'
 
 
 # State representations
