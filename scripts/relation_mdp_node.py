@@ -103,6 +103,7 @@ class RelationMDPNode:
                     action.position.y = req.state.gripper_position.y + 5
                 else:
                     action.position = DataUtils.semantic_action_to_position(req.state, action.object)
+                action.object = ''
             elif action.action_type != Action.GRASP:
                 action.object = ''
         else:

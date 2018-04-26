@@ -23,6 +23,8 @@ from task_sim.plan_action import PlanAction
 
 from task_sim.oomdp.oo_state import OOState
 
+from task_sim.str.amdp_state import AMDPState
+
 class TableSim:
 
     def __init__(self):
@@ -423,6 +425,8 @@ class TableSim:
         self.show()
 
         # # debug
+        # s = AMDPState(amdp_id=0, state=OOState(state=self.state_))
+        # print str(s.relations)
         # state = OOState(self.state_)
         # state.relations.sort()
         # for rel in state.relations:

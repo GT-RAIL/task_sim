@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 
 # Python
+import copy
 import datetime
 import glob
 import os
+import pickle
 import yaml
 
 # ROS
@@ -18,10 +20,12 @@ from task_sim import data_utils as DataUtils
 class DemoReader:
 
     def __init__(self):
-        self.task = rospy.get_param('~task', 'task1')
+        self.task = rospy.get_param('~task', 'task4')
         self.parse_modes = rospy.get_param('~parse_modes', 'all').split(',')
         self.output_suffix = rospy.get_param('~output_suffix', '_' + str(datetime.date.today()))
         supported_parse_modes = ['state-action']
+        self.output_mode = rospy.get_param('~output_mode', 'pickle')
+        self.original_messages = rospy.get_param('~original_messages', 'True')
         self.state_positions = rospy.get_param('~state_positions', 'True')
         self.state_semantics = rospy.get_param('~state_semantics', 'True')
         self.transform_frame = rospy.get_param('~transform_frame', 'False')
@@ -69,42 +73,49 @@ class DemoReader:
                         state = DataUtils.change_frame(msg.state, 'gripper')
 
                     if prev_state_msg is None:
-                        prev_state_msg = msg.state
+                        prev_state_msg = copy.deepcopy(msg.state)
                     if prev_state is None:
                         prev_state = DataUtils.naive_state_vector(msg.state, self.state_positions,
                                                                   self.state_semantics,
                                                                   history_buffer=self.history_buffer)
 
                     elif msg.action.action_type != Action.NOOP:
-                        if self.action_centric_frames:
-                            if msg.action.action_type in [Action.PLACE]:
-                                action_vector = DemoReader.task_object_centric_action_vector(prev_state_msg, msg.action, self.combined_actions)
-                            elif msg.action.action_type in [Action.MOVE_ARM]:
-                                action_vector = DemoReader.robot_centric_action_vector(prev_state_msg, msg.action, self.combined_actions)
-                            else:
-                                action_vector = DemoReader.naive_action_vector(prev_state_msg, msg.action, self.transform_frame, self.combined_actions)
-                        elif self.robot_centric_frames:
-                            if msg.action.action_type in [Action.PLACE, Action.MOVE_ARM]:
-                                action_vector = DemoReader.robot_centric_action_vector(prev_state_msg, msg.action, self.combined_actions)
-                            else:
-                                action_vector = DemoReader.naive_action_vector(prev_state_msg, msg.action, self.transform_frame, self.combined_actions)
+                        if self.original_messages:
+                            pair = (copy.deepcopy(prev_state_msg), copy.deepcopy(msg.action))
                         else:
-                            action_vector = DemoReader.naive_action_vector(prev_state_msg, msg.action, self.transform_frame, self.combined_actions)
+                            if self.action_centric_frames:
+                                if msg.action.action_type in [Action.PLACE]:
+                                    action_vector = DemoReader.task_object_centric_action_vector(prev_state_msg, msg.action, self.combined_actions)
+                                elif msg.action.action_type in [Action.MOVE_ARM]:
+                                    action_vector = DemoReader.robot_centric_action_vector(prev_state_msg, msg.action, self.combined_actions)
+                                else:
+                                    action_vector = DemoReader.naive_action_vector(prev_state_msg, msg.action, self.transform_frame, self.combined_actions)
+                            elif self.robot_centric_frames:
+                                if msg.action.action_type in [Action.PLACE, Action.MOVE_ARM]:
+                                    action_vector = DemoReader.robot_centric_action_vector(prev_state_msg, msg.action, self.combined_actions)
+                                else:
+                                    action_vector = DemoReader.naive_action_vector(prev_state_msg, msg.action, self.transform_frame, self.combined_actions)
+                            else:
+                                action_vector = DemoReader.naive_action_vector(prev_state_msg, msg.action, self.transform_frame, self.combined_actions)
 
-                        # append action history
+                            # append action history
 
-                        pair = {'state': prev_state, 'action': action_vector}
+                            pair = {'state': prev_state, 'action': action_vector}
+
                         state_action_pairs.append(pair)
 
                         # update stored data for next iteration
-                        prev_state_msg = msg.state
+                        prev_state_msg = copy.deepcopy(msg.state)
                         prev_state = DataUtils.naive_state_vector(msg.state, self.state_positions, self.state_semantics,
                                                                   history_buffer=self.history_buffer)
             bag.close()
 
         # Write out data files
         if 'state-action' in self.parse_modes:
-            self.write_yaml(state_action_pairs, 'state-action')
+            if self.output_mode == 'yaml':
+                self.write_yaml(state_action_pairs, 'state-action')
+            else:
+                self.write_pickle(state_action_pairs, 'state-action')
 
     def write_yaml(self, data, parse_mode):
         filename = parse_mode + self.output_suffix + '.yaml'
@@ -116,6 +127,12 @@ class DemoReader:
             f = open(fullpath, 'w')
         yaml.dump(data, f)
         f.close()
+
+    def write_pickle(self, data, parse_mode):
+        filename = parse_mode + self.output_suffix + '.pkl'
+        fullpath = rospkg.RosPack().get_path('task_sim') + '/data/' + self.task + '/training/' + filename
+        print 'Writing ' + parse_mode + ' to ' + filename + ' in the data/training directory.'
+        pickle.dump(data, file(fullpath, mode='w'))
 
     @staticmethod
     def naive_action_vector(state, action, transform_frame=False, combined_actions=False):

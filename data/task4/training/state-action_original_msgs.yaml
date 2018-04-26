@@ -1,0 +1,4305 @@
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 0
+    - drawer
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [25.0, 5.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 0.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [8.0, 1.0, 2.0]
+    - true
+    - ''
+    - !!python/tuple [255, 255, 255, 255, 255, 255, 255, 255, 255, 255]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 4
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [10.0, 15.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [25.0, 5.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 0.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [11.0, 10.0, 2.0]
+    - false
+    - drawer
+    - !!python/tuple [255, 255, 255, 255, 255, 255, 255, 255, 255, 0]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 4
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [15.0, 10.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [25.0, 5.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 0.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [11.0, 10.0, 2.0]
+    - false
+    - drawer
+    - !!python/tuple [255, 255, 255, 255, 255, 255, 255, 255, 0, 4]
+    - [true, true, true, true, true, true, true, true, true, false]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 2
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [25.0, 5.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 4.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [15.0, 10.0, 2.0]
+    - false
+    - drawer
+    - !!python/tuple [255, 255, 255, 255, 255, 255, 255, 0, 4, 4]
+    - [true, true, true, true, true, true, true, true, false, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 0
+    - apple
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [25.0, 5.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 4.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [15.0, 10.0, 2.0]
+    - true
+    - ''
+    - !!python/tuple [255, 255, 255, 255, 255, 255, 0, 4, 4, 2]
+    - [true, true, true, true, true, true, true, false, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 5
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [25.0, 5.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 4.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [25.0, 5.0, 0.0]
+    - false
+    - apple
+    - !!python/tuple [255, 255, 255, 255, 255, 0, 4, 4, 2, 0]
+    - [true, true, true, true, true, true, false, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 5
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [25.0, 5.0, 1.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 4.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [25.0, 5.0, 1.0]
+    - false
+    - apple
+    - !!python/tuple [255, 255, 255, 255, 0, 4, 4, 2, 0, 5]
+    - [true, true, true, true, true, false, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 5
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [25.0, 5.0, 2.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 4.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [25.0, 5.0, 2.0]
+    - false
+    - apple
+    - !!python/tuple [255, 255, 255, 0, 4, 4, 2, 0, 5, 5]
+    - [true, true, true, true, false, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 4
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [11.0, 11.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [25.0, 5.0, 3.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 4.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [25.0, 5.0, 3.0]
+    - false
+    - apple
+    - !!python/tuple [255, 255, 0, 4, 4, 2, 0, 5, 5, 5]
+    - [true, true, true, false, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 2
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [11.0, 11.0, 3.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 4.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [11.0, 11.0, 3.0]
+    - false
+    - apple
+    - !!python/tuple [255, 0, 4, 4, 2, 0, 5, 5, 5, 4]
+    - [true, true, false, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 4
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [17.0, 11.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [11.0, 10.0, 2.0]
+        - true
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 4.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [11.0, 11.0, 3.0]
+    - true
+    - ''
+    - !!python/tuple [0, 4, 4, 2, 0, 5, 5, 5, 4, 2]
+    - [true, false, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 6
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [11.0, 10.0, 2.0]
+        - true
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 4.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [17.0, 11.0, 3.0]
+    - true
+    - ''
+    - !!python/tuple [4, 4, 2, 0, 5, 5, 5, 4, 2, 4]
+    - [false, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 4
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [17.0, 5.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [11.0, 10.0, 2.0]
+        - true
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 4.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [17.0, 11.0, 2.0]
+    - true
+    - ''
+    - !!python/tuple [4, 2, 0, 5, 5, 5, 4, 2, 4, 6]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 4
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [17.0, 10.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [11.0, 10.0, 2.0]
+        - true
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 4.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [17.0, 5.0, 2.0]
+    - true
+    - ''
+    - !!python/tuple [2, 0, 5, 5, 5, 4, 2, 4, 6, 4]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 4
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [10.0, 5.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [11.0, 10.0, 2.0]
+        - true
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 4.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [17.0, 10.0, 2.0]
+    - true
+    - ''
+    - !!python/tuple [0, 5, 5, 5, 4, 2, 4, 6, 4, 4]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 4
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [17.0, 10.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [11.0, 10.0, 2.0]
+        - true
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 4.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [15.0, 8.0, 2.0]
+    - true
+    - ''
+    - !!python/tuple [5, 5, 5, 4, 2, 4, 6, 4, 4, 4]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 4
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [5.0, 10.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [11.0, 10.0, 2.0]
+        - true
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 4.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [17.0, 10.0, 2.0]
+    - true
+    - ''
+    - !!python/tuple [5, 5, 4, 2, 4, 6, 4, 4, 4, 4]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 0
+    - apple
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [7.0, 10.0, 2.0]
+        - true
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 0.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [11.0, 10.0, 2.0]
+    - true
+    - ''
+    - !!python/tuple [5, 4, 2, 4, 6, 4, 4, 4, 4, 4]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 1
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [6.0, 10.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [25.0, 5.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 0.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [25.0, 5.0, 0.0]
+    - false
+    - apple
+    - !!python/tuple [255, 255, 255, 255, 255, 255, 255, 255, 255, 0]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 1
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [6.0, 10.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [25.0, 5.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 0.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [25.0, 5.0, 0.0]
+    - false
+    - apple
+    - !!python/tuple [255, 255, 255, 255, 255, 255, 255, 255, 0, 1]
+    - [true, true, true, true, true, true, true, true, true, false]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 0
+    - drawer
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [6.0, 10.0, 3.0]
+        - false
+        - false
+        - false
+        - true
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 0.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [6.0, 10.0, 3.0]
+    - true
+    - ''
+    - !!python/tuple [255, 255, 255, 255, 255, 255, 255, 0, 1, 1]
+    - [true, true, true, true, true, true, true, true, false, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 4
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [16.0, 10.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [6.0, 10.0, 3.0]
+        - false
+        - false
+        - false
+        - true
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 0.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [11.0, 10.0, 2.0]
+    - false
+    - drawer
+    - !!python/tuple [255, 255, 255, 255, 255, 255, 0, 1, 1, 0]
+    - [true, true, true, true, true, true, true, false, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 2
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [6.0, 10.0, 3.0]
+        - false
+        - false
+        - false
+        - true
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 5.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [16.0, 10.0, 2.0]
+    - false
+    - drawer
+    - !!python/tuple [255, 255, 255, 255, 255, 0, 1, 1, 0, 4]
+    - [true, true, true, true, true, true, false, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 5
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [6.0, 10.0, 3.0]
+        - false
+        - false
+        - false
+        - true
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 5.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [16.0, 10.0, 2.0]
+    - true
+    - ''
+    - !!python/tuple [255, 255, 255, 255, 0, 1, 1, 0, 4, 2]
+    - [true, true, true, true, true, false, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 5
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [6.0, 10.0, 3.0]
+        - false
+        - false
+        - false
+        - true
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 5.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [16.0, 10.0, 3.0]
+    - true
+    - ''
+    - !!python/tuple [255, 255, 255, 0, 1, 1, 0, 4, 2, 5]
+    - [true, true, true, true, false, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 4
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [6.0, 10.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [6.0, 10.0, 3.0]
+        - false
+        - false
+        - false
+        - true
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 5.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [16.0, 10.0, 4.0]
+    - true
+    - ''
+    - !!python/tuple [255, 255, 0, 1, 1, 0, 4, 2, 5, 5]
+    - [true, true, true, false, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 6
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [6.0, 10.0, 3.0]
+        - false
+        - false
+        - false
+        - true
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 5.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [6.0, 10.0, 4.0]
+    - true
+    - ''
+    - !!python/tuple [255, 0, 1, 1, 0, 4, 2, 5, 5, 4]
+    - [true, true, false, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 4
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [12.0, 10.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [6.0, 10.0, 3.0]
+        - false
+        - false
+        - false
+        - true
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 5.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [6.0, 10.0, 3.0]
+    - true
+    - ''
+    - !!python/tuple [0, 1, 1, 0, 4, 2, 5, 5, 4, 6]
+    - [true, false, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 4
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [20.0, 10.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [11.0, 12.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 5.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [12.0, 10.0, 3.0]
+    - true
+    - ''
+    - !!python/tuple [1, 1, 0, 4, 2, 5, 5, 4, 6, 4]
+    - [false, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 6
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [11.0, 12.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 5.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [20.0, 10.0, 3.0]
+    - true
+    - ''
+    - !!python/tuple [1, 0, 4, 2, 5, 5, 4, 6, 4, 4]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 4
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [5.0, 10.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [11.0, 12.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 5.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [20.0, 10.0, 2.0]
+    - true
+    - ''
+    - !!python/tuple [0, 4, 2, 5, 5, 4, 6, 4, 4, 6]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 0
+    - apple
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [11.0, 12.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 0.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [11.0, 10.0, 2.0]
+    - true
+    - ''
+    - !!python/tuple [4, 2, 5, 5, 4, 6, 4, 4, 6, 4]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 4
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [11.0, 12.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [11.0, 12.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 0.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [11.0, 10.0, 2.0]
+    - true
+    - ''
+    - !!python/tuple [2, 5, 5, 4, 6, 4, 4, 6, 4, 0]
+    - [true, true, true, true, true, true, true, true, true, false]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 6
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [11.0, 12.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 0.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [11.0, 12.0, 2.0]
+    - true
+    - ''
+    - !!python/tuple [5, 5, 4, 6, 4, 4, 6, 4, 0, 4]
+    - [true, true, true, true, true, true, true, true, false, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 6
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [11.0, 12.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 0.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [11.0, 12.0, 1.0]
+    - true
+    - ''
+    - !!python/tuple [5, 4, 6, 4, 4, 6, 4, 0, 4, 6]
+    - [true, true, true, true, true, true, true, false, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 4
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [20.0, 12.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [11.0, 12.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 0.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [11.0, 12.0, 0.0]
+    - true
+    - ''
+    - !!python/tuple [4, 6, 4, 4, 6, 4, 0, 4, 6, 6]
+    - [true, true, true, true, true, true, false, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 0
+    - drawer
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [19.0, 14.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 0.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [20.0, 12.0, 0.0]
+    - true
+    - ''
+    - !!python/tuple [6, 4, 4, 6, 4, 0, 4, 6, 6, 4]
+    - [true, true, true, true, true, false, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 4
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [15.0, 10.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [19.0, 14.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 0.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [11.0, 10.0, 2.0]
+    - false
+    - drawer
+    - !!python/tuple [4, 4, 6, 4, 0, 4, 6, 6, 4, 0]
+    - [true, true, true, true, false, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 2
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [19.0, 14.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 4.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [15.0, 10.0, 2.0]
+    - false
+    - drawer
+    - !!python/tuple [4, 6, 4, 0, 4, 6, 6, 4, 0, 4]
+    - [true, true, true, false, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 0
+    - apple
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [19.0, 14.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 4.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [15.0, 10.0, 2.0]
+    - true
+    - ''
+    - !!python/tuple [6, 4, 0, 4, 6, 6, 4, 0, 4, 2]
+    - [true, true, false, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 1
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [12.0, 10.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [19.0, 14.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 4.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [19.0, 14.0, 0.0]
+    - false
+    - apple
+    - !!python/tuple [4, 0, 4, 6, 6, 4, 0, 4, 2, 0]
+    - [true, false, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 0
+    - drawer
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [12.0, 10.0, 2.0]
+        - true
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 4.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [12.0, 10.0, 2.0]
+    - true
+    - ''
+    - !!python/tuple [0, 4, 6, 6, 4, 0, 4, 2, 0, 1]
+    - [false, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 5
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [12.0, 10.0, 2.0]
+        - true
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 4.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [12.0, 10.0, 2.0]
+    - true
+    - ''
+    - !!python/tuple [4, 6, 6, 4, 0, 4, 2, 0, 1, 0]
+    - [true, true, true, true, true, true, true, true, true, false]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 0
+    - drawer
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [12.0, 10.0, 2.0]
+        - true
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 4.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [12.0, 10.0, 3.0]
+    - true
+    - ''
+    - !!python/tuple [6, 6, 4, 0, 4, 2, 0, 1, 0, 5]
+    - [true, true, true, true, true, true, true, true, false, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 4
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [10.0, 10.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [12.0, 10.0, 2.0]
+        - true
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 4.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [15.0, 10.0, 2.0]
+    - false
+    - drawer
+    - !!python/tuple [6, 4, 0, 4, 2, 0, 1, 0, 5, 0]
+    - [true, true, true, true, true, true, true, false, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 2
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [8.0, 10.0, 2.0]
+        - true
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 0.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [11.0, 10.0, 2.0]
+    - false
+    - drawer
+    - !!python/tuple [4, 0, 4, 2, 0, 1, 0, 5, 0, 4]
+    - [true, true, true, true, true, true, false, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 0
+    - drawer
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [8.0, 10.0, 2.0]
+        - true
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 0.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [11.0, 10.0, 2.0]
+    - true
+    - ''
+    - !!python/tuple [0, 4, 2, 0, 1, 0, 5, 0, 4, 2]
+    - [true, true, true, true, true, false, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 4
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [20.0, 12.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [25.0, 5.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 0.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [11.0, 10.0, 2.0]
+    - false
+    - drawer
+    - !!python/tuple [255, 255, 255, 255, 255, 255, 255, 255, 255, 0]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 4
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [20.0, 10.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [25.0, 5.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 2.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [13.0, 10.0, 2.0]
+    - false
+    - drawer
+    - !!python/tuple [255, 255, 255, 255, 255, 255, 255, 255, 0, 4]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 0
+    - apple
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [25.0, 5.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 6.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [17.0, 10.0, 2.0]
+    - false
+    - drawer
+    - !!python/tuple [255, 255, 255, 255, 255, 255, 255, 0, 4, 4]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 1
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [12.0, 10.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [25.0, 5.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 6.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [25.0, 5.0, 0.0]
+    - false
+    - apple
+    - !!python/tuple [255, 255, 255, 255, 255, 255, 0, 4, 4, 0]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 7
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [25.0, 5.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 6.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [25.0, 5.0, 0.0]
+    - false
+    - apple
+    - !!python/tuple [255, 255, 255, 255, 255, 0, 4, 4, 0, 1]
+    - [true, true, true, true, true, true, true, true, true, false]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 1
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [12.0, 10.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [8.0, 1.0, 2.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 6.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [8.0, 1.0, 2.0]
+    - false
+    - apple
+    - !!python/tuple [255, 255, 255, 255, 0, 4, 4, 0, 1, 7]
+    - [true, true, true, true, true, true, true, true, false, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 5
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [12.0, 10.0, 2.0]
+        - true
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 6.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [12.0, 10.0, 2.0]
+    - true
+    - ''
+    - !!python/tuple [255, 255, 255, 0, 4, 4, 0, 1, 7, 1]
+    - [true, true, true, true, true, true, true, false, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 4
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [20.0, 10.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [12.0, 10.0, 2.0]
+        - true
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 6.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [12.0, 10.0, 3.0]
+    - true
+    - ''
+    - !!python/tuple [255, 255, 0, 4, 4, 0, 1, 7, 1, 5]
+    - [true, true, true, true, true, true, false, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 6
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [12.0, 10.0, 2.0]
+        - true
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 6.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [20.0, 10.0, 3.0]
+    - true
+    - ''
+    - !!python/tuple [255, 0, 4, 4, 0, 1, 7, 1, 5, 4]
+    - [true, true, true, true, true, false, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 4
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [10.0, 10.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [12.0, 10.0, 2.0]
+        - true
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 6.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [20.0, 10.0, 2.0]
+    - true
+    - ''
+    - !!python/tuple [0, 4, 4, 0, 1, 7, 1, 5, 4, 6]
+    - [true, true, true, true, false, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 0
+    - drawer
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [6.0, 10.0, 2.0]
+        - true
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 0.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [11.0, 10.0, 2.0]
+    - true
+    - ''
+    - !!python/tuple [4, 4, 0, 1, 7, 1, 5, 4, 6, 4]
+    - [true, true, true, false, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 4
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [15.0, 10.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [25.0, 5.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 0.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [11.0, 10.0, 2.0]
+    - false
+    - drawer
+    - !!python/tuple [255, 255, 255, 255, 255, 255, 255, 255, 255, 0]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 2
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [25.0, 5.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 4.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [15.0, 10.0, 2.0]
+    - false
+    - drawer
+    - !!python/tuple [255, 255, 255, 255, 255, 255, 255, 255, 0, 4]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 0
+    - apple
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [25.0, 5.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 4.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [15.0, 10.0, 2.0]
+    - true
+    - ''
+    - !!python/tuple [255, 255, 255, 255, 255, 255, 255, 0, 4, 2]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 1
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [12.0, 10.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [25.0, 5.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 4.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [25.0, 5.0, 0.0]
+    - false
+    - apple
+    - !!python/tuple [255, 255, 255, 255, 255, 255, 0, 4, 2, 0]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 0
+    - drawer
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [12.0, 10.0, 2.0]
+        - true
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 4.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [12.0, 10.0, 2.0]
+    - true
+    - ''
+    - !!python/tuple [255, 255, 255, 255, 255, 0, 4, 2, 0, 1]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 4
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [10.0, 10.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [12.0, 10.0, 2.0]
+        - true
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 4.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [15.0, 10.0, 2.0]
+    - false
+    - drawer
+    - !!python/tuple [255, 255, 255, 255, 0, 4, 2, 0, 1, 0]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 2
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [8.0, 10.0, 2.0]
+        - true
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 0.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [11.0, 10.0, 2.0]
+    - false
+    - drawer
+    - !!python/tuple [255, 255, 255, 0, 4, 2, 0, 1, 0, 4]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 0
+    - drawer
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [8.0, 10.0, 2.0]
+        - true
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 0.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [11.0, 10.0, 2.0]
+    - true
+    - ''
+    - !!python/tuple [255, 255, 0, 4, 2, 0, 1, 0, 4, 2]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 4
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [16.0, 10.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [25.0, 5.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 0.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [11.0, 10.0, 2.0]
+    - false
+    - drawer
+    - !!python/tuple [255, 255, 255, 255, 255, 255, 255, 255, 255, 0]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 0
+    - apple
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [25.0, 5.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 5.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [16.0, 10.0, 2.0]
+    - false
+    - drawer
+    - !!python/tuple [255, 255, 255, 255, 255, 255, 255, 255, 0, 4]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 0
+    - apple
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [25.0, 5.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 5.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [16.0, 10.0, 2.0]
+    - true
+    - ''
+    - !!python/tuple [255, 255, 255, 255, 255, 255, 255, 0, 4, 0]
+    - [true, true, true, true, true, true, true, true, true, false]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 5
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [25.0, 5.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 5.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [16.0, 10.0, 2.0]
+    - true
+    - ''
+    - !!python/tuple [255, 255, 255, 255, 255, 255, 0, 4, 0, 0]
+    - [true, true, true, true, true, true, true, true, false, false]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 0
+    - apple
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [25.0, 5.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 5.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [16.0, 10.0, 3.0]
+    - true
+    - ''
+    - !!python/tuple [255, 255, 255, 255, 255, 0, 4, 0, 0, 5]
+    - [true, true, true, true, true, true, true, false, false, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 1
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [13.0, 11.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [25.0, 5.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 5.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [25.0, 5.0, 0.0]
+    - false
+    - apple
+    - !!python/tuple [255, 255, 255, 255, 0, 4, 0, 0, 5, 0]
+    - [true, true, true, true, true, true, false, false, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 5
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [13.0, 11.0, 2.0]
+        - true
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 5.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [13.0, 11.0, 2.0]
+    - true
+    - ''
+    - !!python/tuple [255, 255, 255, 0, 4, 0, 0, 5, 0, 1]
+    - [true, true, true, true, true, false, false, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 0
+    - drawer
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [13.0, 11.0, 2.0]
+        - true
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 5.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [13.0, 11.0, 3.0]
+    - true
+    - ''
+    - !!python/tuple [255, 255, 0, 4, 0, 0, 5, 0, 1, 5]
+    - [true, true, true, true, false, false, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 4
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [10.0, 10.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [13.0, 11.0, 2.0]
+        - true
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 5.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [16.0, 10.0, 2.0]
+    - false
+    - drawer
+    - !!python/tuple [255, 0, 4, 0, 0, 5, 0, 1, 5, 0]
+    - [true, true, true, false, false, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 2
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [8.0, 11.0, 2.0]
+        - true
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 0.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [11.0, 10.0, 2.0]
+    - false
+    - drawer
+    - !!python/tuple [0, 4, 0, 0, 5, 0, 1, 5, 0, 4]
+    - [true, true, false, false, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 0
+    - drawer
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [8.0, 11.0, 2.0]
+        - true
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 0.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [11.0, 10.0, 2.0]
+    - true
+    - ''
+    - !!python/tuple [4, 0, 0, 5, 0, 1, 5, 0, 4, 2]
+    - [true, false, false, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 4
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [15.0, 10.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [25.0, 5.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 0.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [11.0, 10.0, 2.0]
+    - false
+    - drawer
+    - !!python/tuple [255, 255, 255, 255, 255, 255, 255, 255, 255, 0]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 2
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [25.0, 5.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 4.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [15.0, 10.0, 2.0]
+    - false
+    - drawer
+    - !!python/tuple [255, 255, 255, 255, 255, 255, 255, 255, 0, 4]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 0
+    - apple
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [25.0, 5.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 4.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [15.0, 10.0, 2.0]
+    - true
+    - ''
+    - !!python/tuple [255, 255, 255, 255, 255, 255, 255, 0, 4, 2]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 1
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [12.0, 10.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [25.0, 5.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 4.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [25.0, 5.0, 0.0]
+    - false
+    - apple
+    - !!python/tuple [255, 255, 255, 255, 255, 255, 0, 4, 2, 0]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 0
+    - drawer
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [12.0, 10.0, 2.0]
+        - true
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 4.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [12.0, 10.0, 2.0]
+    - true
+    - ''
+    - !!python/tuple [255, 255, 255, 255, 255, 0, 4, 2, 0, 1]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 2
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [12.0, 10.0, 2.0]
+        - true
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 4.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [15.0, 10.0, 2.0]
+    - false
+    - drawer
+    - !!python/tuple [255, 255, 255, 255, 0, 4, 2, 0, 1, 0]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 4
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [10.0, 10.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [12.0, 10.0, 2.0]
+        - true
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 4.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [15.0, 10.0, 2.0]
+    - true
+    - ''
+    - !!python/tuple [255, 255, 255, 0, 4, 2, 0, 1, 0, 2]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 0
+    - drawer
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [8.0, 10.0, 2.0]
+        - true
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 0.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [11.0, 10.0, 2.0]
+    - true
+    - ''
+    - !!python/tuple [255, 255, 0, 4, 2, 0, 1, 0, 2, 4]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 4
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [15.0, 11.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [25.0, 5.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 0.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [11.0, 10.0, 2.0]
+    - false
+    - drawer
+    - !!python/tuple [255, 255, 255, 255, 255, 255, 255, 255, 255, 0]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 2
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [25.0, 5.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 2.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [13.0, 10.0, 2.0]
+    - false
+    - drawer
+    - !!python/tuple [255, 255, 255, 255, 255, 255, 255, 255, 0, 4]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 0
+    - apple
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [25.0, 5.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 2.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [13.0, 10.0, 2.0]
+    - true
+    - ''
+    - !!python/tuple [255, 255, 255, 255, 255, 255, 255, 0, 4, 2]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 1
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [11.0, 10.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [25.0, 5.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 2.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [25.0, 5.0, 0.0]
+    - false
+    - apple
+    - !!python/tuple [255, 255, 255, 255, 255, 255, 0, 4, 2, 0]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 5
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [11.0, 10.0, 2.0]
+        - true
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 2.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [11.0, 10.0, 2.0]
+    - true
+    - ''
+    - !!python/tuple [255, 255, 255, 255, 255, 0, 4, 2, 0, 1]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 4
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [20.0, 10.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [11.0, 10.0, 2.0]
+        - true
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 2.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [11.0, 10.0, 3.0]
+    - true
+    - ''
+    - !!python/tuple [255, 255, 255, 255, 0, 4, 2, 0, 1, 5]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 6
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [11.0, 10.0, 2.0]
+        - true
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 2.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [20.0, 10.0, 3.0]
+    - true
+    - ''
+    - !!python/tuple [255, 255, 255, 0, 4, 2, 0, 1, 5, 4]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 4
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [5.0, 10.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [11.0, 10.0, 2.0]
+        - true
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 2.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [20.0, 10.0, 2.0]
+    - true
+    - ''
+    - !!python/tuple [255, 255, 0, 4, 2, 0, 1, 5, 4, 6]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 0
+    - drawer
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [9.0, 10.0, 2.0]
+        - true
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 0.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [11.0, 10.0, 2.0]
+    - true
+    - ''
+    - !!python/tuple [255, 0, 4, 2, 0, 1, 5, 4, 6, 4]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 4
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [15.0, 10.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [25.0, 5.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 0.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [11.0, 10.0, 2.0]
+    - false
+    - drawer
+    - !!python/tuple [255, 255, 255, 255, 255, 255, 255, 255, 255, 0]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 2
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [25.0, 5.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 4.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [15.0, 10.0, 2.0]
+    - false
+    - drawer
+    - !!python/tuple [255, 255, 255, 255, 255, 255, 255, 255, 0, 4]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 4
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [25.0, 10.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [25.0, 5.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 4.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [15.0, 10.0, 2.0]
+    - true
+    - ''
+    - !!python/tuple [255, 255, 255, 255, 255, 255, 255, 0, 4, 2]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 0
+    - apple
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [25.0, 5.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 4.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [25.0, 10.0, 2.0]
+    - true
+    - ''
+    - !!python/tuple [255, 255, 255, 255, 255, 255, 0, 4, 2, 4]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 1
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [12.0, 10.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [25.0, 5.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 4.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [25.0, 5.0, 0.0]
+    - false
+    - apple
+    - !!python/tuple [255, 255, 255, 255, 255, 0, 4, 2, 4, 0]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 5
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [12.0, 10.0, 2.0]
+        - true
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 4.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [12.0, 10.0, 2.0]
+    - true
+    - ''
+    - !!python/tuple [255, 255, 255, 255, 0, 4, 2, 4, 0, 1]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 0
+    - drawer
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [12.0, 10.0, 2.0]
+        - true
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 4.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [12.0, 10.0, 3.0]
+    - true
+    - ''
+    - !!python/tuple [255, 255, 255, 0, 4, 2, 4, 0, 1, 5]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 4
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [10.0, 10.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [12.0, 10.0, 2.0]
+        - true
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 4.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [15.0, 10.0, 2.0]
+    - false
+    - drawer
+    - !!python/tuple [255, 255, 0, 4, 2, 4, 0, 1, 5, 0]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 2
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [8.0, 10.0, 2.0]
+        - true
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 0.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [11.0, 10.0, 2.0]
+    - false
+    - drawer
+    - !!python/tuple [255, 0, 4, 2, 4, 0, 1, 5, 0, 4]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 0
+    - drawer
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [8.0, 10.0, 2.0]
+        - true
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 0.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [11.0, 10.0, 2.0]
+    - true
+    - ''
+    - !!python/tuple [0, 4, 2, 4, 0, 1, 5, 0, 4, 2]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 4
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [20.0, 10.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [25.0, 5.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 0.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [11.0, 10.0, 2.0]
+    - false
+    - drawer
+    - !!python/tuple [255, 255, 255, 255, 255, 255, 255, 255, 255, 0]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 2
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [25.0, 5.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 6.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [17.0, 10.0, 2.0]
+    - false
+    - drawer
+    - !!python/tuple [255, 255, 255, 255, 255, 255, 255, 255, 0, 4]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 0
+    - apple
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [25.0, 5.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 6.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [17.0, 10.0, 2.0]
+    - true
+    - ''
+    - !!python/tuple [255, 255, 255, 255, 255, 255, 255, 0, 4, 2]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 1
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [13.0, 10.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [25.0, 5.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 6.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [25.0, 5.0, 0.0]
+    - false
+    - apple
+    - !!python/tuple [255, 255, 255, 255, 255, 255, 0, 4, 2, 0]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 0
+    - drawer
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [13.0, 10.0, 2.0]
+        - true
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 6.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [13.0, 10.0, 2.0]
+    - true
+    - ''
+    - !!python/tuple [255, 255, 255, 255, 255, 0, 4, 2, 0, 1]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 4
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [7.0, 10.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [13.0, 10.0, 2.0]
+        - true
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 6.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [17.0, 10.0, 2.0]
+    - false
+    - drawer
+    - !!python/tuple [255, 255, 255, 255, 0, 4, 2, 0, 1, 0]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 2
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [7.0, 10.0, 2.0]
+        - true
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 0.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [11.0, 10.0, 2.0]
+    - false
+    - drawer
+    - !!python/tuple [255, 255, 255, 0, 4, 2, 0, 1, 0, 4]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 0
+    - drawer
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [7.0, 10.0, 2.0]
+        - true
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 0.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [11.0, 10.0, 2.0]
+    - true
+    - ''
+    - !!python/tuple [255, 255, 0, 4, 2, 0, 1, 0, 4, 2]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 4
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [15.0, 10.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [25.0, 5.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 0.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [11.0, 10.0, 2.0]
+    - false
+    - drawer
+    - !!python/tuple [255, 255, 255, 255, 255, 255, 255, 255, 255, 0]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 2
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [25.0, 5.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 4.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [15.0, 10.0, 2.0]
+    - false
+    - drawer
+    - !!python/tuple [255, 255, 255, 255, 255, 255, 255, 255, 0, 4]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 0
+    - apple
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [25.0, 5.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 4.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [15.0, 10.0, 2.0]
+    - true
+    - ''
+    - !!python/tuple [255, 255, 255, 255, 255, 255, 255, 0, 4, 2]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 5
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [25.0, 5.0, 0.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 4.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [25.0, 5.0, 0.0]
+    - false
+    - apple
+    - !!python/tuple [255, 255, 255, 255, 255, 255, 0, 4, 2, 0]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 5
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [25.0, 5.0, 1.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 4.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [25.0, 5.0, 1.0]
+    - false
+    - apple
+    - !!python/tuple [255, 255, 255, 255, 255, 0, 4, 2, 0, 5]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 5
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [25.0, 5.0, 2.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 4.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [25.0, 5.0, 2.0]
+    - false
+    - apple
+    - !!python/tuple [255, 255, 255, 255, 0, 4, 2, 0, 5, 5]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 4
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [12.0, 10.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [25.0, 5.0, 3.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 4.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [25.0, 5.0, 3.0]
+    - false
+    - apple
+    - !!python/tuple [255, 255, 255, 0, 4, 2, 0, 5, 5, 5]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 2
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [12.0, 10.0, 3.0]
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 4.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [12.0, 10.0, 3.0]
+    - false
+    - apple
+    - !!python/tuple [255, 255, 0, 4, 2, 0, 5, 5, 5, 4]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 0
+    - drawer
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [13.0, 11.0, 2.0]
+        - true
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 4.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [12.0, 10.0, 3.0]
+    - true
+    - ''
+    - !!python/tuple [255, 0, 4, 2, 0, 5, 5, 5, 4, 2]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 4
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [10.0, 10.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [13.0, 11.0, 2.0]
+        - true
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 4.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [15.0, 10.0, 2.0]
+    - false
+    - drawer
+    - !!python/tuple [0, 4, 2, 0, 5, 5, 5, 4, 2, 0]
+    - [true, true, true, true, true, true, true, true, true, true]
+- action: !!python/object/new:tmpZCLxmZ._task_sim__Action
+    state:
+    - 2
+    - ''
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [0.0, 0.0, 0.0]
+  state: !!python/object/new:tmpZCLxmZ._task_sim__State
+    state:
+    - - !!python/object/new:tmpZCLxmZ._task_sim__Object
+        state:
+        - apple
+        - apple
+        - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+          state: [9.0, 11.0, 2.0]
+        - true
+        - false
+        - false
+        - false
+        - false
+        - false
+        - false
+    - []
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Pose2D
+      state: [7.0, 10.0, 0.0]
+    - 0.0
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 0.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [45.0, 19.0, 1.0]
+    - !!python/object/new:tmpZCLxmZ._geometry_msgs__Point
+      state: [11.0, 10.0, 2.0]
+    - false
+    - drawer
+    - !!python/tuple [4, 2, 0, 5, 5, 5, 4, 2, 0, 4]
+    - [true, true, true, true, true, true, true, true, true, true]
