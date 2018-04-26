@@ -250,7 +250,7 @@ def get_drawer_bounds(
         yminDrawer = ymin - state.drawer_opening
         ymaxDrawer = ymax - state.drawer_opening
 
-    return xmin, xmax, ymin, ymax, xminDrawer, xmaxDrawer, yminDrawer, ymaxDrawer
+    return int(xmin), int(xmax), int(ymin), int(ymax), int(xminDrawer), int(xmaxDrawer), int(yminDrawer), int(ymaxDrawer)
 
 def get_handle_pos(
     state,

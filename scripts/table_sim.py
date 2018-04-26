@@ -1,7 +1,12 @@
 #!/usr/bin/env python
 
 # Python
+import os
+import sys
 import copy
+import pickle
+import numpy as np
+
 from math import floor
 from math import sqrt
 from random import seed
@@ -12,6 +17,7 @@ from pprint import pprint
 
 # ROS
 import rospy
+import rospkg
 from numpy import sign
 from geometry_msgs.msg import Point
 from std_srvs.srv import Empty, EmptyResponse
@@ -26,15 +32,24 @@ from task_sim.oomdp.oo_state import OOState
 from task_sim.oomdp.world_state import WorldState
 from task_sim.msg import OOState as OOStateMsg
 
-
 from task_sim.str.amdp_state import AMDPState
+
+# Celery
+CELERY_IMPORTED = False
+try:
+    from celery import Celery
+    from celery.bin import worker as CeleryWorker
+    CELERY_IMPORTED = True
+except ImportError as e:
+    sys.stderr.write("Need celery to train OpenAI baselines")
+
 
 class TableSim:
 
     def __init__(self):
         self.error = ''
 
-        self.action_service_ = rospy.Service('~execute_action', Execute, self.execute)
+        self.action_service_ = rospy.Service('~execute_action', Execute, self.execute_service)
         self.state_service_ = rospy.Service('~query_state', QueryState, self.query_state)
         self.intervention_service_ = rospy.Service('~request_intervention', RequestIntervention, self.request_intervention)
         self.reset_service_ = rospy.Service('~reset_simulation', Empty, self.reset_sim)
@@ -52,10 +67,19 @@ class TableSim:
             self.sim_seed = None
 
         self.init_simulation(rand_seed = self.sim_seed, level = 1)
-        #self.worldUpdate()
 
         # debug
         self.prev_state = None
+
+        # Celery
+        if CELERY_IMPORTED:
+            rospack = rospkg.RosPack()
+            actions_filename = os.path.join(
+                rospack.get_path('task_sim'),
+                'src', 'task_sim', 'str', 'A.pkl'
+            )
+            with open(actions_filename, 'rb') as fd:
+                self.celery_actions_ = pickle.load(fd)
 
 
     def query_state(self, req):
@@ -420,6 +444,9 @@ class TableSim:
                 self.grasp_states[object.unique_name].updateGraspRate(self.getNeighborCount(object.position),
                                                                self.copyPoint(object.position))
 
+        # Update the occluded state of all the objects
+        self.show()
+
         # Update state history
         if action is not None and action.action_type != Action.NOOP and self.history_buffer > 0:
             self.state_.action_history.append(action.action_type)
@@ -436,7 +463,8 @@ class TableSim:
         self.log_pub_.publish(log_msg)
         self.oomdp_pub_.publish(self.state_.get_oo_state().to_ros())
 
-        self.show()
+        print(np.array(self.state_.get_oo_state().relation_values, dtype=np.float32))
+        # pprint(self.state_.get_oo_state().relation_names)
 
         # debug
         # pprint(dict(self.state_.get_oo_state().relations))
@@ -448,8 +476,56 @@ class TableSim:
         #     pa = PlanAction(self.prev_state, (action or Action(action_type=Action.NOOP)), self.state_)
         #     print str(pa)
         # self.prev_state = copy.deepcopy(self.state_)
+        return self.state_
 
-    def execute(self, req):
+    def execute_celery(self, actions):
+        """Exceute an action based on a probability vector from celery"""
+        if not CELERY_IMPORTED:
+            return []
+
+        action_choice = np.argmax(actions)
+        action = self.celery_actions_[action_choice]
+
+        # Translate the celery action to one that worldUpdate recognizes
+        if action.action_type == Action.PLACE:
+            action.position = DataUtils.semantic_action_to_position(state, action.object)
+            action.object = ''
+        elif action.action_type == Action.MOVE_ARM:
+            if action.object == 'l':
+                action.position.x = state.gripper_position.x - 10
+                action.position.y = state.gripper_position.y
+            elif action.object == 'fl':
+                action.position.x = state.gripper_position.x - 10
+                action.position.y = state.gripper_position.y - 5
+            elif action.object == 'f':
+                action.position.x = state.gripper_position.x
+                action.position.y = state.gripper_position.y - 5
+            elif action.object == 'fr':
+                action.position.x = state.gripper_position.x + 10
+                action.position.y = state.gripper_position.y - 5
+            elif action.object == 'r':
+                action.position.x = state.gripper_position.x + 10
+                action.position.y = state.gripper_position.y
+            elif action.object == 'br':
+                action.position.x = state.gripper_position.x + 10
+                action.position.y = state.gripper_position.y + 5
+            elif action.object == 'b':
+                action.position.x = state.gripper_position.x
+                action.position.y = state.gripper_position.y + 5
+            elif action.object == 'bl':
+                action.position.x = state.gripper_position.x - 10
+                action.position.y = state.gripper_position.y + 5
+            else:
+                action.position = DataUtils.semantic_action_to_position(state, action.object)
+            action.object = ''
+        elif action.action_type != Action.GRASP:
+            action.object = ''
+
+        self.worldUpdate(action)
+        # return self.
+
+
+    def execute_service(self, req):
         """Handle execution of all robot actions as a ROS service routine"""
         req.action.position.x = int(req.action.position.x)
         req.action.position.y = int(req.action.position.y)
@@ -2185,6 +2261,12 @@ class TableSim:
 
 
 if __name__ == '__main__':
+    # Check to see if celery has been enabled. If so, start it up
+    celery_app = None
+    if 'celery' in sys.argv:
+        pass
+
+    # Init the ROS node
     rospy.init_node('table_sim')
     table_sim = TableSim()
 
@@ -2192,7 +2274,6 @@ if __name__ == '__main__':
     table_sim.worldUpdate()
 
     # Shutdown based on the ROS signal. Call the callbacks
-    no_quit, user_action = None, None
     loop_rate = rospy.Rate(30)
     while not rospy.is_shutdown():
         if table_sim.terminal_input:

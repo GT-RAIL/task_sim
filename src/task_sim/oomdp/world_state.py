@@ -35,7 +35,7 @@ class OOMDPPoint(object):
 
     @property
     def x(self):
-        return self.point.x
+        return int(self.point.x)
 
     @x.setter
     def x(self, val):
@@ -48,7 +48,7 @@ class OOMDPPoint(object):
 
     @property
     def y(self):
-        return self.point.y
+        return int(self.point.y)
 
     @y.setter
     def y(self, val):
@@ -61,7 +61,7 @@ class OOMDPPoint(object):
 
     @property
     def z(self):
-        return self.point.z
+        return int(self.point.z)
 
     @z.setter
     def z(self, val):
@@ -91,7 +91,7 @@ class OOMDPPose2D(object):
 
     @property
     def x(self):
-        return self.pose.x
+        return int(self.pose.x)
 
     @x.setter
     def x(self, val):
@@ -104,7 +104,7 @@ class OOMDPPose2D(object):
 
     @property
     def y(self):
-        return self.pose.y
+        return int(self.pose.y)
 
     @y.setter
     def y(self, val):
@@ -117,7 +117,7 @@ class OOMDPPose2D(object):
 
     @property
     def theta(self):
-        return self.pose.theta
+        return int(self.pose.theta)
 
     @theta.setter
     def theta(self, val):
@@ -270,11 +270,11 @@ class OOMDPContainer(object):
 
     @property
     def width(self):
-        return self.container.width
+        return int(self.container.width)
 
     @property
     def height(self):
-        return self.container.height
+        return int(self.container.height)
 
     @property
     def position(self):
