@@ -34,17 +34,9 @@ from task_sim.msg import OOState as OOStateMsg
 
 from task_sim.str.amdp_state import AMDPState
 
-# Celery
-CELERY_IMPORTED = False
-try:
-    from celery import Celery
-    from celery.bin import worker as CeleryWorker
-    CELERY_IMPORTED = True
-except ImportError as e:
-    sys.stderr.write("Need celery to train OpenAI baselines")
-
-
 class TableSim:
+
+    CELERY_IMPORTED = False
 
     def __init__(self):
         self.error = ''
@@ -54,7 +46,7 @@ class TableSim:
         self.intervention_service_ = rospy.Service('~request_intervention', RequestIntervention, self.request_intervention)
         self.reset_service_ = rospy.Service('~reset_simulation', Empty, self.reset_sim)
         self.log_pub_ = rospy.Publisher('~task_log', Log, queue_size=1)
-        self.oomdp_pub_ = rospy.Publisher('~oomdp_state', OOStateMsg, queue_size=1)
+        # self.oomdp_pub_ = rospy.Publisher('~oomdp_state', OOStateMsg, queue_size=1)
 
         self.complexity = rospy.get_param('~complexity', 2)
 
@@ -71,16 +63,16 @@ class TableSim:
         # debug
         self.prev_state = None
 
-        # Celery
-        if CELERY_IMPORTED:
-            rospack = rospkg.RosPack()
-            actions_filename = os.path.join(
-                rospack.get_path('task_sim'),
-                'src', 'task_sim', 'str', 'A.pkl'
-            )
-            with open(actions_filename, 'rb') as fd:
-                self.celery_actions_ = pickle.load(fd)
-
+    def set_celery_imported(self):
+        """Mark celery as imported"""
+        self.CELERY_IMPORTED = True
+        rospack = rospkg.RosPack()
+        actions_filename = os.path.join(
+            rospack.get_path('task_sim'),
+            'src', 'task_sim', 'str', 'A.pkl'
+        )
+        with open(actions_filename, 'rb') as fd:
+            self.celery_actions_ = pickle.load(fd)
 
     def query_state(self, req):
         # return (self.state_, self.oo_state_.to_ros())
@@ -461,12 +453,11 @@ class TableSim:
             state=self.state_.get_state()
         )
         self.log_pub_.publish(log_msg)
-        self.oomdp_pub_.publish(self.state_.get_oo_state().to_ros())
-
-        print(np.array(self.state_.get_oo_state().relation_values, dtype=np.float32))
-        # pprint(self.state_.get_oo_state().relation_names)
+        # self.oomdp_pub_.publish(self.state_.get_oo_state().to_ros())
 
         # debug
+        # print(np.array(self.state_.get_oo_state().relation_values, dtype=np.float32))
+        # print(sorted(self.state_.get_oo_state().relation_names.keys()))
         # pprint(dict(self.state_.get_oo_state().relations))
         # state.relations.sort()
         # for rel in state.relations:
@@ -480,7 +471,7 @@ class TableSim:
 
     def execute_celery(self, actions):
         """Exceute an action based on a probability vector from celery"""
-        if not CELERY_IMPORTED:
+        if not self.CELERY_IMPORTED:
             return []
 
         action_choice = np.argmax(actions)
@@ -488,7 +479,7 @@ class TableSim:
 
         # Translate the celery action to one that worldUpdate recognizes
         if action.action_type == Action.PLACE:
-            action.position = DataUtils.semantic_action_to_position(state, action.object)
+            action.position = DataUtils.semantic_action_to_position(self.state_, action.object)
             action.object = ''
         elif action.action_type == Action.MOVE_ARM:
             if action.object == 'l':
@@ -516,14 +507,13 @@ class TableSim:
                 action.position.x = state.gripper_position.x - 10
                 action.position.y = state.gripper_position.y + 5
             else:
-                action.position = DataUtils.semantic_action_to_position(state, action.object)
+                action.position = DataUtils.semantic_action_to_position(self.state_, action.object)
             action.object = ''
         elif action.action_type != Action.GRASP:
             action.object = ''
 
         self.worldUpdate(action)
-        # return self.
-
+        return np.array(self.state_.get_oo_state().relation_values, dtype=np.float32).tolist()
 
     def execute_service(self, req):
         """Handle execution of all robot actions as a ROS service routine"""
@@ -2261,11 +2251,6 @@ class TableSim:
 
 
 if __name__ == '__main__':
-    # Check to see if celery has been enabled. If so, start it up
-    celery_app = None
-    if 'celery' in sys.argv:
-        pass
-
     # Init the ROS node
     rospy.init_node('table_sim')
     table_sim = TableSim()
@@ -2273,10 +2258,22 @@ if __name__ == '__main__':
     rospy.sleep(1.0)
     table_sim.worldUpdate()
 
-    # Shutdown based on the ROS signal. Call the callbacks
-    loop_rate = rospy.Rate(30)
-    while not rospy.is_shutdown():
-        if table_sim.terminal_input:
-            if table_sim.getInput() is None:
-                break
-        loop_rate.sleep()
+    # Check to see if celery has been enabled. If so, start it up
+    if 'celery' in sys.argv:
+        from celery.bin import worker as CeleryWorker
+        from task_sim.celery_executor import config, setup_celery, app
+
+        # Call the setup
+        table_sim.set_celery_imported()
+        setup_celery(True, table_sim)
+
+        worker = CeleryWorker.worker(app=app)
+        worker.run(loglevel='INFO', traceback=True, **config)
+    else:
+        # Shutdown based on the ROS signal. Call the callbacks
+        loop_rate = rospy.Rate(30)
+        while not rospy.is_shutdown():
+            if table_sim.terminal_input:
+                if table_sim.getInput() is None:
+                    break
+            loop_rate.sleep()

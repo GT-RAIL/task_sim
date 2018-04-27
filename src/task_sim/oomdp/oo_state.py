@@ -153,6 +153,12 @@ class OOState:
                 obj = obj_dict[key]
 
                 for rel_class_type, relation_kinds in rel_class_types.iteritems():
+
+                    # NOTE: Adding this continue for the STR relations
+                    if rel_class_type in [Container, Box, Lid] \
+                    or class_type in [Container, Box, Lid]:
+                        continue
+
                     rel_obj_dict, rel_obj_keys = class_to_objdict_map[rel_class_type]
                     rel_obj_keys = (
                         obj_keys[i+1:] if class_type == rel_class_type
