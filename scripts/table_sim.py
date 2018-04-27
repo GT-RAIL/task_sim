@@ -2181,7 +2181,7 @@ if __name__ == '__main__':
 
     # Shutdown based on the ROS signal. Call the callbacks
     no_quit, user_action = None, None
-    loop_rate = rospy.Rate(30)
+    loop_rate = rospy.Rate(1000)
     while not rospy.is_shutdown():
         if table_sim.terminal_input:
             if table_sim.getInput() is None:

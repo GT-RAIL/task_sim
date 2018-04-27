@@ -1,7 +1,4 @@
-# Demonstrations
+# Demonstrations for the STR project
 
-**Sid**:
-
-
-**Dave**:
-  * 2018-01-10-*.bag : successful demonstrations with varying strategies
+2018-04-19-15-12-09 - 2018-04-19-15-23-34 : fixed start state
+else : different apple/gripper starts

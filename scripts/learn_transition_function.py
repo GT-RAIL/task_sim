@@ -4,7 +4,9 @@
 
 # Python
 from copy import deepcopy
+import datetime
 import glob
+import numpy as np
 import pickle
 from random import random, randint
 
@@ -22,6 +24,8 @@ from task_sim.oomdp.oo_state import OOState
 from task_sim.str.amdp_state import AMDPState
 from task_sim.str.amdp_transitions_learned import AMDPTransitionsLearned
 
+# scikit-learn
+from sklearn.externals import joblib
 
 class LearnTransitionFunction:
 
@@ -57,6 +61,13 @@ class LearnTransitionFunction:
     def __init__(self):
         # data_file = rospy.get_param('~data', 'state-action_2018-04-20.pkl')
         # self.sa_pairs = pickle.load(file(data_file))
+
+        # parameters for controlling exploration
+        self.alpha = 0.9  # directly following demonstrations vs. random exploration
+        self.epsilon = 0.5  # random exploration vs. general policy guided exploration
+
+        self.epoch = 0
+        self.successes = 0
 
         # Read demo data
         self.task = rospy.get_param('~task', 'task4')
@@ -132,8 +143,11 @@ class LearnTransitionFunction:
                         else:
                             a.object = 'br'
                 a.position = Point()
+            elif a.action_type == Action.GRASP:
+                a.position = Point()
             else:
                 a.position = Point()
+                a.object = ''
 
             if s in self.pi:
                 self.pi[s].update(a)
@@ -142,12 +156,17 @@ class LearnTransitionFunction:
 
         self.transition_function = AMDPTransitionsLearned(amdp_id=self.amdp_id)
 
+        # load weak classifier to bias random exploration
+        classifier_path = rospy.get_param('~classifier_name', 'decision_tree_action_' + str(self.amdp_id) + '.pkl')
+        classifier_path = rospkg.RosPack().get_path('task_sim') + '/data/' + self.task + '/models/' + classifier_path
+
+        self.action_bias = joblib.load(classifier_path)
+
         self.query_state = rospy.ServiceProxy('table_sim/query_state', QueryState)
         self.execute_action = rospy.ServiceProxy('table_sim/execute_action', Execute)
         self.reset_sim = rospy.ServiceProxy('table_sim/reset_simulation', Empty)
 
         self.n = 0  # number of executions
-        self.consecutive_random_count = 0  # number of times a random action was chosen consecutively
         self.prev_state = None
         self.timeout = 0
 
@@ -157,17 +176,42 @@ class LearnTransitionFunction:
 
         self.timeout += 1
 
-        if self.consecutive_random_count > 10 or self.timeout > 100 or goal_check(state_msg):
-            self.consecutive_random_count = 0
+        goal_reached = goal_check(state_msg)
+        if self.timeout > 100 or goal_reached:
             self.timeout = 0
             self.reset_sim()
+            self.epoch += 1
+            if goal_reached:
+                self.successes += 1
             return
 
         if s in self.pi:
-            a = self.pi[s].select_action()
+            if random() < self.alpha:
+                a = self.pi[s].select_action()
+            else:
+                a = self.A[randint(0, len(self.A) - 1)]
         else:
-            self.consecutive_random_count += 1
-            a = self.A[randint(0, len(self.A) - 1)]
+            if random() > self.epsilon:
+                features = s.to_vector()
+
+                # Classify action
+                probs = self.action_bias.predict_proba(np.asarray(features).reshape(1, -1)).flatten().tolist()
+                selection = random()
+                cprob = 0
+                action_label = '0:apple'
+                for i in range(0, len(probs)):
+                    cprob += probs[i]
+                    if cprob >= selection:
+                        action_label = self.action_bias.classes_[i]
+                        break
+                # Convert back to action
+                a = Action()
+                result = action_label.split(':')
+                a.action_type = int(result[0])
+                if len(result) > 1:
+                    a.object = result[1]
+            else:
+                a = self.A[randint(0, len(self.A) - 1)]
 
         self.execute_action(action_to_sim(deepcopy(a), state_msg))
         s_prime = AMDPState(amdp_id=self.amdp_id, state=OOState(state=self.query_state().state))
@@ -233,10 +277,15 @@ if __name__ == '__main__':
 
     ltf = LearnTransitionFunction()
 
-    while ltf.n <= 5000000:
+    start = datetime.datetime.now()
+
+    while ltf.epoch <= 50000:
         # rospy.sleep(0.01)
         ltf.run()
-        if ltf.n % 250000 == 0:
-            print 'Iteration: ' + str(ltf.n)
+        if ltf.n % 25000 == 0:
+            print 'Iteration: ' + str(ltf.n) + ' (epochs completed: ' + str(ltf.epoch) + ', ' + str(ltf.successes) + ' successes)'
             print '\tTransition function state-action count: ' + str(len(ltf.transition_function.transition.keys()))
             ltf.transition_function.save('_' + str(ltf.n))
+            print 'Elapsed time: ' + str(datetime.datetime.now() - start)
+
+    print 'Final runtime: ' + str(datetime.datetime.now() - start)

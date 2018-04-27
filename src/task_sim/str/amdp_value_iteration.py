@@ -82,38 +82,55 @@ class AMDPValueIteration:
         # initialize action list
         a = Action()
 
-        a.action_type = Action.GRASP
-        for o in self.grasp_objects:
-            a.object = o
+        if self.amdp_id == 3:
+            # actions are overloaded here to use the same message type
+            # if amdp_id is 3 (the highest-level abstract mdp), then the actions correspond to the amdp_id, i.e.:
+            #   0 - open drawer
+            #   1 - close drawer
+            #   2 - put apple in drawer
+            a.action_type = 0
+            self.actions.append(deepcopy(a))
+            a.action_type = 1
+            self.actions.append(deepcopy(a))
+            a.action_type = 2
+            self.actions.append(deepcopy(a))
+        else:
+            a.action_type = Action.GRASP
+            for o in self.grasp_objects:
+                a.object = o
+                self.actions.append(deepcopy(a))
+
+            a.action_type = Action.PLACE
+            for o in self.place_objects:
+                a.object = o
+                self.actions.append(deepcopy(a))
+
+            a.action_type = Action.MOVE_ARM
+            for o in self.move_objects:
+                a.object = o
+                self.actions.append(deepcopy(a))
+
+            a.object = ''
+            a.action_type = Action.OPEN_GRIPPER
             self.actions.append(deepcopy(a))
 
-        a.action_type = Action.PLACE
-        for o in self.place_objects:
-            a.object = o
+            a.action_type = Action.CLOSE_GRIPPER
             self.actions.append(deepcopy(a))
 
-        a.action_type = Action.MOVE_ARM
-        for o in self.move_objects:
-            a.object = o
+            a.action_type = Action.RAISE_ARM
             self.actions.append(deepcopy(a))
 
-        a.action_type = Action.OPEN_GRIPPER
-        self.actions.append(deepcopy(a))
+            a.action_type = Action.LOWER_ARM
+            self.actions.append(deepcopy(a))
 
-        a.action_type = Action.CLOSE_GRIPPER
-        self.actions.append(deepcopy(a))
-
-        a.action_type = Action.RAISE_ARM
-        self.actions.append(deepcopy(a))
-
-        a.action_type = Action.LOWER_ARM
-        self.actions.append(deepcopy(a))
-
-        a.action_type = Action.RESET_ARM
-        self.actions.append(deepcopy(a))
+            a.action_type = Action.RESET_ARM
+            self.actions.append(deepcopy(a))
 
         # initialize transition function
-        self.T = AMDPTransitionsLearned(amdp_id=self.amdp_id, load=True)
+        if self.amdp_id == 3:
+            self.T = AMDPTransitionsLearned(amdp_id=self.amdp_id, load=False)
+        else:
+            self.T = AMDPTransitionsLearned(amdp_id=self.amdp_id, load=True)
 
     def solve(self):
         gamma = 0.8
@@ -196,5 +213,5 @@ class AMDPValueIteration:
 
 
 if __name__ == '__main__':
-    a = AMDPValueIteration(amdp_id=2)
+    a = AMDPValueIteration(amdp_id=3)
     a.solve()

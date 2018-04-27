@@ -71,6 +71,8 @@ class AMDPState:
         elif self.amdp_id == 3:
             self.relation_names = copy(self.high_level_relation_list)
 
+        self.relation_names.sort()
+
         for relation_name in self.relation_names:
                 self.relations[relation_name] = False
 
@@ -87,6 +89,12 @@ class AMDPState:
             self.relations['gripper_holding_apple'] = True
         if 'gripper_open' in self.relation_names:
             self.relations['gripper_open'] = not state.grippers['gripper'].closed
+
+    def to_vector(self):
+        v = []
+        for r in self.relation_names:
+            v.append(int(self.relations[r]))
+        return v
 
     def __str__(self):
         s = ''
