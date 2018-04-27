@@ -63,7 +63,7 @@ class LearnTransitionFunction:
         # self.sa_pairs = pickle.load(file(data_file))
 
         # parameters for controlling exploration
-        self.alpha = 0.9  # directly following demonstrations vs. random exploration
+        self.alpha = 0.8  # directly following demonstrations vs. random exploration
         self.epsilon = 0.5  # random exploration vs. general policy guided exploration
 
         self.epoch = 0
