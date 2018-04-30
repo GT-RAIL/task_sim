@@ -67,9 +67,9 @@ class TableSim:
         """Mark celery as imported"""
         self.CELERY_IMPORTED = True
         rospack = rospkg.RosPack()
-        actions_filename = os.path.join(
-            rospack.get_path('task_sim'),
-            'src', 'task_sim', 'str', 'A.pkl'
+        actions_filename = rospy.get_param(
+            '~actions_filename',
+            os.path.join(rospack.get_path('task_sim'), 'data', 'task4', 'metadata', 'A.pkl')
         )
         with open(actions_filename, 'rb') as fd:
             self.celery_actions_ = pickle.load(fd)
@@ -370,12 +370,15 @@ class TableSim:
         # Hidden state
         self.grasp_states = {}
         for object in self.state_.objects:
-            self.grasp_states[object.unique_name] = GraspState(self.getNeighborCount(object.position),
-                                                        self.copyPoint(object.position))
-
+            self.grasp_states[object.unique_name] = GraspState(
+                self.getNeighborCount(object.position),
+                self.copyPoint(object.position)
+            )
 
         # Reinitialize the state
-        self.state_.reinit_oo_state()
+        relation_keys_filename = rospy.get_param('~relation_keys_filename', None)
+        self.state_.reinit_oo_state(relation_keys_filename=relation_keys_filename)
+
 
     # TODO: container version
     def getNeighborCount(self, position):
@@ -457,8 +460,11 @@ class TableSim:
 
         # debug
         # print(np.array(self.state_.get_oo_state().relation_values, dtype=np.float32))
-        # print(sorted(self.state_.get_oo_state().relation_names.keys()))
-        # pprint(dict(self.state_.get_oo_state().relations))
+        # print(dict(zip(
+        #     self.state_.get_oo_state().relation_keys,
+        #     self.state_.get_oo_state().relation_values
+        # )))
+        # # pprint(dict(self.state_.get_oo_state().relations))
         # state.relations.sort()
         # for rel in state.relations:
         #     print rel

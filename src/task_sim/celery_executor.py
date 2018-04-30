@@ -9,8 +9,8 @@ from celery import Celery
 
 # Regardless of language, all the apps must remain aware of the Celery
 config = dict(
-    broker='pyamqp://guest:guest@172.17.0.2:5672',
-    backend = 'redis://172.17.0.3:6379'
+    broker='pyamqp://guest:guest@172.17.0.3:5672',
+    backend = 'redis://172.17.0.4:6379'
 )
 app = Celery('celery_executor', **config)
 
@@ -23,11 +23,11 @@ def setup_celery(is_worker, table_sim=None):
     """
 
     if is_worker:
-        @app.task
+        @app.task(name='table_sim.execute_action')
         def execute(actions):
             return table_sim.execute_celery(actions)
     else:
-        @app.task
+        @app.task(name='table_sim.execute_action')
         def execute(actions):
             return []
 

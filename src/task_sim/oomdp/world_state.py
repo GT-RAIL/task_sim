@@ -6,6 +6,7 @@
 from __future__ import print_function, division
 
 import string
+import pickle
 
 from geometry_msgs.msg import Point
 
@@ -404,13 +405,19 @@ class WorldState(object):
     def reinit_oo_state(
         self,
         gripper_name="gripper", box_name="box", lid_name="lid",
-        drawer_name="drawer", stack_name="stack"
+        drawer_name="drawer", stack_name="stack",
+        relation_keys_filename=None
     ):
         self._oo_state = OOState(
             state=self._state_msg,
             gripper_name=gripper_name, box_name=box_name, lid_name=lid_name,
             drawer_name=drawer_name, stack_name=stack_name
         )
+
+        # If we should save the relation keys for debugging
+        if relation_keys_filename is not None:
+            with open(relation_keys_filename, 'wb') as fd:
+                pickle.dump(self._oo_state.relation_keys, fd)
 
         # Save the objects to speed up lookup
         self._gripper = self._oo_state.grippers[gripper_name]

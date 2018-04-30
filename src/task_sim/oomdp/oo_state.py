@@ -53,6 +53,7 @@ class OOState:
         self.relation_names = {}
         # Speed up ROS message construction by caching the values?
         self.relation_values = []
+        self.relation_keys = []
 
         for b in self.boxes.values():
             b.relations.clear()
@@ -173,9 +174,10 @@ class OOState:
 
         # Update the relation names and relation values
         self.relation_names = { x: i for i, x in enumerate(sorted(self.relations.keys())) }
+        self.relation_keys = sorted(self.relation_names.keys())
         self.relation_values = [
             any([relation.value for relation in self.relations[name]])
-            for name in sorted(self.relation_names.keys())
+            for name in self.relation_keys
         ]
 
         # Return
