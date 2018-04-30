@@ -47,6 +47,59 @@ object_gripper_drawer_relation_list = [
     'gripper_holding_apple'
 ]
 
+gripper_box_relation_list = [
+    'gripper_left_of_box',
+    'gripper_right_of_box',
+    'gripper_in_front_of_box',
+    'gripper_behind_box',
+    'gripper_above_box',
+    'gripper_below_box',
+    'gripper_left_of_lid',
+    'gripper_right_of_lid',
+    'gripper_in_front_of_lid',
+    'gripper_behind_lid',
+    'gripper_above_lid',
+    'gripper_below_lid',
+    'lid_closing_box',
+    'gripper_open',
+    'gripper_touching_box',
+    'gripper_holding_lid'
+]
+
+object_gripper_box_relation_list = [
+    'apple_left_of_box',
+    'apple_right_of_box',
+    'apple_in_front_of_box',
+    'apple_behind_box',
+    'apple_above_box',
+    'apple_below_box',
+    'apple_left_of_gripper',
+    'apple_right_of_gripper',
+    'apple_in_front_of_gripper',
+    'apple_behind_gripper',
+    'apple_above_gripper',
+    'apple_below_gripper',
+    'gripper_left_of_box',
+    'gripper_right_of_box',
+    'gripper_in_front_of_box',
+    'gripper_behind_box',
+    'gripper_above_box',
+    'gripper_below_box',
+    'gripper_left_of_lid',
+    'gripper_right_of_lid',
+    'gripper_in_front_of_lid',
+    'gripper_behind_lid',
+    'gripper_above_lid',
+    'gripper_below_lid',
+    'lid_closing_box',
+    'gripper_open',
+    'gripper_touching_box',
+    'gripper_holding_lid',
+    'gripper_holding_apple',
+    'apple_touching_box',
+    'gripper_holding_apple'
+]
+
 object2_gripper_drawer_relation_list = [
     'apple_left_of_drawer',
     'apple_right_of_drawer',
@@ -208,7 +261,13 @@ class AMDPState:
             3 : high level object-drawer task
             4 : high level 2 object-drawer task
             5 : high level 3 object-drawer task
-            
+
+            6 : open box
+            7 : close box
+            8 : put apple in box
+            9 : high level object-box task
+            10 : high level 3 object-drawer-box task
+
             -1 : flat 1 object 1 drawer
             -2 : flat 2 object 1 drawer
             -3 : flat 3 object 1 drawer
@@ -232,6 +291,16 @@ class AMDPState:
             self.relation_names = copy(object2_gripper_drawer_relation_list)
         elif self.amdp_id == -3:
             self.relation_names = copy(object3_gripper_drawer_relation_list)
+        elif self.amdp_id == 6 or self.amdp_id == 7:
+            self.relation_names = copy(gripper_box_relation_list)
+        elif self.amdp_id == 8:
+            self.relation_names = copy(object_gripper_box_relation_list)
+        elif self.amdp_id == 9:
+            # TODO
+            pass
+        elif self.amdp_id == 10:
+            # TODO
+            pass
 
         self.relation_names.sort()
 
@@ -253,6 +322,9 @@ class AMDPState:
 
         if 'gripper_holding_drawer' in self.relation_names and state.grippers['gripper'].holding == 'drawer':
             self.relations['gripper_holding_drawer'] = True
+
+        if 'gripper_holding_lid' in self.relation_names and state.grippers['gripper'].holding == 'lid':
+            self.relations['gripper_holding_lid'] = True
 
         if self.ground_items is not None:
             item = self.ground_items[0]

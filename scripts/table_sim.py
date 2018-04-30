@@ -178,8 +178,8 @@ class TableSim:
                 self.state_.drawer_position.y = 10
                 self.state_.drawer_position.theta = 0
                 self.state_.drawer_opening = 0
-                self.state_.box_position.x = 45
-                self.state_.box_position.y = 19
+                self.state_.box_position.x = 30
+                self.state_.box_position.y = 11
                 self.state_.lid_position.x = self.state_.box_position.x
                 self.state_.lid_position.y = self.state_.box_position.y
                 self.state_.lid_position.z = self.boxHeight
@@ -448,10 +448,10 @@ class TableSim:
         self.show()
 
         # # debug
-        s = AMDPState(amdp_id=-3, state=OOState(state=self.state_))
-        for key in s.relations:
-            if s.relations[key]:
-                print str(key)
+        # s = AMDPState(amdp_id=-3, state=OOState(state=self.state_))
+        # for key in s.relations:
+        #     if s.relations[key]:
+        #         print str(key)
         # print str(s.relations)
         # state = OOState(self.state_)
         # state.relations.sort()

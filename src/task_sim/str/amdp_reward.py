@@ -51,6 +51,17 @@ def reward(s, amdp_id=0):
                 or s.relations['carrot_above_drawer'] or s.relations['carrot_below_drawer']) \
                 and s.relations['drawer_closing_stack'] and not s.relations['gripper_holding_drawer']:
             return 100
+    elif amdp_id == 6:
+        if not s.relations['lid_closing_box']:
+            return 100
+    elif amdp_id == 7:
+        if s.relations['lid_closing_box'] and not s.relations['gripper_holding_lid']:
+            return 100
+    elif amdp_id == 8:
+        if not (s.relations['apple_left_of_box'] or s.relations['apple_right_of_box']
+                 or s.relations['apple_in_front_of_box'] or s.relations['apple_behind_box']
+                 or s.relations['apple_above_box'] or s.relations['apple_below_box']):
+            return 100
 
     return -1
 
@@ -96,3 +107,12 @@ def is_terminal(s, amdp_id=0):
                     or s.relations['carrot_in_front_of_drawer'] or s.relations['carrot_behind_drawer']
                     or s.relations['carrot_above_drawer'] or s.relations['carrot_below_drawer']) \
                and s.relations['drawer_closing_stack'] and not s.relations['gripper_holding_drawer']
+
+    elif amdp_id == 6:
+        return not s.relations['lid_closing_box']
+    elif amdp_id == 7:
+        return s.relations['lid_closing_box'] and not s.relations['gripper_holding_lid']
+    elif amdp_id == 8:
+        return not (s.relations['apple_left_of_box'] or s.relations['apple_right_of_box']
+                    or s.relations['apple_in_front_of_box'] or s.relations['apple_behind_box']
+                    or s.relations['apple_above_box'] or s.relations['apple_below_box'])

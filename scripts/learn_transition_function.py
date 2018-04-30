@@ -120,6 +120,20 @@ class LearnTransitionFunction:
             a.action_type = 0
             self.A.append(deepcopy(a))
 
+        if self.amdp_id >= 6 and self.amdp_id <= 8:
+            a = Action()
+            a.action_type = 0
+            a.object = 'lid'
+            self.A.append(deepcopy(a))
+            a.action_type = 4
+            self.A.append(deepcopy(a))
+            a.object = 'box'
+            self.A.append(deepcopy(a))
+            a.action_type = 1
+            self.A.append(deepcopy(a))
+            a.object = 'lid'
+            self.A.append(deepcopy(a))
+
         # fill in the policy directly from demonstrations
         self.pi = {}
         for pair in self.sa_pairs:
@@ -133,7 +147,7 @@ class LearnTransitionFunction:
                 a.position = Point()
             elif a.action_type == Action.MOVE_ARM:
                 a.object = DataUtils.get_task_frame(state_msg, a.position)
-                if a.object != 'stack' and a.object != 'drawer':
+                if a.object != 'stack' and a.object != 'drawer' and a.object != 'box' and a.object != 'lid':
                     for o in state_msg.objects:
                         if o.name != 'apple' or o.name != 'banana' or o.name != 'carrot':
                             continue
@@ -242,22 +256,33 @@ class LearnTransitionFunction:
 
 
 def goal_check(s, amdp_id=0):
-    for o in s.objects:
-        if o.name == 'apple':
-            if not o.in_drawer:
-                return False
-        if amdp_id == -2 or amdp_id == -3:
-            if o.name == 'banana':
+    if amdp_id < 6:
+        for o in s.objects:
+            if o.name == 'apple':
                 if not o.in_drawer:
                     return False
-        if amdp_id == -3:
-            if o.name == 'carrot':
-                if not o.in_drawer:
+            if amdp_id == -2 or amdp_id == -3:
+                if o.name == 'banana':
+                    if not o.in_drawer:
+                        return False
+            if amdp_id == -3:
+                if o.name == 'carrot':
+                    if not o.in_drawer:
+                        return False
+        if s.drawer_opening > 1:
+            return False
+        if s.object_in_gripper == 'drawer':
+            return False
+    else:
+        for o in s.objects:
+            if o.name == 'apple':
+                if not o.in_box:
                     return False
-    if s.drawer_opening > 1:
-        return False
-    if s.object_in_gripper == 'drawer':
-        return False
+        if not (s.box_position.x == s.lid_position.x and s.box_position.y == s.lid_position.y
+                and s.lid_position.z == 1):
+            return False
+        if s.object_in_gripper == 'lid':
+            return False
 
     return True
 
