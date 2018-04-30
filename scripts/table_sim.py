@@ -37,6 +37,7 @@ class TableSim:
         self.log_pub_ = rospy.Publisher('~task_log', Log, queue_size=1)
 
         self.complexity = rospy.get_param('~complexity', 2)
+        self.obj_count = rospy.get_param('~objects', 1)
 
         self.quiet_mode = rospy.get_param('~quiet_mode', False)
         self.terminal_input = rospy.get_param('~terminal_input', True)
@@ -199,6 +200,28 @@ class TableSim:
         obj1.name = "apple"
         # handle name
         obj1.unique_name = obj1.name
+
+        # NOTE: Change for STR project
+        if self.obj_count >= 2:
+            obj2 = Object()
+            obj2.name = 'banana'
+            obj2.unique_name = obj2.name
+
+            obj2.position.x = 23
+            obj2.position.y = 4
+            obj2.position.z = 0
+            self.state_.objects.append(obj2)
+
+        if self.obj_count >= 3:
+            obj3 = Object()
+            obj3.name = 'carrot'
+            obj3.unique_name = obj3.name
+
+            obj3.position.x = 27
+            obj3.position.y = 6
+            obj3.position.z = 0
+            self.state_.objects.append(obj3)
+
         # NOTE: Change for STR project
         if self.complexity > 0:
             mod = 0
@@ -425,7 +448,10 @@ class TableSim:
         self.show()
 
         # # debug
-        # s = AMDPState(amdp_id=0, state=OOState(state=self.state_))
+        s = AMDPState(amdp_id=-3, state=OOState(state=self.state_))
+        for key in s.relations:
+            if s.relations[key]:
+                print str(key)
         # print str(s.relations)
         # state = OOState(self.state_)
         # state.relations.sort()

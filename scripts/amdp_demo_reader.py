@@ -25,7 +25,7 @@ class AMDPDemoReader:
     def __init__(self):
         self.task = rospy.get_param('~task', 'task4')
         self.output_suffix = rospy.get_param('~output_suffix', '_' + str(datetime.date.today()))
-        self.amdp_id = rospy.get_param('~amdp_id', 0)
+        self.amdp_id = rospy.get_param('~amdp_id', 2)
 
         print 'Loading demonstrations for ' + self.task + '...'
         self.demo_list = glob.glob(rospkg.RosPack().get_path('task_sim') + '/data/' + self.task + "/demos/*.bag")

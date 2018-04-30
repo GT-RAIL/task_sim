@@ -61,8 +61,34 @@ class AMDPValueIteration:
             s.relations['gripper_holding_drawer'] = True
             s.relations['gripper_touching_drawer'] = True
             self.U[deepcopy(s)] = 0.0
+            s.relations['gripper_right_of_drawer'] = False
+            s.relations['gripper_holding_drawer'] = False
+            s.relations['gripper_touching_drawer'] = False
+            self.U[deepcopy(s)] = 0.0
+            s.relations['gripper_touching_drawer'] = True
+            self.U[deepcopy(s)] = 0.0
+            s.relations['gripper_touching_drawer'] = True
+            s.relations['gripper_touching_stack'] = True
+            self.U[deepcopy(s)] = 0.0
+            s.relations['gripper_touching_drawer'] = False
+            s.relations['gripper_touching_stack'] = True
+            self.U[deepcopy(s)] = 0.0
+            s.relations['gripper_touching_stack'] = False
+            s.relations['gripper_above_drawer'] = True
+            self.U[deepcopy(s)] = 0.0
         elif self.amdp_id == 3:
             s.relations['apple_inside_drawer'] = False
+            s.relations['drawer_closing_stack'] = True
+            self.U[deepcopy(s)] = 0.0
+        elif self.amdp_id == 4:
+            s.relations['apple_inside_drawer'] = False
+            s.relations['banana_inside_drawer'] = False
+            s.relations['drawer_closing_stack'] = True
+            self.U[deepcopy(s)] = 0.0
+        elif self.amdp_id == 5:
+            s.relations['apple_inside_drawer'] = False
+            s.relations['banana_inside_drawer'] = False
+            s.relations['carrot_inside_drawer'] = False
             s.relations['drawer_closing_stack'] = True
             self.U[deepcopy(s)] = 0.0
         elif self.amdp_id == -1:
@@ -75,6 +101,54 @@ class AMDPValueIteration:
             s.relations['gripper_in_front_of_drawer'] = True
             s.relations['gripper_open'] = True
             s.relations['drawer_closing_stack'] = True
+            self.U[deepcopy(s)] = 0.0
+        elif self.amdp_id == -2:
+            s.relations['apple_behind_gripper'] = True
+            s.relations['gripper_in_front_of_drawer'] = True
+            s.relations['banana_in_front_of_drawer'] = True
+            s.relations['apple_below_gripper'] = True
+            s.relations['apple_below_drawer'] = True
+            s.relations['banana_below_gripper'] = True
+            s.relations['apple_right_of_gripper'] = True
+            s.relations['banana_behind_gripper'] = True
+            s.relations['apple_in_front_of_drawer'] = True
+            s.relations['banana_below_drawer'] = True
+            s.relations['drawer_closing_stack'] = True
+            s.relations['gripper_open'] = True
+            s.relations['banana_right_of_gripper'] = True
+            s.relations['apple_right_of_drawer'] = True
+            s.relations['apple_right_of_banana'] = True
+            s.relations['banana_right_of_drawer'] = True
+            s.relations['apple_behind_banana'] = True
+            self.U[deepcopy(s)] = 0.0
+        elif self.amdp_id == -3:
+            s.relations['apple_behind_gripper'] = True
+            s.relations['gripper_in_front_of_drawer'] = True
+            s.relations['apple_left_of_carrot'] = True
+            s.relations['banana_left_of_carrot'] = True
+            s.relations['banana_in_front_of_drawer'] = True
+            s.relations['apple_below_gripper'] = True
+            s.relations['carrot_below_drawer'] = True
+            s.relations['apple_below_drawer'] = True
+            s.relations['carrot_behind_gripper'] = True
+            s.relations['banana_below_gripper'] = True
+            s.relations['apple_right_of_gripper'] = True
+            s.relations['banana_behind_gripper'] = True
+            s.relations['apple_in_front_of_drawer'] = True
+            s.relations['banana_below_drawer'] = True
+            s.relations['carrot_right_of_gripper'] = True
+            s.relations['drawer_closing_stack'] = True
+            s.relations['carrot_right_of_drawer'] = True
+            s.relations['carrot_below_gripper'] = True
+            s.relations['gripper_open'] = True
+            s.relations['banana_in_front_of_carrot'] = True
+            s.relations['banana_right_of_gripper'] = True
+            s.relations['apple_in_front_of_carrot'] = True
+            s.relations['apple_right_of_drawer'] = True
+            s.relations['carrot_in_front_of_drawer'] = True
+            s.relations['apple_right_of_banana'] = True
+            s.relations['banana_right_of_drawer'] = True
+            s.relations['apple_behind_banana'] = True
             self.U[deepcopy(s)] = 0.0
         else:
             self.U[deepcopy(s)] = 0.0
@@ -94,10 +168,52 @@ class AMDPValueIteration:
             self.actions.append(deepcopy(a))
             a.action_type = 2
             self.actions.append(deepcopy(a))
+        elif self.amdp_id == 4:
+            # actions are overloaded here to use the same message type
+            # if amdp_id is 3 (the highest-level abstract mdp), then the actions correspond to the amdp_id, i.e.:
+            #   0 - open drawer
+            #   1 - close drawer
+            #   2 - put apple in drawer
+            # ground items are stored in the Action.object member
+            a.action_type = 0
+            self.actions.append(deepcopy(a))
+            a.action_type = 1
+            self.actions.append(deepcopy(a))
+            a.action_type = 2
+            a.object = 'apple'
+            self.actions.append(deepcopy(a))
+            a.object = 'banana'
+            self.actions.append(deepcopy(a))
+        elif self.amdp_id == 5:
+            # actions are overloaded here to use the same message type
+            # if amdp_id is 3 (the highest-level abstract mdp), then the actions correspond to the amdp_id, i.e.:
+            #   0 - open drawer
+            #   1 - close drawer
+            #   2 - put apple in drawer
+            # ground items are stored in the Action.object member
+            a.action_type = 0
+            self.actions.append(deepcopy(a))
+            a.action_type = 1
+            self.actions.append(deepcopy(a))
+            a.action_type = 2
+            a.object = 'apple'
+            self.actions.append(deepcopy(a))
+            a.object = 'banana'
+            self.actions.append(deepcopy(a))
+            a.object = 'carrot'
+            self.actions.append(deepcopy(a))
         else:
             a.action_type = Action.GRASP
             for o in self.grasp_objects:
                 a.object = o
+                self.actions.append(deepcopy(a))
+            if self.amdp_id == -2:
+                a.object = 'banana'
+                self.actions.append(deepcopy(a))
+            elif self.amdp_id == -3:
+                a.object = 'banana'
+                self.actions.append(deepcopy(a))
+                a.object = 'carrot'
                 self.actions.append(deepcopy(a))
 
             a.action_type = Action.PLACE
@@ -108,6 +224,14 @@ class AMDPValueIteration:
             a.action_type = Action.MOVE_ARM
             for o in self.move_objects:
                 a.object = o
+                self.actions.append(deepcopy(a))
+            if self.amdp_id == -2:
+                a.object = 'banana'
+                self.actions.append(deepcopy(a))
+            elif self.amdp_id == -3:
+                a.object = 'banana'
+                self.actions.append(deepcopy(a))
+                a.object = 'carrot'
                 self.actions.append(deepcopy(a))
 
             a.object = ''
@@ -127,7 +251,7 @@ class AMDPValueIteration:
             self.actions.append(deepcopy(a))
 
         # initialize transition function
-        if self.amdp_id == 3:
+        if self.amdp_id >= 3 and self.amdp_id <= 5:
             self.T = AMDPTransitionsLearned(amdp_id=self.amdp_id, load=False)
         else:
             self.T = AMDPTransitionsLearned(amdp_id=self.amdp_id, load=True)
@@ -213,5 +337,5 @@ class AMDPValueIteration:
 
 
 if __name__ == '__main__':
-    a = AMDPValueIteration(amdp_id=3)
+    a = AMDPValueIteration(amdp_id=-3)
     a.solve()

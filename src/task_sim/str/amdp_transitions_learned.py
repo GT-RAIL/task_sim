@@ -92,6 +92,38 @@ class AMDPTransitionsLearned:
                     # place apple in drawer
                     s_prime.relations['apple_inside_drawer'] = True
             return [(1.0, s_prime)]
+        elif self.amdp_id == 4:
+            # hand-coded abstract transitions
+            s_prime = deepcopy(s)
+            if a.action_type == 0:
+                # open drawer
+                s_prime.relations['drawer_closing_stack'] = False
+            elif a.action_type == 1:
+                s_prime.relations['drawer_closing_stack'] = True
+            elif a.action_type == 2:
+                if not s.relations['drawer_closing_stack']:
+                    if a.object == 'apple':
+                        s_prime.relations['apple_inside_drawer'] = True
+                    elif a.object == 'banana':
+                        s_prime.relations['banana_inside_drawer'] = True
+            return [(1.0, s_prime)]
+        elif self.amdp_id == 5:
+            # hand-coded abstract transitions
+            s_prime = deepcopy(s)
+            if a.action_type == 0:
+                # open drawer
+                s_prime.relations['drawer_closing_stack'] = False
+            elif a.action_type == 1:
+                s_prime.relations['drawer_closing_stack'] = True
+            elif a.action_type == 2:
+                if not s.relations['drawer_closing_stack']:
+                    if a.object == 'apple':
+                        s_prime.relations['apple_inside_drawer'] = True
+                    elif a.object == 'banana':
+                        s_prime.relations['banana_inside_drawer'] = True
+                    elif a.object == 'carrot':
+                        s_prime.relations['carrot_inside_drawer'] = True
+            return [(1.0, s_prime)]
         else:
             q = (s, a.action_type, a.object)
             # states = []

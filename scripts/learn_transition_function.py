@@ -63,7 +63,7 @@ class LearnTransitionFunction:
         # self.sa_pairs = pickle.load(file(data_file))
 
         # parameters for controlling exploration
-        self.alpha = 0.9  # directly following demonstrations vs. random exploration
+        self.alpha = 0.8  # directly following demonstrations vs. random exploration
         self.epsilon = 0.5  # random exploration vs. general policy guided exploration
 
         self.epoch = 0
@@ -101,6 +101,25 @@ class LearnTransitionFunction:
 
         self.amdp_id = rospy.get_param('~amdp_id', 2)
 
+        if self.amdp_id == -2:
+            a = Action()
+            a.action_type = 0
+            a.object = 'banana'
+            self.A.append(deepcopy(a))
+            a.action_type = 4
+            self.A.append(deepcopy(a))
+        elif self.amdp_id == -3:
+            a = Action()
+            a.action_type = 0
+            a.object = 'banana'
+            self.A.append(deepcopy(a))
+            a.action_type = 4
+            self.A.append(deepcopy(a))
+            a.object = 'carrot'
+            self.A.append(deepcopy(a))
+            a.action_type = 0
+            self.A.append(deepcopy(a))
+
         # fill in the policy directly from demonstrations
         self.pi = {}
         for pair in self.sa_pairs:
@@ -116,12 +135,13 @@ class LearnTransitionFunction:
                 a.object = DataUtils.get_task_frame(state_msg, a.position)
                 if a.object != 'stack' and a.object != 'drawer':
                     for o in state_msg.objects:
-                        if o.name != 'apple':
+                        if o.name != 'apple' or o.name != 'banana' or o.name != 'carrot':
                             continue
                         if a.position == o.position:
-                            a.object = 'apple'
+                            a.object = o.name
                             break
-                    if a.object != 'apple':
+
+                    if a.object != 'apple' or a.object != 'banana' or a.object != 'carrot':
                         x = state_msg.gripper_position.x
                         y = state_msg.gripper_position.y
                         px = a.position.x
@@ -176,8 +196,8 @@ class LearnTransitionFunction:
 
         self.timeout += 1
 
-        goal_reached = goal_check(state_msg)
-        if self.timeout > 100 or goal_reached:
+        goal_reached = goal_check(state_msg, self.amdp_id)
+        if self.timeout > 175 or goal_reached:
             self.timeout = 0
             self.reset_sim()
             self.epoch += 1
@@ -221,11 +241,19 @@ class LearnTransitionFunction:
         self.prev_state = deepcopy(s)
 
 
-def goal_check(s):
+def goal_check(s, amdp_id=0):
     for o in s.objects:
         if o.name == 'apple':
             if not o.in_drawer:
                 return False
+        if amdp_id == -2 or amdp_id == -3:
+            if o.name == 'banana':
+                if not o.in_drawer:
+                    return False
+        if amdp_id == -3:
+            if o.name == 'carrot':
+                if not o.in_drawer:
+                    return False
     if s.drawer_opening > 1:
         return False
     if s.object_in_gripper == 'drawer':
@@ -282,10 +310,11 @@ if __name__ == '__main__':
     while ltf.epoch <= 50000:
         # rospy.sleep(0.01)
         ltf.run()
-        if ltf.n % 25000 == 0:
+        if ltf.n % 50000 == 0:
             print 'Iteration: ' + str(ltf.n) + ' (epochs completed: ' + str(ltf.epoch) + ', ' + str(ltf.successes) + ' successes)'
             print '\tTransition function state-action count: ' + str(len(ltf.transition_function.transition.keys()))
             ltf.transition_function.save('_' + str(ltf.n))
             print 'Elapsed time: ' + str(datetime.datetime.now() - start)
 
+    ltf.transition_function.save('_' + str(ltf.n))
     print 'Final runtime: ' + str(datetime.datetime.now() - start)
