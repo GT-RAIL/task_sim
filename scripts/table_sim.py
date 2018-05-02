@@ -74,15 +74,26 @@ class TableSim:
             '~actions_filename',
             os.path.join(rospack.get_path('task_sim'), 'data', 'task4', 'metadata', 'A.pkl')
         )
+        action_keys_filename = rospy.get_param(
+            '~action_keys_filename',
+            os.path.join(rospack.get_path('task_sim'), 'data', 'task4', 'metadata', 'A_keys.pkl')
+        )
         relation_keys_filename = rospy.get_param(
             '~relation_keys_filename',
             os.path.join(rospack.get_path('task_sim'), 'data', 'task4', 'metadata', 'R_keys.pkl')
         )
 
-        # Load and write the data
-        self.state_.write_relation_keys(relation_keys_filename)
+        # Load the celery actions
         with open(actions_filename, 'rb') as fd:
             self.celery_actions_ = pickle.load(fd)
+
+        # Write the relations
+        self.state_.write_relation_keys(relation_keys_filename)
+
+        # Write out the actions in a HER readable form
+        action_keys = [(a.action_type, a.object) for a in self.celery_actions_]
+        with open(action_keys_filename, 'wb') as fd:
+            pickle.dump(action_keys, fd)
 
         # Disable terminal input and prints
         self.terminal_input = False
@@ -499,12 +510,12 @@ class TableSim:
 
         return self.state_
 
-    def execute_celery(self, actions):
+    def execute_celery(self, json):
         """Exceute an action based on a probability vector from celery"""
         if not self.CELERY_IMPORTED:
             return []
 
-        action_choice = np.argmax(actions)
+        action_choice = np.argmax(json['actions'])
         action = self.celery_actions_[action_choice]
 
         # Translate the celery action to one that worldUpdate recognizes
@@ -513,29 +524,29 @@ class TableSim:
             action.object = ''
         elif action.action_type == Action.MOVE_ARM:
             if action.object == 'l':
-                action.position.x = state.gripper_position.x - 10
-                action.position.y = state.gripper_position.y
+                action.position.x = self.state_.gripper_position.x - 10
+                action.position.y = self.state_.gripper_position.y
             elif action.object == 'fl':
-                action.position.x = state.gripper_position.x - 10
-                action.position.y = state.gripper_position.y - 5
+                action.position.x = self.state_.gripper_position.x - 10
+                action.position.y = self.state_.gripper_position.y - 5
             elif action.object == 'f':
-                action.position.x = state.gripper_position.x
-                action.position.y = state.gripper_position.y - 5
+                action.position.x = self.state_.gripper_position.x
+                action.position.y = self.state_.gripper_position.y - 5
             elif action.object == 'fr':
-                action.position.x = state.gripper_position.x + 10
-                action.position.y = state.gripper_position.y - 5
+                action.position.x = self.state_.gripper_position.x + 10
+                action.position.y = self.state_.gripper_position.y - 5
             elif action.object == 'r':
-                action.position.x = state.gripper_position.x + 10
-                action.position.y = state.gripper_position.y
+                action.position.x = self.state_.gripper_position.x + 10
+                action.position.y = self.state_.gripper_position.y
             elif action.object == 'br':
-                action.position.x = state.gripper_position.x + 10
-                action.position.y = state.gripper_position.y + 5
+                action.position.x = self.state_.gripper_position.x + 10
+                action.position.y = self.state_.gripper_position.y + 5
             elif action.object == 'b':
-                action.position.x = state.gripper_position.x
-                action.position.y = state.gripper_position.y + 5
+                action.position.x = self.state_.gripper_position.x
+                action.position.y = self.state_.gripper_position.y + 5
             elif action.object == 'bl':
-                action.position.x = state.gripper_position.x - 10
-                action.position.y = state.gripper_position.y + 5
+                action.position.x = self.state_.gripper_position.x - 10
+                action.position.y = self.state_.gripper_position.y + 5
             else:
                 action.position = DataUtils.semantic_action_to_position(self.state_, action.object)
             action.object = ''
@@ -2310,7 +2321,7 @@ if __name__ == '__main__':
 
         worker = CeleryWorker.worker(app=app)
         worker.run(
-            loglevel='INFO', traceback=True,
+            loglevel='WARN', traceback=True,
             hostname=instance_name, queues=instance_name,
             **config
         )
