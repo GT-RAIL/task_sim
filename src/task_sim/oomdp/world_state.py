@@ -23,9 +23,9 @@ class OOMDPPoint(object):
     Intercept the incoming x,y,z modifications and propagate them to the
     _state_msg and the _oo_state sections
     """
-    def __init__(self, point, oomdp_objs, oo_state):
+    def __init__(self, point, oomdp_obj, oo_state):
         self.point = point
-        self.oomdp_objs = oomdp_objs
+        self.oomdp_obj = oomdp_obj
         self.oo_state = oo_state
 
     def __eq__(self, other):
@@ -42,10 +42,8 @@ class OOMDPPoint(object):
     def x(self, val):
         if self.point.x != val:
             self.point.x = val
-            for oomdp_obj in self.oomdp_objs:
-                if hasattr(oomdp_obj, 'x'):
-                    oomdp_obj.x = val
-                    self.oo_state.update_set.add(oomdp_obj)
+            self.oomdp_obj.x = val
+            self.oo_state.update_set.add(self.oomdp_obj)
 
     @property
     def y(self):
@@ -55,10 +53,8 @@ class OOMDPPoint(object):
     def y(self, val):
         if self.point.y != val:
             self.point.y = val
-            for oomdp_obj in self.oomdp_objs:
-                if hasattr(oomdp_obj, 'y'):
-                    oomdp_obj.y = val
-                    self.oo_state.update_set.add(oomdp_obj)
+            self.oomdp_obj.y = val
+            self.oo_state.update_set.add(self.oomdp_obj)
 
     @property
     def z(self):
@@ -68,10 +64,8 @@ class OOMDPPoint(object):
     def z(self, val):
         if self.point.z != val:
             self.point.z = val
-            for oomdp_obj in self.oomdp_objs:
-                if hasattr(oomdp_obj, 'z'):
-                    oomdp_obj.z = val
-                    self.oo_state.update_set.add(oomdp_obj)
+            self.oomdp_obj.z = val
+            self.oo_state.update_set.add(self.oomdp_obj)
 
 
 class OOMDPPose2D(object):
@@ -79,9 +73,9 @@ class OOMDPPose2D(object):
     Intercept the incoming x,y,theta modifications and propagate them to the
     _state_msg and the _oo_state sections
     """
-    def __init__(self, pose, oomdp_objs, oo_state):
+    def __init__(self, pose, oomdp_obj, oo_state):
         self.pose = pose
-        self.oomdp_objs = oomdp_objs
+        self.oomdp_obj = oomdp_obj
         self.oo_state = oo_state
 
     def __eq__(self, other):
@@ -98,10 +92,8 @@ class OOMDPPose2D(object):
     def x(self, val):
         if self.pose.x != val:
             self.pose.x = val
-            for oomdp_obj in self.oomdp_objs:
-                if hasattr(oomdp_obj, 'x'):
-                    oomdp_obj.x = val
-                    self.oo_state.update_set.add(oomdp_obj)
+            self.oomdp_obj.x = val
+            self.oo_state.update_set.add(self.oomdp_obj)
 
     @property
     def y(self):
@@ -111,10 +103,8 @@ class OOMDPPose2D(object):
     def y(self, val):
         if self.pose.y != val:
             self.pose.y = val
-            for oomdp_obj in self.oomdp_objs:
-                if hasattr(oomdp_obj, 'y'):
-                    oomdp_obj.y = val
-                    self.oo_state.update_set.add(oomdp_obj)
+            self.oomdp_obj.y = val
+            self.oo_state.update_set.add(self.oomdp_obj)
 
     @property
     def theta(self):
@@ -122,7 +112,9 @@ class OOMDPPose2D(object):
 
     @theta.setter
     def theta(self, val):
-        self.pose.theta = val
+        if self.pose.theta != val:
+            self.pose.theta = val
+            self.oo_state.update_set.add(self.oomdp_obj)
 
 
 class OOMDPObject(object):
@@ -135,7 +127,7 @@ class OOMDPObject(object):
 
         self._obj_position = OOMDPPoint(
             obj.position,
-            [oomdp_obj],
+            oomdp_obj,
             oo_state
         )
 
@@ -251,7 +243,7 @@ class OOMDPContainer(object):
 
         self._container_position = OOMDPPoint(
             container.position,
-            [oomdp_container],
+            oomdp_container,
             oo_state
         )
 
@@ -429,22 +421,22 @@ class WorldState(object):
         # Create the position/pose objects for the gripper, box, lid and drawer
         self._gripper_position = OOMDPPoint(
             self._state_msg.gripper_position,
-            [self._gripper],
+            self._gripper,
             self._oo_state
         )
         self._lid_position = OOMDPPoint(
             self._state_msg.lid_position,
-            [self._lid],
+            self._lid,
             self._oo_state
         )
         self._box_position = OOMDPPoint(
             self._state_msg.box_position,
-            [self._box],
+            self._box,
             self._oo_state
         )
         self._drawer_position = OOMDPPose2D(
             self._state_msg.drawer_position,
-            [self._drawer], # TODO: Should we add stack to this?
+            self._drawer,
             self._oo_state
         )
 

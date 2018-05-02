@@ -4,6 +4,7 @@
 import os
 import sys
 import copy
+import time
 import pickle
 import numpy as np
 
@@ -390,6 +391,8 @@ class TableSim:
 
 
     def worldUpdate(self, action=None):
+        # start_time = time.time()
+
         # Perform action
         result = False
         if action:
@@ -459,6 +462,8 @@ class TableSim:
         # self.oomdp_pub_.publish(self.state_.get_oo_state().to_ros())
 
         # debug
+        # end_time = time.time()
+        # print("Time taken:", end_time - start_time)
         # print(np.array(self.state_.get_oo_state().relation_values, dtype=np.float32))
         # print(dict(zip(
         #     self.state_.get_oo_state().relation_keys,
@@ -473,6 +478,7 @@ class TableSim:
         #     pa = PlanAction(self.prev_state, (action or Action(action_type=Action.NOOP)), self.state_)
         #     print str(pa)
         # self.prev_state = copy.deepcopy(self.state_)
+
         return self.state_
 
     def execute_celery(self, actions):
@@ -1516,14 +1522,14 @@ class TableSim:
 
     def inDrawer(self, object):
         xmin, xmax, ymin, ymax, xminDrawer, xmaxDrawer, yminDrawer, ymaxDrawer = self.getDrawerBounds()
-        if object.__class__ == Object:
+        if object.__class__ == Object or hasattr(object, 'oomdp_obj'):
             return self.inVolume(
                 object.position,
                 xminDrawer + 1, xmaxDrawer - 1,
                 yminDrawer + 1, ymaxDrawer - 1,
                 self.drawerHeight, self.drawerHeight
             )
-        elif object.__class__ == SmallContainer:
+        elif object.__class__ == SmallContainer or hasattr(object, 'oomdp_container'):
             result = False
             for i in range(object.width):
                 for j in range(object.height):
@@ -1539,7 +1545,7 @@ class TableSim:
 
 
     def onLid(self, object):
-        if object.__class__ == Object:
+        if object.__class__ == Object or hasattr(object, 'oomdp_obj'):
             return self.inVolume(
                 object.position,
                 self.state_.lid_position.x - self.boxRadius,
@@ -1549,7 +1555,7 @@ class TableSim:
                 self.state_.lid_position.z + 1,
                 self.state_.lid_position.z + 1
             )
-        elif object.__class__ == SmallContainer:
+        elif object.__class__ == SmallContainer or hasattr(object, 'oomdp_container'):
             result = False
             for i in range(object.width):
                 for j in range(object.height):
@@ -1568,14 +1574,14 @@ class TableSim:
 
     def onStack(self, object):
         xmin, xmax, ymin, ymax, xminDrawer, xmaxDrawer, yminDrawer, ymaxDrawer = self.getDrawerBounds()
-        if object.__class__ == Object:
+        if object.__class__ == Object or hasattr(object, 'oomdp_obj'):
             return self.inVolume(
                 object.position,
                 xmin, xmax,
                 ymin, ymax,
                 self.drawerHeight + 1, self.drawerHeight + 1
             )
-        elif object.__class__ == SmallContainer:
+        elif object.__class__ == SmallContainer or hasattr(object, 'oomdp_container'):
             result = False
             for i in range(object.width):
                 for j in range(object.height):
@@ -1590,7 +1596,7 @@ class TableSim:
             return False
 
     def inBox(self, object):
-        if object.__class__ == Object:
+        if object.__class__ == Object or hasattr(object, 'oomdp_obj'):
             return self.inVolume(object.position,
                                  self.state_.box_position.x - self.boxRadius,
                                  self.state_.box_position.x + self.boxRadius,
@@ -1598,7 +1604,7 @@ class TableSim:
                                  self.state_.box_position.y + self.boxRadius,
                                  self.state_.box_position.z,
                                  self.boxHeight)
-        elif object.__class__ == SmallContainer:
+        elif object.__class__ == SmallContainer or hasattr(object, 'oomdp_container'):
             result = False
             for i in range(object.width):
                 for j in range(object.height):
