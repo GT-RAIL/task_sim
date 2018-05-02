@@ -9,12 +9,12 @@ from celery import Celery
 
 # Regardless of language, all the apps must remain aware of the Celery
 config = dict(
-    broker='pyamqp://guest:guest@172.17.0.3:5672',
-    backend = 'redis://172.17.0.4:6379'
+    broker='pyamqp://guest:guest@172.17.0.2:5672',
+    backend = 'redis://172.17.0.3:6379'
 )
 app = Celery('celery_executor', **config)
 
-def setup_celery(is_worker, table_sim=None):
+def setup_table_sim(is_worker, table_sim=None):
     """
     Function to setup celery and return a task. If this is the simulator, then
     table_sim is used to point to the simulator and get the next state from the
@@ -26,9 +26,31 @@ def setup_celery(is_worker, table_sim=None):
         @app.task(name='table_sim.execute_action')
         def execute(actions):
             return table_sim.execute_celery(actions)
+
+        @app.task(name='table_sim.reset')
+        def reset():
+            table_sim.reset_sim(None) # Don't really need to send a request
+            return True
+
+        @app.task(name='table_sim.query_state')
+        def query_state():
+            return table_sim.query_state_celery()
+
     else:
         @app.task(name='table_sim.execute_action')
         def execute(actions):
             return []
 
-    return execute
+        @app.task(name='table_sim.reset')
+        def reset():
+            return False
+
+        @app.task(name='table_sim.query_state')
+        def query_state():
+            return []
+
+    return {
+        'execute': execute,
+        'reset': reset,
+        'query_state': query_state,
+    }

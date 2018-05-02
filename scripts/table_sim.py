@@ -43,7 +43,7 @@ class TableSim:
         self.error = ''
 
         self.action_service_ = rospy.Service('~execute_action', Execute, self.execute_service)
-        self.state_service_ = rospy.Service('~query_state', QueryState, self.query_state)
+        self.state_service_ = rospy.Service('~query_state', QueryState, self.query_state_service)
         self.intervention_service_ = rospy.Service('~request_intervention', RequestIntervention, self.request_intervention)
         self.reset_service_ = rospy.Service('~reset_simulation', Empty, self.reset_sim)
         self.log_pub_ = rospy.Publisher('~task_log', Log, queue_size=1)
@@ -67,17 +67,35 @@ class TableSim:
     def set_celery_imported(self):
         """Mark celery as imported"""
         self.CELERY_IMPORTED = True
+
+        # Get data from the pickle file, and write to the pickle file too
         rospack = rospkg.RosPack()
         actions_filename = rospy.get_param(
             '~actions_filename',
             os.path.join(rospack.get_path('task_sim'), 'data', 'task4', 'metadata', 'A.pkl')
         )
+        relation_keys_filename = rospy.get_param(
+            '~relation_keys_filename',
+            os.path.join(rospack.get_path('task_sim'), 'data', 'task4', 'metadata', 'R_keys.pkl')
+        )
+
+        # Load and write the data
+        self.state_.write_relation_keys(relation_keys_filename)
         with open(actions_filename, 'rb') as fd:
             self.celery_actions_ = pickle.load(fd)
 
-    def query_state(self, req):
+        # Disable terminal input and prints
+        self.terminal_input = False
+        self.quiet_mode = True
+
+    def query_state_service(self, req):
         # return (self.state_, self.oo_state_.to_ros())
         return self.state_.get_state()
+
+    def query_state_celery(self):
+        if not self.CELERY_IMPORTED:
+            return []
+        return np.array(self.state_.get_oo_state().relation_values, dtype=np.float32).tolist()
 
     def reset_sim(self, req):
         # In case we want to reset to a different world
@@ -106,7 +124,6 @@ class TableSim:
             else:
                 break
         return res
-
 
     def init_simulation(self, rand_seed = None, level = 0):
         """Create the initial world configuration
@@ -377,9 +394,7 @@ class TableSim:
             )
 
         # Reinitialize the state
-        relation_keys_filename = rospy.get_param('~relation_keys_filename', None)
-        self.state_.reinit_oo_state(relation_keys_filename=relation_keys_filename)
-
+        self.state_.reinit_oo_state()
 
     # TODO: container version
     def getNeighborCount(self, position):
@@ -452,6 +467,8 @@ class TableSim:
             self.state_.action_history = self.state_.action_history[-self.history_buffer:]
             self.state_.result_history = self.state_.result_history[-self.history_buffer:]
 
+        # Update the relations
+        self.state_.get_oo_state().calculate_relations()
 
         # Create a log message and send it along
         log_msg = Log(
@@ -465,10 +482,11 @@ class TableSim:
         # end_time = time.time()
         # print("Time taken:", end_time - start_time)
         # print(np.array(self.state_.get_oo_state().relation_values, dtype=np.float32))
-        # print(dict(zip(
+        # relations = dict(zip(
         #     self.state_.get_oo_state().relation_keys,
         #     self.state_.get_oo_state().relation_values
-        # )))
+        # ))
+        # pprint(relations)
         # # pprint(dict(self.state_.get_oo_state().relations))
         # state.relations.sort()
         # for rel in state.relations:
@@ -525,7 +543,7 @@ class TableSim:
             action.object = ''
 
         self.worldUpdate(action)
-        return np.array(self.state_.get_oo_state().relation_values, dtype=np.float32).tolist()
+        return self.query_state_celery()
 
     def execute_service(self, req):
         """Handle execution of all robot actions as a ROS service routine"""
@@ -2263,24 +2281,39 @@ class TableSim:
 
 
 if __name__ == '__main__':
+    # Find the celery name
+    if any([('celery' in arg) for arg in sys.argv]):
+        for arg in sys.argv:
+            if 'celery' in arg:
+                break
+        instance_name = arg.split('=')[1]
+        celery_in_use = True
+    else:
+        instance_name = 'table_sim'
+        celery_in_use = False
+
     # Init the ROS node
-    rospy.init_node('table_sim')
+    rospy.init_node(instance_name)
     table_sim = TableSim()
 
     rospy.sleep(1.0)
     table_sim.worldUpdate()
 
     # Check to see if celery has been enabled. If so, start it up
-    if 'celery' in sys.argv:
+    if celery_in_use:
         from celery.bin import worker as CeleryWorker
-        from task_sim.celery_executor import config, setup_celery, app
+        from task_sim.celery_executor import config, setup_table_sim, app
 
         # Call the setup
         table_sim.set_celery_imported()
-        setup_celery(True, table_sim)
+        setup_table_sim(True, table_sim)
 
         worker = CeleryWorker.worker(app=app)
-        worker.run(loglevel='INFO', traceback=True, **config)
+        worker.run(
+            loglevel='INFO', traceback=True,
+            hostname=instance_name, queues=instance_name,
+            **config
+        )
     else:
         # Shutdown based on the ROS signal. Call the callbacks
         loop_rate = rospy.Rate(30)

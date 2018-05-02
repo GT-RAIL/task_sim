@@ -387,6 +387,11 @@ class WorldState(object):
         if init_oo_state:
             self.reinit_oo_state(gripper_name, box_name, lid_name, drawer_name, stack_name)
 
+    # Allow writing the relation keys if need be
+    def write_relation_keys(self, relation_keys_filename):
+        with open(relation_keys_filename, 'wb') as fd:
+            pickle.dump(self._oo_state.relation_keys, fd)
+
     # First the accessors to the two states
     def get_state(self):
         return self._state_msg
@@ -397,19 +402,13 @@ class WorldState(object):
     def reinit_oo_state(
         self,
         gripper_name="gripper", box_name="box", lid_name="lid",
-        drawer_name="drawer", stack_name="stack",
-        relation_keys_filename=None
+        drawer_name="drawer", stack_name="stack"
     ):
         self._oo_state = OOState(
             state=self._state_msg,
             gripper_name=gripper_name, box_name=box_name, lid_name=lid_name,
             drawer_name=drawer_name, stack_name=stack_name
         )
-
-        # If we should save the relation keys for debugging
-        if relation_keys_filename is not None:
-            with open(relation_keys_filename, 'wb') as fd:
-                pickle.dump(self._oo_state.relation_keys, fd)
 
         # Save the objects to speed up lookup
         self._gripper = self._oo_state.grippers[gripper_name]
