@@ -211,7 +211,7 @@ class LearnTransitionFunction:
         self.timeout += 1
 
         goal_reached = goal_check(state_msg, self.amdp_id)
-        if self.timeout > 175 or goal_reached:
+        if self.timeout > 100 or goal_reached:
             self.timeout = 0
             self.reset_sim()
             self.epoch += 1
@@ -332,10 +332,10 @@ if __name__ == '__main__':
 
     start = datetime.datetime.now()
 
-    while ltf.epoch <= 50000:
+    while ltf.epoch <= 500000:
         # rospy.sleep(0.01)
         ltf.run()
-        if ltf.n % 50000 == 0:
+        if ltf.n % 10000 == 0:
             print 'Iteration: ' + str(ltf.n) + ' (epochs completed: ' + str(ltf.epoch) + ', ' + str(ltf.successes) + ' successes)'
             print '\tTransition function state-action count: ' + str(len(ltf.transition_function.transition.keys()))
             ltf.transition_function.save('_' + str(ltf.n))

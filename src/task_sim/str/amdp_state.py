@@ -249,6 +249,34 @@ high_level_3_object_relation_list = [
     'drawer_closing_stack'
 ]
 
+high_level_box_relation_list = [
+    'carrot_inside_box',
+    'lid_closing_box'
+]
+
+high_level_2_box_relation_list = [
+    'carrot_inside_box',
+    'daikon_inside_box',
+    'lid_closing_box'
+]
+
+high_level_sort_relation_list = [
+    'apple_inside_drawer',
+    'banana_inside_drawer',
+    'carrot_inside_box',
+    'drawer_closing_stack',
+    'lid_closing_box'
+]
+
+high_level_4_sort_relation_list = [
+    'apple_inside_drawer',
+    'banana_inside_drawer',
+    'carrot_inside_box',
+    'daikon_inside_box',
+    'drawer_closing_stack',
+    'lid_closing_box'
+]
+
 class AMDPState:
 
     def __init__(self, amdp_id=0, state=None, ground_items=None):
@@ -267,6 +295,7 @@ class AMDPState:
             8 : put apple in box
             9 : high level object-box task
             10 : high level 3 object-drawer-box task
+            11 : high level 2 object-box task
 
             -1 : flat 1 object 1 drawer
             -2 : flat 2 object 1 drawer
@@ -296,11 +325,11 @@ class AMDPState:
         elif self.amdp_id == 8:
             self.relation_names = copy(object_gripper_box_relation_list)
         elif self.amdp_id == 9:
-            # TODO
-            pass
+            self.relation_names = copy(high_level_box_relation_list)
         elif self.amdp_id == 10:
-            # TODO
-            pass
+            self.relation_names = copy(high_level_sort_relation_list)
+        elif self.amdp_id == 11:
+            self.relation_names = copy(high_level_2_box_relation_list)
 
         self.relation_names.sort()
 

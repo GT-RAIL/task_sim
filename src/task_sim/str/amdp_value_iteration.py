@@ -150,6 +150,53 @@ class AMDPValueIteration:
             s.relations['banana_right_of_drawer'] = True
             s.relations['apple_behind_banana'] = True
             self.U[deepcopy(s)] = 0.0
+        elif self.amdp_id == 6:
+            s.relations['gripper_left_of_box'] = True
+            s.relations['gripper_in_front_of_box'] = True
+            s.relations['gripper_above_box'] = True
+            s.relations['gripper_left_of_lid'] = True
+            s.relations['gripper_in_front_of_lid'] = True
+            s.relations['gripper_above_lid'] = True
+            s.relations['lid_closing_box'] = True
+            s.relations['gripper_open'] = True
+            self.U[deepcopy(s)] = 0.0
+        elif self.amdp_id == 7:
+            self.U[deepcopy(s)] = 0.0
+            s.relations['gripper_touching_box'] = True
+            self.U[deepcopy(s)] = 0.0
+            s.relations['gripper_above_lid'] = True
+            self.U[deepcopy(s)] = 0.0
+            s.relations['gripper_touching_box'] = True
+            self.U[deepcopy(s)] = 0.0
+            s.relations['gripper_touching_box'] = False
+            s.relations['gripper_above_box'] = True
+            self.U[deepcopy(s)] = 0.0
+        elif self.amdp_id == 8:
+            s.relations['gripper_left_of_box'] = True
+            s.relations['apple_left_of_box'] = True
+            s.relations['apple_in_front_of_box'] = True
+            s.relations['apple_below_gripper'] = True
+            s.relations['apple_right_of_gripper'] = True
+            s.relations['gripper_holding_lid'] = True
+            s.relations['apple_in_front_of_gripper'] = True
+            self.U[deepcopy(s)] = 0.0
+            s.relations['gripper_holding_lid'] = False
+            s.relations['gripper_open'] = True
+            s.relations['gripper_above_lid'] = True
+            self.U[deepcopy(s)] = 0.0
+            s.relations['gripper_above_lid'] = False
+            s.relations['apple_below_gripper'] = False
+        elif self.amdp_id == 9:
+            s.relations['carrot_inside_box'] = False
+            s.relations['lid_closing_box'] = True
+            self.U[deepcopy(s)] = 0.0
+        elif self.amdp_id == 10:
+            s.relations['lid_closing_box'] = True
+            s.relations['drawer_closing_stack'] = True
+            self.U[deepcopy(s)] = 0.0
+        elif self.amdp_id == 11:
+            s.relations['lid_closing_box'] = True
+            self.U[deepcopy(s)] = 0.0
         else:
             self.U[deepcopy(s)] = 0.0
 
@@ -202,6 +249,45 @@ class AMDPValueIteration:
             self.actions.append(deepcopy(a))
             a.object = 'carrot'
             self.actions.append(deepcopy(a))
+        elif self.amdp_id == 9:
+            # actions are overloaded here to use the same message type
+            # the actions correspond to the amdp_id, i.e.:
+            #   6 - open box
+            #   7 - close box
+            #   8 - put carrot in box
+            # ground items are stored in the Action.object member
+            a.action_type = 6
+            self.actions.append(deepcopy(a))
+            a.action_type = 7
+            self.actions.append(deepcopy(a))
+            a.action_type = 8
+            a.object = 'carrot'
+            self.actions.append(deepcopy(a))
+        elif self.amdp_id == 10:
+            # actions are overloaded here to use the same message type
+            # the actions correspond to the amdp_id, i.e.:
+            #   4 - put fruits in drawer high-level amdp
+            #   9 - put vegetable in box high-level amdp
+            a.action_type = 4
+            self.actions.append(deepcopy(a))
+            a.action_type = 9
+            self.actions.append(deepcopy(a))
+        elif self.amdp_id == 11:
+            # actions are overloaded here to use the same message type
+            # the actions correspond to the amdp_id, i.e.:
+            #   6 - open box
+            #   7 - close box
+            #   8 - put item in box
+            # ground items are stored in the Action.object member
+            a.action_type = 6
+            self.actions.append(deepcopy(a))
+            a.action_type = 7
+            self.actions.append(deepcopy(a))
+            a.action_type = 8
+            a.object = 'carrot'
+            self.actions.append(deepcopy(a))
+            a.object = 'daikon'
+            self.actions.append(deepcopy(a))
         else:
             a.action_type = Action.GRASP
             for o in self.grasp_objects:
@@ -215,10 +301,18 @@ class AMDPValueIteration:
                 self.actions.append(deepcopy(a))
                 a.object = 'carrot'
                 self.actions.append(deepcopy(a))
+            elif self.amdp_id >= 6 and self.amdp_id <= 8:
+                a.object = 'lid'
+                self.actions.append(deepcopy(a))
 
             a.action_type = Action.PLACE
             for o in self.place_objects:
                 a.object = o
+                self.actions.append(deepcopy(a))
+            if self.amdp_id >= 6 and self.amdp_id <= 8:
+                a.object = 'lid'
+                self.actions.append(deepcopy(a))
+                a.object = 'box'
                 self.actions.append(deepcopy(a))
 
             a.action_type = Action.MOVE_ARM
@@ -232,6 +326,11 @@ class AMDPValueIteration:
                 a.object = 'banana'
                 self.actions.append(deepcopy(a))
                 a.object = 'carrot'
+                self.actions.append(deepcopy(a))
+            elif self.amdp_id >= 6 and self.amdp_id <= 8:
+                a.object = 'lid'
+                self.actions.append(deepcopy(a))
+                a.object = 'box'
                 self.actions.append(deepcopy(a))
 
             a.object = ''
@@ -251,7 +350,7 @@ class AMDPValueIteration:
             self.actions.append(deepcopy(a))
 
         # initialize transition function
-        if self.amdp_id >= 3 and self.amdp_id <= 5:
+        if (self.amdp_id >= 3 and self.amdp_id <= 5) or self.amdp_id > 8:
             self.T = AMDPTransitionsLearned(amdp_id=self.amdp_id, load=False)
         else:
             self.T = AMDPTransitionsLearned(amdp_id=self.amdp_id, load=True)
@@ -337,5 +436,5 @@ class AMDPValueIteration:
 
 
 if __name__ == '__main__':
-    a = AMDPValueIteration(amdp_id=-3)
+    a = AMDPValueIteration(amdp_id=11)
     a.solve()

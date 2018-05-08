@@ -448,10 +448,10 @@ class TableSim:
         self.show()
 
         # # debug
-        # s = AMDPState(amdp_id=-3, state=OOState(state=self.state_))
-        # for key in s.relations:
-        #     if s.relations[key]:
-        #         print str(key)
+        s = AMDPState(amdp_id=8, state=OOState(state=self.state_))
+        for key in s.relations:
+            if s.relations[key]:
+                print str(key)
         # print str(s.relations)
         # state = OOState(self.state_)
         # state.relations.sort()

@@ -124,6 +124,47 @@ class AMDPTransitionsLearned:
                     elif a.object == 'carrot':
                         s_prime.relations['carrot_inside_drawer'] = True
             return [(1.0, s_prime)]
+        elif self.amdp_id == 9:
+            # hand-coded abstract transitions
+            s_prime = deepcopy(s)
+            if a.action_type == 6:
+                # open box
+                s_prime.relations['lid_closing_box'] = False
+            elif a.action_type == 7:
+                # close box
+                s_prime.relations['lid_closing_box'] = True
+            elif a.action_type == 8:
+                if not s.relations['lid_closing_box']:
+                    if a.object == 'carrot':
+                        s_prime.relations['carrot_inside_box'] = True
+            return [(1.0, s_prime)]
+        elif self.amdp_id == 10:
+            # hand-coded abstract transitions
+            s_prime = deepcopy(s)
+            if a.action_type == 4:
+                s_prime.relations['apple_inside_drawer'] = True
+                s_prime.relations['banana_inside_drawer'] = True
+                s_prime.relations['drawer_closing_stack'] = True
+            elif a.action_type == 9:
+                s_prime.relations['carrot_inside_box'] = True
+                s_prime.relations['lid_closing_box'] = True
+            return [(1.0, s_prime)]
+        elif self.amdp_id == 11:
+            # hand-coded abstract transitions
+            s_prime = deepcopy(s)
+            if a.action_type == 6:
+                # open box
+                s_prime.relations['lid_closing_box'] = False
+            elif a.action_type == 7:
+                # close box
+                s_prime.relations['lid_closing_box'] = True
+            elif a.action_type == 8:
+                if not s.relations['lid_closing_box']:
+                    if a.object == 'carrot':
+                        s_prime.relations['carrot_inside_box'] = True
+                    if a.object == 'daikon':
+                        s_prime.relations['daikon_inside_box'] = True
+            return [(1.0, s_prime)]
         else:
             q = (s, a.action_type, a.object)
             # states = []
