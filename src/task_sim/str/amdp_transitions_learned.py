@@ -24,6 +24,16 @@ class AMDPTransitionsLearned:
             self.transition[q] = StochasticState()
         self.transition[q].add_state(s_prime)
 
+    def get_states(self):
+        s = []
+        for q in self.transition:
+            if q[0] not in s:
+                s.append(q[0])
+            for s_prime in self.transition[q].states:
+                if s_prime not in s:
+                    s.append(s_prime)
+        return s
+
     def transition_function(self, s, a):
         if self.amdp_id == 3:
             # hand-coded abstract transitions

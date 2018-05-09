@@ -21,6 +21,8 @@ class AMDPValueIteration:
     move_objects_box = ['lid', 'box', 'apple', 'l', 'f', 'r', 'b', 'fl', 'fr', 'br', 'bl']
     gripper_objects_box = ['', 'lid', 'apple']
 
+    abstract_amdps = [3, 4, 5, 9, 10, 11, 12]
+
     def __init__(self, amdp_id=0, transition_function=None):
         self.U = {}
         self.actions = []
@@ -31,182 +33,183 @@ class AMDPValueIteration:
     def initialize(self, transition_function=None):
         # initialize state list
         # print 'Enumerating states (started at: ' + str(datetime.datetime.now())  + ")"
-        s = AMDPState(amdp_id=self.amdp_id)
-        if self.amdp_id == 0:
-            s.relations['gripper_in_front_of_drawer'] = True
-            s.relations['gripper_open'] = True
-            s.relations['drawer_closing_stack'] = True
-            self.U[deepcopy(s)] = 0.0
-        elif self.amdp_id == 1:
-            self.U[deepcopy(s)] = 0.0
-            s.relations['gripper_open'] = True
-            self.U[deepcopy(s)] = 0.0
-            s.relations['gripper_touching_drawer'] = True
-            self.U[deepcopy(s)] = 0.0
-            s.relations['gripper_open'] = False
-            self.U[deepcopy(s)] = 0.0
-            s.relations['gripper_open'] = True
-            s.relations['gripper_touching_stack'] = True
-            self.U[deepcopy(s)] = 0.0
-            s.relations['gripper_open'] = False
-            self.U[deepcopy(s)] = 0.0
-            s.relations['gripper_touching_stack'] = False
-            s.relations['gripper_touching_drawer'] = False
-            s.relations['gripper_above_drawer'] = True
-            self.U[deepcopy(s)] = 0.0
-        elif self.amdp_id == 2:
-            s.relations['apple_right_of_drawer'] = True
-            s.relations['apple_in_front_of_drawer'] = True
-            s.relations['apple_below_drawer'] = True
-            s.relations['apple_right_of_gripper'] = True
-            s.relations['apple_in_front_of_gripper'] = True
-            s.relations['apple_below_gripper'] = True
-            s.relations['gripper_right_of_drawer'] = True
-            s.relations['gripper_holding_drawer'] = True
-            s.relations['gripper_touching_drawer'] = True
-            self.U[deepcopy(s)] = 0.0
-            s.relations['gripper_right_of_drawer'] = False
-            s.relations['gripper_holding_drawer'] = False
-            s.relations['gripper_touching_drawer'] = False
-            self.U[deepcopy(s)] = 0.0
-            s.relations['gripper_touching_drawer'] = True
-            self.U[deepcopy(s)] = 0.0
-            s.relations['gripper_touching_drawer'] = True
-            s.relations['gripper_touching_stack'] = True
-            self.U[deepcopy(s)] = 0.0
-            s.relations['gripper_touching_drawer'] = False
-            s.relations['gripper_touching_stack'] = True
-            self.U[deepcopy(s)] = 0.0
-            s.relations['gripper_touching_stack'] = False
-            s.relations['gripper_above_drawer'] = True
-            self.U[deepcopy(s)] = 0.0
-        elif self.amdp_id == 3:
-            s.relations['apple_inside_drawer'] = False
-            s.relations['drawer_closing_stack'] = True
-            self.U[deepcopy(s)] = 0.0
-        elif self.amdp_id == 4:
-            s.relations['apple_inside_drawer'] = False
-            s.relations['banana_inside_drawer'] = False
-            s.relations['drawer_closing_stack'] = True
-            self.U[deepcopy(s)] = 0.0
-        elif self.amdp_id == 5:
-            s.relations['apple_inside_drawer'] = False
-            s.relations['banana_inside_drawer'] = False
-            s.relations['carrot_inside_drawer'] = False
-            s.relations['drawer_closing_stack'] = True
-            self.U[deepcopy(s)] = 0.0
-        elif self.amdp_id == -1:
-            s.relations['apple_right_of_drawer'] = True
-            s.relations['apple_in_front_of_drawer'] = True
-            s.relations['apple_below_drawer'] = True
-            s.relations['apple_right_of_gripper'] = True
-            s.relations['apple_behind_gripper'] = True
-            s.relations['apple_below_gripper'] = True
-            s.relations['gripper_in_front_of_drawer'] = True
-            s.relations['gripper_open'] = True
-            s.relations['drawer_closing_stack'] = True
-            self.U[deepcopy(s)] = 0.0
-        elif self.amdp_id == -2:
-            s.relations['apple_behind_gripper'] = True
-            s.relations['gripper_in_front_of_drawer'] = True
-            s.relations['banana_in_front_of_drawer'] = True
-            s.relations['apple_below_gripper'] = True
-            s.relations['apple_below_drawer'] = True
-            s.relations['banana_below_gripper'] = True
-            s.relations['apple_right_of_gripper'] = True
-            s.relations['banana_behind_gripper'] = True
-            s.relations['apple_in_front_of_drawer'] = True
-            s.relations['banana_below_drawer'] = True
-            s.relations['drawer_closing_stack'] = True
-            s.relations['gripper_open'] = True
-            s.relations['banana_right_of_gripper'] = True
-            s.relations['apple_right_of_drawer'] = True
-            s.relations['apple_right_of_banana'] = True
-            s.relations['banana_right_of_drawer'] = True
-            s.relations['apple_behind_banana'] = True
-            self.U[deepcopy(s)] = 0.0
-        elif self.amdp_id == -3:
-            s.relations['apple_behind_gripper'] = True
-            s.relations['gripper_in_front_of_drawer'] = True
-            s.relations['apple_left_of_carrot'] = True
-            s.relations['banana_left_of_carrot'] = True
-            s.relations['banana_in_front_of_drawer'] = True
-            s.relations['apple_below_gripper'] = True
-            s.relations['carrot_below_drawer'] = True
-            s.relations['apple_below_drawer'] = True
-            s.relations['carrot_behind_gripper'] = True
-            s.relations['banana_below_gripper'] = True
-            s.relations['apple_right_of_gripper'] = True
-            s.relations['banana_behind_gripper'] = True
-            s.relations['apple_in_front_of_drawer'] = True
-            s.relations['banana_below_drawer'] = True
-            s.relations['carrot_right_of_gripper'] = True
-            s.relations['drawer_closing_stack'] = True
-            s.relations['carrot_right_of_drawer'] = True
-            s.relations['carrot_below_gripper'] = True
-            s.relations['gripper_open'] = True
-            s.relations['banana_in_front_of_carrot'] = True
-            s.relations['banana_right_of_gripper'] = True
-            s.relations['apple_in_front_of_carrot'] = True
-            s.relations['apple_right_of_drawer'] = True
-            s.relations['carrot_in_front_of_drawer'] = True
-            s.relations['apple_right_of_banana'] = True
-            s.relations['banana_right_of_drawer'] = True
-            s.relations['apple_behind_banana'] = True
-            self.U[deepcopy(s)] = 0.0
-        elif self.amdp_id == 6:
-            s.relations['gripper_left_of_box'] = True
-            s.relations['gripper_in_front_of_box'] = True
-            s.relations['gripper_above_box'] = True
-            s.relations['gripper_left_of_lid'] = True
-            s.relations['gripper_in_front_of_lid'] = True
-            s.relations['gripper_above_lid'] = True
-            s.relations['lid_closing_box'] = True
-            s.relations['gripper_open'] = True
-            self.U[deepcopy(s)] = 0.0
-        elif self.amdp_id == 7:
-            self.U[deepcopy(s)] = 0.0
-            s.relations['gripper_touching_box'] = True
-            self.U[deepcopy(s)] = 0.0
-            s.relations['gripper_above_lid'] = True
-            self.U[deepcopy(s)] = 0.0
-            s.relations['gripper_touching_box'] = True
-            self.U[deepcopy(s)] = 0.0
-            s.relations['gripper_touching_box'] = False
-            s.relations['gripper_above_box'] = True
-            self.U[deepcopy(s)] = 0.0
-        elif self.amdp_id == 8:
-            s.relations['gripper_left_of_box'] = True
-            s.relations['apple_left_of_box'] = True
-            s.relations['apple_in_front_of_box'] = True
-            s.relations['apple_below_gripper'] = True
-            s.relations['apple_right_of_gripper'] = True
-            s.relations['gripper_holding_lid'] = True
-            s.relations['apple_in_front_of_gripper'] = True
-            self.U[deepcopy(s)] = 0.0
-            s.relations['gripper_holding_lid'] = False
-            s.relations['gripper_open'] = True
-            s.relations['gripper_above_lid'] = True
-            self.U[deepcopy(s)] = 0.0
-            s.relations['gripper_above_lid'] = False
-            s.relations['apple_below_gripper'] = False
-        elif self.amdp_id == 9:
-            s.relations['carrot_inside_box'] = False
-            s.relations['lid_closing_box'] = True
-            self.U[deepcopy(s)] = 0.0
-        elif self.amdp_id == 10:
-            s.relations['lid_closing_box'] = True
-            s.relations['drawer_closing_stack'] = True
-            self.U[deepcopy(s)] = 0.0
-        elif self.amdp_id == 11:
-            s.relations['lid_closing_box'] = True
-            self.U[deepcopy(s)] = 0.0
-        elif self.amdp_id == 12:
-            s.relations['lid_closing_box'] = True
-            s.relations['drawer_closing_stack'] = True
-            self.U[deepcopy(s)] = 0.0
-        else:
-            self.U[deepcopy(s)] = 0.0
+
+        # s = AMDPState(amdp_id=self.amdp_id)
+        # if self.amdp_id == 0:
+        #     s.relations['gripper_in_front_of_drawer'] = True
+        #     s.relations['gripper_open'] = True
+        #     s.relations['drawer_closing_stack'] = True
+        #     self.U[deepcopy(s)] = 0.0
+        # elif self.amdp_id == 1:
+        #     self.U[deepcopy(s)] = 0.0
+        #     s.relations['gripper_open'] = True
+        #     self.U[deepcopy(s)] = 0.0
+        #     s.relations['gripper_touching_drawer'] = True
+        #     self.U[deepcopy(s)] = 0.0
+        #     s.relations['gripper_open'] = False
+        #     self.U[deepcopy(s)] = 0.0
+        #     s.relations['gripper_open'] = True
+        #     s.relations['gripper_touching_stack'] = True
+        #     self.U[deepcopy(s)] = 0.0
+        #     s.relations['gripper_open'] = False
+        #     self.U[deepcopy(s)] = 0.0
+        #     s.relations['gripper_touching_stack'] = False
+        #     s.relations['gripper_touching_drawer'] = False
+        #     s.relations['gripper_above_drawer'] = True
+        #     self.U[deepcopy(s)] = 0.0
+        # elif self.amdp_id == 2:
+        #     s.relations['apple_right_of_drawer'] = True
+        #     s.relations['apple_in_front_of_drawer'] = True
+        #     s.relations['apple_below_drawer'] = True
+        #     s.relations['apple_right_of_gripper'] = True
+        #     s.relations['apple_in_front_of_gripper'] = True
+        #     s.relations['apple_below_gripper'] = True
+        #     s.relations['gripper_right_of_drawer'] = True
+        #     s.relations['gripper_holding_drawer'] = True
+        #     s.relations['gripper_touching_drawer'] = True
+        #     self.U[deepcopy(s)] = 0.0
+        #     s.relations['gripper_right_of_drawer'] = False
+        #     s.relations['gripper_holding_drawer'] = False
+        #     s.relations['gripper_touching_drawer'] = False
+        #     self.U[deepcopy(s)] = 0.0
+        #     s.relations['gripper_touching_drawer'] = True
+        #     self.U[deepcopy(s)] = 0.0
+        #     s.relations['gripper_touching_drawer'] = True
+        #     s.relations['gripper_touching_stack'] = True
+        #     self.U[deepcopy(s)] = 0.0
+        #     s.relations['gripper_touching_drawer'] = False
+        #     s.relations['gripper_touching_stack'] = True
+        #     self.U[deepcopy(s)] = 0.0
+        #     s.relations['gripper_touching_stack'] = False
+        #     s.relations['gripper_above_drawer'] = True
+        #     self.U[deepcopy(s)] = 0.0
+        # elif self.amdp_id == 3:
+        #     s.relations['apple_inside_drawer'] = False
+        #     s.relations['drawer_closing_stack'] = True
+        #     self.U[deepcopy(s)] = 0.0
+        # elif self.amdp_id == 4:
+        #     s.relations['apple_inside_drawer'] = False
+        #     s.relations['banana_inside_drawer'] = False
+        #     s.relations['drawer_closing_stack'] = True
+        #     self.U[deepcopy(s)] = 0.0
+        # elif self.amdp_id == 5:
+        #     s.relations['apple_inside_drawer'] = False
+        #     s.relations['banana_inside_drawer'] = False
+        #     s.relations['carrot_inside_drawer'] = False
+        #     s.relations['drawer_closing_stack'] = True
+        #     self.U[deepcopy(s)] = 0.0
+        # elif self.amdp_id == -1:
+        #     s.relations['apple_right_of_drawer'] = True
+        #     s.relations['apple_in_front_of_drawer'] = True
+        #     s.relations['apple_below_drawer'] = True
+        #     s.relations['apple_right_of_gripper'] = True
+        #     s.relations['apple_behind_gripper'] = True
+        #     s.relations['apple_below_gripper'] = True
+        #     s.relations['gripper_in_front_of_drawer'] = True
+        #     s.relations['gripper_open'] = True
+        #     s.relations['drawer_closing_stack'] = True
+        #     self.U[deepcopy(s)] = 0.0
+        # elif self.amdp_id == -2:
+        #     s.relations['apple_behind_gripper'] = True
+        #     s.relations['gripper_in_front_of_drawer'] = True
+        #     s.relations['banana_in_front_of_drawer'] = True
+        #     s.relations['apple_below_gripper'] = True
+        #     s.relations['apple_below_drawer'] = True
+        #     s.relations['banana_below_gripper'] = True
+        #     s.relations['apple_right_of_gripper'] = True
+        #     s.relations['banana_behind_gripper'] = True
+        #     s.relations['apple_in_front_of_drawer'] = True
+        #     s.relations['banana_below_drawer'] = True
+        #     s.relations['drawer_closing_stack'] = True
+        #     s.relations['gripper_open'] = True
+        #     s.relations['banana_right_of_gripper'] = True
+        #     s.relations['apple_right_of_drawer'] = True
+        #     s.relations['apple_right_of_banana'] = True
+        #     s.relations['banana_right_of_drawer'] = True
+        #     s.relations['apple_behind_banana'] = True
+        #     self.U[deepcopy(s)] = 0.0
+        # elif self.amdp_id == -3:
+        #     s.relations['apple_behind_gripper'] = True
+        #     s.relations['gripper_in_front_of_drawer'] = True
+        #     s.relations['apple_left_of_carrot'] = True
+        #     s.relations['banana_left_of_carrot'] = True
+        #     s.relations['banana_in_front_of_drawer'] = True
+        #     s.relations['apple_below_gripper'] = True
+        #     s.relations['carrot_below_drawer'] = True
+        #     s.relations['apple_below_drawer'] = True
+        #     s.relations['carrot_behind_gripper'] = True
+        #     s.relations['banana_below_gripper'] = True
+        #     s.relations['apple_right_of_gripper'] = True
+        #     s.relations['banana_behind_gripper'] = True
+        #     s.relations['apple_in_front_of_drawer'] = True
+        #     s.relations['banana_below_drawer'] = True
+        #     s.relations['carrot_right_of_gripper'] = True
+        #     s.relations['drawer_closing_stack'] = True
+        #     s.relations['carrot_right_of_drawer'] = True
+        #     s.relations['carrot_below_gripper'] = True
+        #     s.relations['gripper_open'] = True
+        #     s.relations['banana_in_front_of_carrot'] = True
+        #     s.relations['banana_right_of_gripper'] = True
+        #     s.relations['apple_in_front_of_carrot'] = True
+        #     s.relations['apple_right_of_drawer'] = True
+        #     s.relations['carrot_in_front_of_drawer'] = True
+        #     s.relations['apple_right_of_banana'] = True
+        #     s.relations['banana_right_of_drawer'] = True
+        #     s.relations['apple_behind_banana'] = True
+        #     self.U[deepcopy(s)] = 0.0
+        # elif self.amdp_id == 6:
+        #     s.relations['gripper_left_of_box'] = True
+        #     s.relations['gripper_in_front_of_box'] = True
+        #     s.relations['gripper_above_box'] = True
+        #     s.relations['gripper_left_of_lid'] = True
+        #     s.relations['gripper_in_front_of_lid'] = True
+        #     s.relations['gripper_above_lid'] = True
+        #     s.relations['lid_closing_box'] = True
+        #     s.relations['gripper_open'] = True
+        #     self.U[deepcopy(s)] = 0.0
+        # elif self.amdp_id == 7:
+        #     self.U[deepcopy(s)] = 0.0
+        #     s.relations['gripper_touching_box'] = True
+        #     self.U[deepcopy(s)] = 0.0
+        #     s.relations['gripper_above_lid'] = True
+        #     self.U[deepcopy(s)] = 0.0
+        #     s.relations['gripper_touching_box'] = True
+        #     self.U[deepcopy(s)] = 0.0
+        #     s.relations['gripper_touching_box'] = False
+        #     s.relations['gripper_above_box'] = True
+        #     self.U[deepcopy(s)] = 0.0
+        # elif self.amdp_id == 8:
+        #     s.relations['gripper_left_of_box'] = True
+        #     s.relations['apple_left_of_box'] = True
+        #     s.relations['apple_in_front_of_box'] = True
+        #     s.relations['apple_below_gripper'] = True
+        #     s.relations['apple_right_of_gripper'] = True
+        #     s.relations['gripper_holding_lid'] = True
+        #     s.relations['apple_in_front_of_gripper'] = True
+        #     self.U[deepcopy(s)] = 0.0
+        #     s.relations['gripper_holding_lid'] = False
+        #     s.relations['gripper_open'] = True
+        #     s.relations['gripper_above_lid'] = True
+        #     self.U[deepcopy(s)] = 0.0
+        #     s.relations['gripper_above_lid'] = False
+        #     s.relations['apple_below_gripper'] = False
+        # elif self.amdp_id == 9:
+        #     s.relations['carrot_inside_box'] = False
+        #     s.relations['lid_closing_box'] = True
+        #     self.U[deepcopy(s)] = 0.0
+        # elif self.amdp_id == 10:
+        #     s.relations['lid_closing_box'] = True
+        #     s.relations['drawer_closing_stack'] = True
+        #     self.U[deepcopy(s)] = 0.0
+        # elif self.amdp_id == 11:
+        #     s.relations['lid_closing_box'] = True
+        #     self.U[deepcopy(s)] = 0.0
+        # elif self.amdp_id == 12:
+        #     s.relations['lid_closing_box'] = True
+        #     s.relations['drawer_closing_stack'] = True
+        #     self.U[deepcopy(s)] = 0.0
+        # else:
+        #     self.U[deepcopy(s)] = 0.0
 
         # initialize action list
         a = Action()
@@ -377,21 +380,43 @@ class AMDPValueIteration:
         else:
             self.T = transition_function
 
+        # initialize utilities for states in transition function
+        if self.amdp_id in self.abstract_amdps:
+            s = AMDPState(amdp_id=self.amdp_id)
+            self.enumerate_relations(s)
+        else:
+            states = self.T.get_states()
+            for s in states:
+                self.U[deepcopy(s)] = 0.0
+
+    def enumerate_relations(self, s, i=0):
+        '''recursively set all attributes in an amdp state to cover all possible state assignments, store them in U'''
+        if i == len(s.relations.keys()) - 1:
+            s.relations[s.relations.keys()[i]] = True
+            self.U[deepcopy(s)] = 0.0
+            s.relations[s.relations.keys()[i]] = False
+            self.U[deepcopy(s)] = 0.0
+            return
+        s.relations[s.relations.keys()[i]] = True
+        self.enumerate_relations(s, i + 1)
+        s.relations[s.relations.keys()[i]] = False
+        self.enumerate_relations(s, i + 1)
+
     def solve(self):
         gamma = 0.8
         epsilon = 1
         n = 0
-        termination_check = False
+        # termination_check = False
         start_time = datetime.datetime.now()
         num_states = 0
 
         while True:
             n += 1
             print 'Iteration ' + str(n)
-            if termination_check:
-                print '\t(now checking for termination)'
+            # if termination_check:
+            #     print '\t(now checking for termination)'
             total = len(self.U.keys())
-            print '\tSize of state space: ' + str(total)
+            # print '\tSize of state space: ' + str(total)
             count = 0.0
             U_prime = {}
             delta = 0.0
@@ -400,7 +425,7 @@ class AMDPValueIteration:
                 if is_terminal(s, amdp_id=self.amdp_id):
                     u = reward(s, amdp_id=self.amdp_id)
                     U_prime[deepcopy(s)] = u
-                    termination_check = True
+                    # termination_check = True
                     if s in self.U:
                         d = abs(self.U[s] - u)
                         if d > delta:
@@ -433,28 +458,28 @@ class AMDPValueIteration:
 
                 u = reward(s, amdp_id=self.amdp_id) + gamma*max_u
                 U_prime[deepcopy(s)] = u
-                if termination_check:
-                    if s in self.U:
-                        d = abs(self.U[s] - u)
-                    else:
-                        d = abs(u)
-                    if d > delta:
-                        delta = d
+                # if termination_check:
+                if s in self.U:
+                    d = abs(self.U[s] - u)
+                else:
+                    d = abs(u)
+                if d > delta:
+                    delta = d
 
                 if count % 10000 == 0:
                     print '\tprogress: ' + str(count/total)
 
             self.U = U_prime
-            if termination_check:
-                if delta < epsilon*(1 - gamma)/gamma:
-                    break
-                print 'Delta: ' + str(delta) + ', continuing...'
-            else:
-                # check for early termination
-                if num_states == total:
-                    print 'Fully explored state-action space without finding a goal, terminating value iteration...'
-                    break
-                num_states = total
+            # if termination_check:
+            if delta < epsilon*(1 - gamma)/gamma:
+                break
+            print 'Delta: ' + str(delta) + ', continuing...'
+            # else:
+            #     # check for early termination
+            #     if num_states == total:
+            #         print 'Fully explored state-action space without finding a goal, terminating value iteration...'
+            #         break
+            #     num_states = total
             print 'Elapsed time: ' + str(datetime.datetime.now() - start_time)
 
         print 'Total elapsed time: ' + str(datetime.datetime.now() - start_time)
