@@ -66,7 +66,12 @@ class LearnTransitionFunction:
         self.transition_function = transition_function or AMDPTransitionsLearned(amdp_id=self.amdp_id)
 
         # read action list
-        a_file = rospy.get_param('~actions', rospkg.RosPack().get_path('task_sim') + '/src/task_sim/str/A.pkl')
+        if self.amdp_id >= 0 and self.amdp_id <= 2:
+            a_file = rospy.get_param('~actions', rospkg.RosPack().get_path('task_sim')
+                                     + '/src/task_sim/str/A_drawer.pkl')
+        else:
+            a_file = rospy.get_param('~actions', rospkg.RosPack().get_path('task_sim')
+                                     + '/src/task_sim/str/A_box.pkl')
         self.A = pickle.load(file(a_file))
 
         if self.amdp_id == -2:

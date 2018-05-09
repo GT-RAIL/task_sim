@@ -30,23 +30,24 @@ class AMDPNode:
         #   2 - 2 object 1 container amdp
         #   3 - 3 object 1 container amdp
 
-        a_file = rospy.get_param('~actions', 'A.pkl')
+        a_file_drawer = rospy.get_param('~actions_drawer', 'A_drawer.pkl')
+        a_file_box = rospy.get_param('~actions_box', 'A_box.pkl')
 
         self.A = {}
         self.U = {}
         self.T = {}
         if self.experiment == 0:
-            self.A[-1] = pickle.load(file(a_file))
+            self.A[-1] = pickle.load(file(a_file_drawer))
             self.U[-1] = pickle.load(file('trained_U-1.pkl'))
             self.T[2] = AMDPTransitionsLearned(amdp_id=2, load=True)
         elif self.experiment >= 1 and self.experiment <= 4:
-            self.A[0] = pickle.load(file(a_file))
+            self.A[0] = pickle.load(file(a_file_drawer))
             self.A[1] = self.A[0]
             self.A[2] = self.A[0]
             if self.experiment == 4:
-                self.A[6] = self.A[0]
-                self.A[7] = self.A[0]
-                self.A[8] = self.A[0]
+                self.A[6] = pickle.load(file(a_file_box))
+                self.A[7] = self.A[6]
+                self.A[8] = self.A[6]
 
             if self.experiment == 1:
                 self.A[3] = []
