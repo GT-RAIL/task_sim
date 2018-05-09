@@ -21,6 +21,7 @@ from task_sim.msg import Action
 from task_sim.srv import QueryState, Execute
 
 from task_sim.oomdp.oo_state import OOState
+from task_sim.str.stochastic_state_action import StochasticAction
 from task_sim.str.amdp_state import AMDPState
 from task_sim.str.amdp_transitions_learned import AMDPTransitionsLearned
 
@@ -29,36 +30,13 @@ from sklearn.externals import joblib
 
 class LearnTransitionFunction:
 
-    class StochasticAction:
-
-        def __init__(self, a):
-            self.actions = [deepcopy(a)]
-            self.frequency = [1]
-            self.p = [1.0]
-
-        def update(self, a):
-            if a in self.actions:
-                self.frequency[self.actions.index(a)] += 1
-            else:
-                self.actions.append(deepcopy(a))
-                self.frequency.append(1)
-                self.p.append(0.0)
-
-            # Update probabilities
-            total = float(sum(self.frequency))
-            for i in range(len(self.frequency)):
-                self.p[i] = self.frequency[i]/total
-
-        def select_action(self):
-            r = random()
-            n = 0
-            for i in range(len(self.actions)):
-                n += self.p[i]
-                if n > r:
-                    return self.actions[i]
-            return self.actions[len(self.actions) - 1]
-
-    def __init__(self):
+    def __init__(
+        self,
+        amdp_id=2, # Correlates to the id's in amdp_state
+        simulator_node='table_sim', # The name of the table_sim environment
+        transition_function=None, # If the transitions are init elsewhere
+        demos_mode=1
+    ):
         # data_file = rospy.get_param('~data', 'state-action_2018-04-20.pkl')
         # self.sa_pairs = pickle.load(file(data_file))
 
@@ -96,10 +74,10 @@ class LearnTransitionFunction:
             bag.close()
 
         # read action list
-        a_file = rospy.get_param('~actions', 'A.pkl')
+        a_file = rospy.get_param('~actions', rospkg.RosPack().get_path('task_sim') + '/src/task_sim/str/A.pkl')
         self.A = pickle.load(file(a_file))
 
-        self.amdp_id = rospy.get_param('~amdp_id', 2)
+        self.amdp_id = rospy.get_param('~amdp_id', amdp_id)
 
         if self.amdp_id == -2:
             a = Action()
@@ -188,7 +166,7 @@ class LearnTransitionFunction:
             else:
                 self.pi[s] = self.StochasticAction(a)
 
-        self.transition_function = AMDPTransitionsLearned(amdp_id=self.amdp_id)
+        self.transition_function = transition_function or AMDPTransitionsLearned(amdp_id=self.amdp_id)
 
         # load weak classifier to bias random exploration
         classifier_path = rospy.get_param('~classifier_name', 'decision_tree_action_' + str(self.amdp_id) + '.pkl')
@@ -196,9 +174,10 @@ class LearnTransitionFunction:
 
         self.action_bias = joblib.load(classifier_path)
 
-        self.query_state = rospy.ServiceProxy('table_sim/query_state', QueryState)
-        self.execute_action = rospy.ServiceProxy('table_sim/execute_action', Execute)
-        self.reset_sim = rospy.ServiceProxy('table_sim/reset_simulation', Empty)
+        # Setup the services
+        self.query_state = rospy.ServiceProxy(simulator_node + '/query_state', QueryState)
+        self.execute_action = rospy.ServiceProxy(simulator_node + '/execute_action', Execute)
+        self.reset_sim = rospy.ServiceProxy(simulator_node + '/reset_simulation', Empty)
 
         self.n = 0  # number of executions
         self.prev_state = None

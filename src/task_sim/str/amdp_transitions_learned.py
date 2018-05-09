@@ -5,30 +5,7 @@ import pickle
 
 from task_sim.str.amdp_state import AMDPState
 from task_sim.msg import Action
-
-
-class StochasticState:
-    def __init__(self):
-        self.states = []
-        self.frequency = []
-        self.p = []
-
-    def add_state(self, s):
-        if s in self.states:
-            self.frequency[self.states.index(s)] += 1
-        else:
-            self.states.append(deepcopy(s))
-            self.frequency.append(1)
-            self.p.append(0.0)
-
-        # Update probabilities
-        total = float(sum(self.frequency))
-        for i in range(len(self.frequency)):
-            self.p[i] = self.frequency[i]/total
-
-    def get_distribution(self):
-        return zip(self.p, self.states)
-
+from task_sim.str.stochastic_state_action import StochasticState
 
 class AMDPTransitionsLearned:
 

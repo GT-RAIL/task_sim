@@ -10,10 +10,10 @@ TableSim:
     objects/complexity - pick whether to use the demo env/execution env
 
 LearnTransitionFunction:
-    task - drawer (4) / box (7)
     simulator - which table_sim instance to use
     amdp_id - open,close (0,1;6,7) / put in (2;8)
     classifier_name/action_bias - method to use (Need to refine/define)
+    task - drawer (4) / box (7). Used for the demos
 
 AMDPNode:
     experiment - the mode in which to run. Probably constant
