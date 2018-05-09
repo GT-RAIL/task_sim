@@ -8,6 +8,7 @@ from random import random, randint
 
 # ROS
 import rospy
+import rospkg
 from task_sim import data_utils as DataUtils
 from task_sim.msg import Action, Status
 from task_sim.srv import QueryStatus, SelectAction
@@ -22,19 +23,29 @@ t_id_map = {0:0, 1:0, 2:2, -1:2, 3:3, 4:4, 5:5, 6:6, 7:6, 8:8, 9:9, 10:10, 11:11
 
 class AMDPNode:
 
-    def __init__(self):
-        self.experiment = rospy.get_param('~experiment', 0)
+    def __init__(
+        self,
+        simulator_name='table_sim',
+        transition_functions=None,
+        value_tables=None
+    ):
+        # NOTE: Hardcode the experiment
+        self.experiment = 4
+        # self.experiment = rospy.get_param('~experiment', 4)
         # experiment id, determines which hardcoded amdp hierarchy to use
         #   0 - 1 object 1 container flat relation mdp
         #   1 - 1 object 1 container amdp
         #   2 - 2 object 1 container amdp
         #   3 - 3 object 1 container amdp
 
-        a_file = rospy.get_param('~actions', 'A.pkl')
+        a_file = rospy.get_param('~actions', rospkg.RosPack().get_path('task_sim') + '/src/task_sim/str/A.pkl')
 
         self.A = {}
-        self.U = {}
-        self.T = {}
+        self.U = (
+            { amdp_id: v.U for (amdp_id, v) in value_tables.iteritems() }
+            if value_tables is not None else {}
+        )
+        self.T = transition_functions or {}
         if self.experiment == 0:
             self.A[-1] = pickle.load(file(a_file))
             self.U[-1] = pickle.load(file('trained_U-1.pkl'))
@@ -113,45 +124,44 @@ class AMDPNode:
                 a.action_type = 11
                 self.A[12].append(deepcopy(a))
 
-            self.U[0] = pickle.load(file('trained_U0.pkl'))
-            self.U[1] = pickle.load(file('trained_U1.pkl'))
-            self.U[2] = pickle.load(file('trained_U2.pkl'))
-            if self.experiment == 1:
-                self.U[3] = pickle.load(file('trained_U3.pkl'))
-            elif self.experiment == 2:
-                self.U[4] = pickle.load(file('trained_U4.pkl'))
-            elif self.experiment == 3:
-                self.U[5] = pickle.load(file('trained_U5.pkl'))
-            elif self.experiment == 4:
-                self.U[4] = pickle.load(file('trained_U4.pkl'))
-                self.U[6] = pickle.load(file('trained_U6.pkl'))
-                self.U[7] = pickle.load(file('trained_U7.pkl'))
-                self.U[8] = pickle.load(file('trained_U8.pkl'))
-                self.U[11] = pickle.load(file('trained_U11.pkl'))
-                self.U[12] = pickle.load(file('trained_U12.pkl'))
+            if value_tables is None:
+                self.U[0] = pickle.load(file('trained_U0.pkl'))
+                self.U[1] = pickle.load(file('trained_U1.pkl'))
+                self.U[2] = pickle.load(file('trained_U2.pkl'))
+                if self.experiment == 1:
+                    self.U[3] = pickle.load(file('trained_U3.pkl'))
+                elif self.experiment == 2:
+                    self.U[4] = pickle.load(file('trained_U4.pkl'))
+                elif self.experiment == 3:
+                    self.U[5] = pickle.load(file('trained_U5.pkl'))
+                elif self.experiment == 4:
+                    self.U[4] = pickle.load(file('trained_U4.pkl'))
+                    self.U[6] = pickle.load(file('trained_U6.pkl'))
+                    self.U[7] = pickle.load(file('trained_U7.pkl'))
+                    self.U[8] = pickle.load(file('trained_U8.pkl'))
+                    self.U[11] = pickle.load(file('trained_U11.pkl'))
+                    self.U[12] = pickle.load(file('trained_U12.pkl'))
 
-            self.T[0] = AMDPTransitionsLearned(amdp_id=0, load=True)
-            self.T[2] = AMDPTransitionsLearned(amdp_id=2, load=True)
-            if self.experiment == 1:
-                self.T[3] = AMDPTransitionsLearned(amdp_id=3, load=False)
-            elif self.experiment == 2:
-                self.T[4] = AMDPTransitionsLearned(amdp_id=4, load=False)
-            elif self.experiment == 3:
-                self.T[5] = AMDPTransitionsLearned(amdp_id=5, load=False)
-            elif self.experiment == 4:
-                self.T[6] = AMDPTransitionsLearned(amdp_id=6, load=True)
-                self.T[8] = AMDPTransitionsLearned(amdp_id=8, load=True)
-                self.T[4] = AMDPTransitionsLearned(amdp_id=4, load=False)
-                self.T[11] = AMDPTransitionsLearned(amdp_id=11, load=False)
-                self.T[12] = AMDPTransitionsLearned(amdp_id=12, load=False)
+            if transition_functions is None:
+                self.T[0] = AMDPTransitionsLearned(amdp_id=0, load=True)
+                self.T[2] = AMDPTransitionsLearned(amdp_id=2, load=True)
+                if self.experiment == 1:
+                    self.T[3] = AMDPTransitionsLearned(amdp_id=3, load=False)
+                elif self.experiment == 2:
+                    self.T[4] = AMDPTransitionsLearned(amdp_id=4, load=False)
+                elif self.experiment == 3:
+                    self.T[5] = AMDPTransitionsLearned(amdp_id=5, load=False)
+                elif self.experiment == 4:
+                    self.T[6] = AMDPTransitionsLearned(amdp_id=6, load=True)
+                    self.T[8] = AMDPTransitionsLearned(amdp_id=8, load=True)
+                    self.T[4] = AMDPTransitionsLearned(amdp_id=4, load=False)
+                    self.T[11] = AMDPTransitionsLearned(amdp_id=11, load=False)
+                    self.T[12] = AMDPTransitionsLearned(amdp_id=12, load=False)
 
         # self.T[t_id_map[self.amdp_id]].transition_function(s, a)
 
-        self.intervention_requested = False
-        self.handle_intervention_action = False
-
-        self.service = rospy.Service('/table_sim/select_action', SelectAction, self.select_action)
-        self.status_service = rospy.Service('/table_sim/query_status', QueryStatus, self.query_status)
+        self.service = rospy.Service(simulator_name + '/select_action', SelectAction, self.select_action)
+        self.status_service = rospy.Service(simulator_name + '/query_status', QueryStatus, self.query_status)
 
         print 'AMDP node loaded and initialized.'
 
@@ -625,13 +635,6 @@ class AMDPNode:
 
         if failed:
             status.status_code = Status.FAILED
-            return status
-
-        # Check if intervention is required (state repeated 8 times in last 50 actions)
-        if self.intervention_requested:
-            status.status_code = Status.INTERVENTION_REQUESTED
-            self.intervention_requested = False
-            self.handle_intervention_action = True
             return status
 
         return status

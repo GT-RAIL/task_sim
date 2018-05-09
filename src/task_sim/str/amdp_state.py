@@ -96,7 +96,7 @@ object_gripper_box_relation_list = [
     'gripper_touching_box',
     'gripper_holding_lid',
     'gripper_holding_apple',
-    'apple_touching_box'
+    'apple_touching_box',
 ]
 
 object2_gripper_drawer_relation_list = [

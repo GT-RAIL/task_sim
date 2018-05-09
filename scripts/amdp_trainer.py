@@ -6,10 +6,12 @@ from __future__ import print_function, division
 # System imports
 import os
 import sys
+import datetime
 import numpy as np
 
 # ROS Imports
 import rospy
+from std_srvs.srv import Empty
 
 # task_sim imports
 from task_sim.str.modes import DemonstrationMode
@@ -75,6 +77,15 @@ class AMDPTrainer(object):
         self.simulators[8] = rospy.get_param('~simulators/box_p', 'box2')
         self.simulators[None] = rospy.get_param('~simulators/eval', 'eval')
 
+        print(self.simulators)
+        self.simulator_api = {
+            name: {
+                'reset_sim': rospy.ServiceProxy(name+'/reset_simulation', Empty),
+                'seed_param_name': name+'/seed'
+            }
+            for (idx,name) in self.simulators.iteritems()
+        }
+
         # Instantiate the transition function learners
         self.transition_learners = {}
         self.demo_configs = {}
@@ -89,11 +100,54 @@ class AMDPTrainer(object):
                         amdp_id, container,
                         self.simulators[amdp_id],
                         self.Ts[amdp_id],
-                        self.demo_mode, self.demo_configs[(container, amdp_id,)]
+                        self.demo_mode, self.demo_configs[(container, amdp_id,)],
+                        rospy.get_param('~max_episode_length', 100)
                     )
 
         # Instantiate the AMDP Node
-        # TODO
+        self.amdp_node = AMDPNode(self.simulators[None], self.Ts, self.Us)
+
+    def train(self, epochs=1000, test_every=10, save_every=100):
+        """Trains the transition function, the value function, etc.
+        TODO: Maybe some of the options here should be part of the experiment
+        config"""
+        epoch = 0
+        num_envs = len(self.task_envs)
+        current_seed = self.task_envs[(epoch%num_envs)][0]
+        start = datetime.datetime.now()
+
+        while epoch < epochs:
+            # TODO: Perhaps we can fork off a process to run?
+            for key, transition_learner in self.transition_learners.iteritems():
+                print("Training:", key)
+                simulator_api = self.simulator_api[self.simulators[key[1]]]
+                rospy.set_param(simulator_api['seed_param_name'], current_seed)
+                simulator_api['reset_sim']()
+                while transition_learner.epoch == epoch: # TODO: Perhaps a better way?
+                    transition_learner.run()
+                print("Success Rate:", transition_learner.successes/transition_learner.epoch)
+
+            # If it is time to test
+            if epoch % test_every == 0 and epoch > 0:
+                # TODO: Perhaps we can fork off here as well?
+                for amdp_id, value_iterator in self.Us.iteritems():
+                    print("Solving:", amdp_id)
+                    value_iterator.solve()
+
+                # Reset the node with the current seed and run it too
+                simulator_api = self.simulator_api[None]
+                rospy.set_param(simulator_api['seed_param_name'], current_seed)
+                simulator_api['reset_sim']()
+                # TODO: Run the eval
+                print("Running node")
+
+            # If it is time to save
+            if epoch % save_every == 0 and epoch > 0:
+                # TODO: Need to save the transition functions and the value tables
+                pass
+
+            epoch += 1
+            current_seed = self.task_envs[(epoch%num_envs)][0]
 
 
 # Main
@@ -104,3 +158,4 @@ if __name__ == '__main__':
     # seeds to the trainer. This config should also initialize the demo config
     # to use
     trainer = AMDPTrainer()
+    trainer.train()

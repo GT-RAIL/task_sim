@@ -38,7 +38,8 @@ class LearnTransitionFunction:
         simulator_node='table_sim', # The name of the table_sim environment
         transition_function=None, # If the transitions are init elsewhere
         demo_mode=None, # DemonstrationMode object. If None, RANDOM+CLASSIFIER+SHADOW
-        demo_config=None # Config from demonstrations. If None, use the default mode
+        demo_config=None, # Config from demonstrations. If None, use the default mode
+        max_episode_length=100 # Max. length of an episode
     ):
         self.demo_mode = demo_mode or DemonstrationMode(
             DemonstrationMode.RANDOM | DemonstrationMode.CLASSIFIER | DemonstrationMode.SHADOW
@@ -116,6 +117,7 @@ class LearnTransitionFunction:
         self.n = 0  # number of executions
         self.prev_state = None
         self.timeout = 0
+        self.max_episode_length = max_episode_length
 
     def run(self):
         state_msg = self.query_state().state
@@ -124,9 +126,9 @@ class LearnTransitionFunction:
         self.timeout += 1
 
         goal_reached = goal_check(state_msg, self.amdp_id)
-        if self.timeout > 100 or goal_reached:
+        if self.timeout > self.max_episode_length or goal_reached:
             self.timeout = 0
-            self.reset_sim()
+            # self.reset_sim()
             self.epoch += 1
             if goal_reached:
                 self.successes += 1
@@ -245,9 +247,13 @@ if __name__ == '__main__':
 
     start = datetime.datetime.now()
 
+    last_epoch = ltf.epoch
     while ltf.epoch <= 500000:
         # rospy.sleep(0.01)
         ltf.run()
+        if last_epoch != ltf.epoch:
+            ltf.reset_sim()
+            last_epoch = ltf.epoch
         if ltf.n % 10000 == 0:
             print 'Iteration: ' + str(ltf.n) + ' (epochs completed: ' + str(ltf.epoch) + ', ' + str(ltf.successes) + ' successes)'
             print '\tTransition function state-action count: ' + str(len(ltf.transition_function.transition.keys()))
