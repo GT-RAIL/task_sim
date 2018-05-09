@@ -23,7 +23,7 @@ from task_sim.str.stochastic_state_action import StochasticAction
 class DemonstrationMode(object):
     """Enum definitions of the demo modes"""
     RANDOM = 1
-    DIRECT_SHADOW = 1<<1
+    SHADOW = 1<<1
     CLASSIFIER = 1<<2
     PLAN_NETWORK = 1<<3
 
@@ -34,7 +34,9 @@ class DemonstrationMode(object):
     def configuration(self, **task_config):
         """Returns a dictionary of the pertinent objects given the selected
         mode and the configs for that mode. The configs are passed in as
-        keyword arguments
+        keyword arguments.
+
+        TODO: Add configs like alpha and epsilon to the demo mode config?
         """
         demo_config = {}
 
@@ -44,11 +46,14 @@ class DemonstrationMode(object):
             pass
 
         # Check if we should return a demonstration policy
-        if (self.mode & DemonstrationMode.DIRECT_SHADOW) > 0:
+        if (self.mode & DemonstrationMode.SHADOW) > 0:
             # Load the demonstration(s) and create a policy
             demo_task = task_config['demo_task'] # TODO: The following assertion should be updated
             assert (demo_task == 'task4' or demo_task == 'task7'), "Unknown task demo: {}".format(demo_task)
+            amdp_id = task_config['amdp_id']
+            assert (amdp_id in [0,1,2,6,7,8]), "Unknown AMDP ID: {}".format(amdp_id)
 
+            print("Loading demonstrations for", demo_task, '...')
             demo_list = glob.glob(os.path.join(
                 rospkg.RosPack().get_path('task_sim'),
                 'data',
@@ -73,8 +78,6 @@ class DemonstrationMode(object):
                 bag.close()
 
             pi = {}
-            amdp_id = task_config['amdp_id']
-            assert (amdp_id in [0,1,2,6,7,8]), "Unknown AMDP ID: {}".format(amdp_id)
             for pair in sa_pairs:
                 state_msg = pair[0]
                 s = AMDPState(amdp_id=amdp_id, state=OOState(state=state_msg))
@@ -133,11 +136,10 @@ class DemonstrationMode(object):
 
         # Check if there's a classifier that we need to return
         if (self.mode & DemonstrationMode.CLASSIFIER) > 0:
-            amdp_id = task_config['amdp_id']
-            assert (amdp_id in [0,1,2,6,7,8]), "Unknown AMDP ID: {}".format(amdp_id)
-
             demo_task = task_config['demo_task'] # TODO: The following assertion should be updated
             assert (demo_task == 'task4' or demo_task == 'task7'), "Unknown task demo: {}".format(demo_task)
+            amdp_id = task_config['amdp_id']
+            assert (amdp_id in [0,1,2,6,7,8]), "Unknown AMDP ID: {}".format(amdp_id)
 
             classifier_name = 'decision_tree_action_{}.pkl'.format(amdp_id)
             classifier_path = os.path.join(
@@ -147,6 +149,7 @@ class DemonstrationMode(object):
                 'models',
                 classifier_name
             )
+            print("Loading classifier at", classifier_path)
             demo_config['action_bias'] = joblib.load(classifier_path)
 
         # All configs are loaded. Return them

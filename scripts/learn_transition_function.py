@@ -22,6 +22,7 @@ from task_sim.srv import QueryState, Execute
 
 from task_sim.oomdp.oo_state import OOState
 from task_sim.str.stochastic_state_action import StochasticAction
+from task_sim.str.demo_mode import DemonstrationMode
 from task_sim.str.amdp_state import AMDPState
 from task_sim.str.amdp_transitions_learned import AMDPTransitionsLearned
 
@@ -33,51 +34,39 @@ class LearnTransitionFunction:
     def __init__(
         self,
         amdp_id=2, # Correlates to the id's in amdp_state
+        demo_task='task4', # Demonstrations task(s). TODO: Update with multiple?
         simulator_node='table_sim', # The name of the table_sim environment
         transition_function=None, # If the transitions are init elsewhere
-        demos_mode=1
+        demo_mode=None # DemonstrationMode object. If None, RANDOM+CLASSIFIER+SHADOW
     ):
-        # data_file = rospy.get_param('~data', 'state-action_2018-04-20.pkl')
-        # self.sa_pairs = pickle.load(file(data_file))
+        self.demo_mode = demo_mode or DemonstrationMode(
+            DemonstrationMode.RANDOM | DemonstrationMode.CLASSIFIER | DemonstrationMode.SHADOW
+        )
 
-        # parameters for controlling exploration
+        # data_file = rospy.get_param('~data', 'state-action_2018-04-20.pkl')
+        # sa_pairs = pickle.load(file(data_file))
+
+        # parameters for controlling exploration. # TODO: fetch through the demo mode
         self.alpha = 0.8  # directly following demonstrations vs. random exploration
         self.epsilon = 0.5  # random exploration vs. general policy guided exploration
 
         self.epoch = 0
         self.successes = 0
 
-        # Read demo data
-        self.task = rospy.get_param('~task', 'task4')
+        # Read demo data and config
+        self.demo_task = rospy.get_param('~task', demo_task)
+        self.amdp_id = rospy.get_param('~amdp_id', amdp_id)
+        self.demo_config = self.demo_mode.configuration(
+            amdp_id=self.amdp_id,
+            demo_task=self.demo_task
+        )
 
-        print 'Loading demonstrations for ' + self.task + '...'
-        self.demo_list = glob.glob(rospkg.RosPack().get_path('task_sim') + '/data/' + self.task + "/demos/*.bag")
-
-        print 'Found ' + str(len(self.demo_list)) + ' demonstrations.'
-
-        self.sa_pairs = []
-        prev_state_msg = None
-
-        for demo_file in self.demo_list:
-            print '\nReading ' + demo_file + '...'
-            bag = rosbag.Bag(demo_file)
-            for topic, msg, t in bag.read_messages(topics=['/table_sim/task_log']):
-                if prev_state_msg is None:
-                    prev_state_msg = deepcopy(msg.state)
-
-                elif msg.action.action_type != Action.NOOP:
-                    pair = (deepcopy(prev_state_msg), deepcopy(msg.action))
-                    self.sa_pairs.append(pair)
-
-                    # update stored data for next iteration
-                    prev_state_msg = deepcopy(msg.state)
-            bag.close()
+        # Set the transition function
+        self.transition_function = transition_function or AMDPTransitionsLearned(amdp_id=self.amdp_id)
 
         # read action list
         a_file = rospy.get_param('~actions', rospkg.RosPack().get_path('task_sim') + '/src/task_sim/str/A.pkl')
         self.A = pickle.load(file(a_file))
-
-        self.amdp_id = rospy.get_param('~amdp_id', amdp_id)
 
         if self.amdp_id == -2:
             a = Action()
@@ -112,67 +101,90 @@ class LearnTransitionFunction:
             a.object = 'lid'
             self.A.append(deepcopy(a))
 
-        # fill in the policy directly from demonstrations
-        self.pi = {}
-        for pair in self.sa_pairs:
-            state_msg = pair[0]
-            s = AMDPState(amdp_id=self.amdp_id, state=OOState(state=state_msg))
-            a = pair[1]
+        # fill in the policy directly from demonstrations (if demo_mode calls for it)
+        self.pi = self.demo_config.get('demo_policy')
+        # print 'Loading demonstrations for ' + self.demo_task + '...'
+        # demo_list = glob.glob(rospkg.RosPack().get_path('task_sim') + '/data/' + self.demo_task + "/demos/*.bag")
 
-            # convert action into something that fits into the new action list
-            if a.action_type == Action.PLACE:
-                a.object = DataUtils.get_task_frame(state_msg, a.position)
-                a.position = Point()
-            elif a.action_type == Action.MOVE_ARM:
-                a.object = DataUtils.get_task_frame(state_msg, a.position)
-                if a.object != 'stack' and a.object != 'drawer' and a.object != 'box' and a.object != 'lid':
-                    for o in state_msg.objects:
-                        if o.name != 'apple' or o.name != 'banana' or o.name != 'carrot':
-                            continue
-                        if a.position == o.position:
-                            a.object = o.name
-                            break
+        # print 'Found ' + str(len(demo_list)) + ' demonstrations.'
 
-                    if a.object != 'apple' or a.object != 'banana' or a.object != 'carrot':
-                        x = state_msg.gripper_position.x
-                        y = state_msg.gripper_position.y
-                        px = a.position.x
-                        py = a.position.y
-                        if px == x and py > y:
-                            a.object = 'b'
-                        elif px < x and py > y:
-                            a.object = 'bl'
-                        elif px < x and py == y:
-                            a.object = 'l'
-                        elif px < x and py < y:
-                            a.object = 'fl'
-                        elif px == x and py < y:
-                            a.object = 'f'
-                        elif px > x and py < y:
-                            a.object = 'fr'
-                        elif px > x and py == y:
-                            a.object = 'r'
-                        else:
-                            a.object = 'br'
-                a.position = Point()
-            elif a.action_type == Action.GRASP:
-                a.position = Point()
-            else:
-                a.position = Point()
-                a.object = ''
+        # sa_pairs = []
+        # prev_state_msg = None
 
-            if s in self.pi:
-                self.pi[s].update(a)
-            else:
-                self.pi[s] = self.StochasticAction(a)
+        # for demo_file in demo_list:
+        #     print '\nReading ' + demo_file + '...'
+        #     bag = rosbag.Bag(demo_file)
+        #     for topic, msg, t in bag.read_messages(topics=['/table_sim/task_log']):
+        #         if prev_state_msg is None:
+        #             prev_state_msg = deepcopy(msg.state)
 
-        self.transition_function = transition_function or AMDPTransitionsLearned(amdp_id=self.amdp_id)
+        #         elif msg.action.action_type != Action.NOOP:
+        #             pair = (deepcopy(prev_state_msg), deepcopy(msg.action))
+        #             sa_pairs.append(pair)
 
-        # load weak classifier to bias random exploration
-        classifier_path = rospy.get_param('~classifier_name', 'decision_tree_action_' + str(self.amdp_id) + '.pkl')
-        classifier_path = rospkg.RosPack().get_path('task_sim') + '/data/' + self.task + '/models/' + classifier_path
+        #             # update stored data for next iteration
+        #             prev_state_msg = deepcopy(msg.state)
+        #     bag.close()
 
-        self.action_bias = joblib.load(classifier_path)
+        # self.pi = {}
+        # for pair in sa_pairs:
+        #     state_msg = pair[0]
+        #     s = AMDPState(amdp_id=self.amdp_id, state=OOState(state=state_msg))
+        #     a = pair[1]
+
+        #     # convert action into something that fits into the new action list
+        #     if a.action_type == Action.PLACE:
+        #         a.object = DataUtils.get_task_frame(state_msg, a.position)
+        #         a.position = Point()
+        #     elif a.action_type == Action.MOVE_ARM:
+        #         a.object = DataUtils.get_task_frame(state_msg, a.position)
+        #         if a.object != 'stack' and a.object != 'drawer' and a.object != 'box' and a.object != 'lid':
+        #             for o in state_msg.objects:
+        #                 if o.name != 'apple' or o.name != 'banana' or o.name != 'carrot':
+        #                     continue
+        #                 if a.position == o.position:
+        #                     a.object = o.name
+        #                     break
+
+        #             if a.object != 'apple' or a.object != 'banana' or a.object != 'carrot':
+        #                 x = state_msg.gripper_position.x
+        #                 y = state_msg.gripper_position.y
+        #                 px = a.position.x
+        #                 py = a.position.y
+        #                 if px == x and py > y:
+        #                     a.object = 'b'
+        #                 elif px < x and py > y:
+        #                     a.object = 'bl'
+        #                 elif px < x and py == y:
+        #                     a.object = 'l'
+        #                 elif px < x and py < y:
+        #                     a.object = 'fl'
+        #                 elif px == x and py < y:
+        #                     a.object = 'f'
+        #                 elif px > x and py < y:
+        #                     a.object = 'fr'
+        #                 elif px > x and py == y:
+        #                     a.object = 'r'
+        #                 else:
+        #                     a.object = 'br'
+        #         a.position = Point()
+        #     elif a.action_type == Action.GRASP:
+        #         a.position = Point()
+        #     else:
+        #         a.position = Point()
+        #         a.object = ''
+
+        #     if s in self.pi:
+        #         self.pi[s].update(a)
+        #     else:
+        #         self.pi[s] = StochasticAction(a)
+
+        # load weak classifier to bias random exploration (if demo_mode calls for it)
+        self.action_bias = self.demo_config.get('action_bias')
+        # classifier_path = rospy.get_param('~classifier_name', 'decision_tree_action_' + str(self.amdp_id) + '.pkl')
+        # classifier_path = rospkg.RosPack().get_path('task_sim') + '/data/' + self.demo_task + '/models/' + classifier_path
+
+        # self.action_bias = joblib.load(classifier_path)
 
         # Setup the services
         self.query_state = rospy.ServiceProxy(simulator_node + '/query_state', QueryState)
