@@ -64,24 +64,23 @@ class DemonstrationMode(object):
         # Check if we should return a demonstration policy
         if self.shadow:
             # Load the demonstration(s) and create a policy
-            demo_tasks = task_config['demo_tasks'] # TODO: The following assertion should be updated
-            assert all(
-                [(x == 'task4' or x == 'task7') for x in demo_tasks]
-            ), "Unknown task demo: {}".format(demo_tasks)
+            container_env = task_config['container_env'] # TODO: Sensible assert
+            # assert all(
+            #     [(x == 'task4' or x == 'task7') for x in container_env]
+            # ), "Unknown task demo: {}".format(container_env)
             amdp_id = task_config['amdp_id']
             assert (amdp_id in [0,1,2,6,7,8]), "Unknown AMDP ID: {}".format(amdp_id)
 
-            print("Loading demonstrations for", demo_tasks, '...')
-            demos_list = []
-            for demo_task in demo_tasks:
-                demo_list = glob.glob(os.path.join(
-                    rospkg.RosPack().get_path('task_sim'),
-                    'data',
-                    demo_task,
-                    'demos/*.bag'
-                ))
-                print("Found", len(demo_list), 'demonstrations for task', demo_task)
-                demos_list.extend(demo_list)
+            print("Loading demonstrations for", container_env, '...')
+            demos_list = [] # TODO: In case there are multiple demo folders
+            demo_list = glob.glob(os.path.join(
+                rospkg.RosPack().get_path('task_sim'),
+                'data',
+                container_env,
+                'demos/*.bag'
+            ))
+            print("Found", len(demo_list), 'demonstrations for container', container_env)
+            demos_list.extend(demo_list)
 
             sa_pairs = []
             prev_state_msg = None
@@ -158,18 +157,19 @@ class DemonstrationMode(object):
         # Check if there's a classifier that we need to return
         if self.classifier:
             # Load the demonstration(s) and create a policy
-            demo_tasks = task_config['demo_tasks'] # TODO: The following assertion should be updated
-            assert all(
-                [(x == 'task4' or x == 'task7') for x in demo_tasks]
-            ), "Unknown task demo: {}".format(demo_tasks)
+            container_env = task_config['container_env'] # TODO: Sensible assert
+            # assert all(
+            #     [(x == 'task4' or x == 'task7') for x in container_env]
+            # ), "Unknown task demo: {}".format(container_env)
             amdp_id = task_config['amdp_id']
             assert (amdp_id in [0,1,2,6,7,8]), "Unknown AMDP ID: {}".format(amdp_id)
 
             classifier_name = 'decision_tree_action_{}.pkl'.format(amdp_id)
+             #TODO: Perhaps use an experiment folder
             classifier_path = os.path.join(
                 rospkg.RosPack().get_path('task_sim'),
                 'data',
-                demo_tasks[0], #TODO: Update this to use multiple...
+                container_env, #TODO: Update this to use multiple...
                 'models',
                 classifier_name
             )

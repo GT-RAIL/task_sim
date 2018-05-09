@@ -34,7 +34,7 @@ class LearnTransitionFunction:
     def __init__(
         self,
         amdp_id=2, # Correlates to the id's in amdp_state
-        demo_tasks='task4', # Demonstrations task(s). TODO: Update with multiple?
+        container_env='task4', # Container in the environment
         simulator_node='table_sim', # The name of the table_sim environment
         transition_function=None, # If the transitions are init elsewhere
         demo_mode=None, # DemonstrationMode object. If None, RANDOM+CLASSIFIER+SHADOW
@@ -55,11 +55,11 @@ class LearnTransitionFunction:
         self.successes = 0
 
         # Read demo data and config
-        self.demo_tasks = rospy.get_param('~task', demo_tasks).split(',')
+        self.container_env = rospy.get_param('~container_env', container_env)
         self.amdp_id = rospy.get_param('~amdp_id', amdp_id)
         self.demo_config = demo_config or self.demo_mode.configuration(
             amdp_id=self.amdp_id,
-            demo_tasks=self.demo_tasks
+            container_env=self.container_env
         )
 
         # Set the transition function
