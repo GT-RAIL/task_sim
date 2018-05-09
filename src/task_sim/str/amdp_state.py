@@ -2,7 +2,7 @@
 
 from copy import copy
 
-item_map = {0:'apple', 1:'banana', 2:'carrot'}
+item_map = {0:'apple', 1:'banana', 2:'carrot', 3:'daikon'}
 
 gripper_drawer_relation_list = [
     'gripper_left_of_drawer',
@@ -96,8 +96,7 @@ object_gripper_box_relation_list = [
     'gripper_touching_box',
     'gripper_holding_lid',
     'gripper_holding_apple',
-    'apple_touching_box',
-    'gripper_holding_apple'
+    'apple_touching_box'
 ]
 
 object2_gripper_drawer_relation_list = [
@@ -294,8 +293,9 @@ class AMDPState:
             7 : close box
             8 : put apple in box
             9 : high level object-box task
-            10 : high level 3 object-drawer-box task
+            10 : top level 3 object-drawer-box task
             11 : high level 2 object-box task
+            12 : top level 4 object 2 container sorting task
 
             -1 : flat 1 object 1 drawer
             -2 : flat 2 object 1 drawer
@@ -330,6 +330,8 @@ class AMDPState:
             self.relation_names = copy(high_level_sort_relation_list)
         elif self.amdp_id == 11:
             self.relation_names = copy(high_level_2_box_relation_list)
+        elif self.amdp_id == 12:
+            self.relation_names = copy(high_level_4_sort_relation_list)
 
         self.relation_names.sort()
 
@@ -355,12 +357,14 @@ class AMDPState:
         if 'gripper_holding_lid' in self.relation_names and state.grippers['gripper'].holding == 'lid':
             self.relations['gripper_holding_lid'] = True
 
-        if self.ground_items is not None:
-            item = self.ground_items[0]
-        else:
-            item = 'apple'
-        if 'gripper_holding_apple' in self.relation_names and state.grippers['gripper'].holding == item:
-            self.relations['gripper_holding_apple'] = True
+        if (self.amdp_id <= 2) or (self.amdp_id >= 6 and self.amdp_id <= 8):
+            if self.ground_items is not None:
+                item = self.ground_items[0]
+            else:
+                item = 'apple'
+
+            if 'gripper_holding_apple' in self.relation_names and state.grippers['gripper'].holding == item:
+                self.relations['gripper_holding_apple'] = True
 
         if self.amdp_id <= -2:
             if 'gripper_holding_banana' in self.relation_names and state.grippers['gripper'].holding == 'banana':

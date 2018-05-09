@@ -197,6 +197,10 @@ class AMDPValueIteration:
         elif self.amdp_id == 11:
             s.relations['lid_closing_box'] = True
             self.U[deepcopy(s)] = 0.0
+        elif self.amdp_id == 12:
+            s.relations['lid_closing_box'] = True
+            s.relations['drawer_closing_stack'] = True
+            self.U[deepcopy(s)] = 0.0
         else:
             self.U[deepcopy(s)] = 0.0
 
@@ -287,6 +291,15 @@ class AMDPValueIteration:
             a.object = 'carrot'
             self.actions.append(deepcopy(a))
             a.object = 'daikon'
+            self.actions.append(deepcopy(a))
+        elif self.amdp_id == 12:
+            # actions are overloaded here to use the same message type
+            # the actions correspond to the amdp_id, i.e.:
+            #   4 - put fruits in drawer high-level amdp
+            #   11 - put vegetables in box high-level amdp
+            a.action_type = 4
+            self.actions.append(deepcopy(a))
+            a.action_type = 11
             self.actions.append(deepcopy(a))
         else:
             a.action_type = Action.GRASP

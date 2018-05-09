@@ -66,15 +66,18 @@ def reward(s, amdp_id=0):
         if s.relations['carrot_inside_box'] and s.relations['lid_closing_box']:
             return 100
     elif amdp_id == 10:
-        reward = 0
         if s.relations['apple_inside_drawer'] and s.relations['banana_inside_drawer'] \
-                and s.relations['drawer_closing_stack']:
-            reward += 100
-        if s.relations['carrot_inside_box'] and s.relations['lid_closing_box']:
-            reward += 50
+                and s.relations['drawer_closing_stack'] and s.relations['carrot_inside_box'] \
+                and s.relations['lid_closing_box']:
+            return 100
     elif amdp_id == 11:
         if s.relations['carrot_inside_box'] and s.relations['daikon_inside_box'] \
                 and s.relations['lid_closing_box']:
+            return 100
+    elif amdp_id == 12:
+        if s.relations['apple_inside_drawer'] and s.relations['banana_inside_drawer'] \
+                and s.relations['drawer_closing_stack'] and s.relations['carrot_inside_box'] \
+                and s.relations['daikon_inside_box'] and s.relations['lid_closing_box']:
             return 100
 
     return -1
@@ -139,3 +142,7 @@ def is_terminal(s, amdp_id=0):
     elif amdp_id == 11:
         return s.relations['carrot_inside_box'] and s.relations['daikon_inside_box'] \
                and s.relations['lid_closing_box']
+    elif amdp_id == 12:
+        return s.relations['apple_inside_drawer'] and s.relations['banana_inside_drawer'] \
+               and s.relations['drawer_closing_stack'] and s.relations['carrot_inside_box'] \
+               and s.relations['daikon_inside_box'] and s.relations['lid_closing_box']
