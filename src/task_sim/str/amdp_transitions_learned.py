@@ -142,6 +142,18 @@ class AMDPTransitionsLearned:
                     if a.object == 'daikon':
                         s_prime.relations['daikon_inside_box'] = True
             return [(1.0, s_prime)]
+        elif self.amdp_id == 12:
+            # hand-coded abstract transitions
+            s_prime = deepcopy(s)
+            if a.action_type == 4:
+                s_prime.relations['apple_inside_drawer'] = True
+                s_prime.relations['banana_inside_drawer'] = True
+                s_prime.relations['drawer_closing_stack'] = True
+            elif a.action_type == 11:
+                s_prime.relations['carrot_inside_box'] = True
+                s_prime.relations['daikon_inside_box'] = True
+                s_prime.relations['lid_closing_box'] = True
+            return [(1.0, s_prime)]
         else:
             q = (s, a.action_type, a.object)
             # states = []

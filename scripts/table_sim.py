@@ -222,6 +222,16 @@ class TableSim:
             obj3.position.z = 0
             self.state_.objects.append(obj3)
 
+        if self.obj_count >= 4:
+            obj4 = Object()
+            obj4.name = 'daikon'
+            obj4.unique_name = obj4.name
+
+            obj4.position.x = 23
+            obj4.position.y = 6
+            obj4.position.z = 0
+            self.state_.objects.append(obj4)
+
         # NOTE: Change for STR project
         if self.complexity > 0:
             mod = 0
@@ -448,10 +458,10 @@ class TableSim:
         self.show()
 
         # # debug
-        s = AMDPState(amdp_id=8, state=OOState(state=self.state_))
-        for key in s.relations:
-            if s.relations[key]:
-                print str(key)
+        # s = AMDPState(amdp_id=8, state=OOState(state=self.state_))
+        # for key in s.relations:
+        #     if s.relations[key]:
+        #         print str(key)
         # print str(s.relations)
         # state = OOState(self.state_)
         # state.relations.sort()
