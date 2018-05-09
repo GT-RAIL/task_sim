@@ -14,6 +14,8 @@ import rospy
 from std_srvs.srv import Empty
 
 # task_sim imports
+from task_sim.msg import Action, State, Status
+from task_sim.srv import Execute, QueryState, QueryStatus, SelectAction
 from task_sim.str.modes import DemonstrationMode
 from task_sim.str.amdp_value_iteration import AMDPValueIteration
 from task_sim.str.amdp_transitions_learned import AMDPTransitionsLearned
@@ -77,14 +79,19 @@ class AMDPTrainer(object):
         self.simulators[8] = rospy.get_param('~simulators/box_p', 'box2')
         self.simulators[None] = rospy.get_param('~simulators/eval', 'eval')
 
-        print(self.simulators)
         self.simulator_api = {
             name: {
                 'reset_sim': rospy.ServiceProxy(name+'/reset_simulation', Empty),
-                'seed_param_name': name+'/seed'
+                'seed_param_name': name+'/seed',
+                'execute': rospy.ServiceProxy(name+'/execute_action', Execute),
+                'query_state': rospy.ServiceProxy(name+'/query_state', QueryState),
+                'query_status': rospy.ServiceProxy(name+'/query_status', QueryStatus),
+                'select_action': rospy.ServiceProxy(name+'/select_action', SelectAction),
             }
             for (idx,name) in self.simulators.iteritems()
         }
+
+        self.max_episode_length = rospy.get_param('~max_episode_length', 100)
 
         # Instantiate the transition function learners
         self.transition_learners = {}
@@ -101,7 +108,7 @@ class AMDPTrainer(object):
                         self.simulators[amdp_id],
                         self.Ts[amdp_id],
                         self.demo_mode, self.demo_configs[(container, amdp_id,)],
-                        rospy.get_param('~max_episode_length', 100)
+                        self.max_episode_length
                     )
 
         # Instantiate the AMDP Node
@@ -115,6 +122,9 @@ class AMDPTrainer(object):
         num_envs = len(self.task_envs)
         current_seed = self.task_envs[(epoch%num_envs)][0]
         start = datetime.datetime.now()
+
+        # Keep track of the number of executions and successes of the test
+        amdp_node_executions = amdp_node_successes = 0
 
         while epoch < epochs:
             # TODO: Perhaps we can fork off a process to run?
@@ -131,17 +141,37 @@ class AMDPTrainer(object):
             if epoch % test_every == 0 and epoch > 0:
                 # TODO: Perhaps we can fork off here as well?
                 for amdp_id, value_iterator in self.Us.iteritems():
+                    # Don't run value iteration for the top-level AMDPs
                     if amdp_id in [4,11,12]:
                         continue
+
                     print("Solving:", amdp_id)
                     value_iterator.solve()
 
-                # Reset the node with the current seed and run it too
-                simulator_api = self.simulator_api[None]
+                # Reset the node with the current seed and run it too. TODO:
+                # Should this be its own internal function? Probably...
+                print("Evaluating")
+                simulator_api = self.simulator_api[self.simulators[None]]
                 rospy.set_param(simulator_api['seed_param_name'], current_seed)
                 simulator_api['reset_sim']()
-                # TODO: Run the eval
-                print("Running node")
+                num_steps = 0
+
+                amdp_node_executions += 1
+                status = Status.IN_PROGRESS
+                while status == Status.IN_PROGRESS:
+                    if num_steps > self.max_episode_length:
+                        status = Status.TIMEOUT
+                        break
+
+                    state = simulator_api['query_state']().state
+                    action = simulator_api['select_action'](state, Action()).action
+                    next_state = simulator_api['execute'](action)
+                    status = simulator_api['query_status'](next_state.state).status.status_code
+
+                    num_steps += 1
+
+                amdp_node_successes += (1 if status == Status.COMPLETED else 0)
+                print("Success Rate:", amdp_node_successes/amdp_node_executions)
 
             # If it is time to save
             if epoch % save_every == 0 and epoch > 0:
