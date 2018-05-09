@@ -10,7 +10,8 @@ from celery import Celery
 # Regardless of language, all the apps must remain aware of the Celery
 config = dict(
     broker='pyamqp://guest:guest@172.17.0.2:5672',
-    backend = 'redis://172.17.0.3:6379'
+#    backend = 'redis://172.17.0.3:6379',
+    backend='rpc://'
 )
 app = Celery('celery_executor', **config)
 
