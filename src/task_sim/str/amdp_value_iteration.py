@@ -383,6 +383,7 @@ class AMDPValueIteration:
         n = 0
         termination_check = False
         start_time = datetime.datetime.now()
+        num_states = 0
 
         while True:
             n += 1
@@ -448,13 +449,22 @@ class AMDPValueIteration:
                 if delta < epsilon*(1 - gamma)/gamma:
                     break
                 print 'Delta: ' + str(delta) + ', continuing...'
-                pickle.dump(self.U, file('U' + str(self.amdp_id) + '_iter_' + str(n) + '.pkl', mode='w'))
+            else:
+                # check for early termination
+                if num_states == total:
+                    print 'Fully explored state-action space without finding a goal, terminating value iteration...'
+                    break
+                num_states = total
             print 'Elapsed time: ' + str(datetime.datetime.now() - start_time)
 
         print 'Total elapsed time: ' + str(datetime.datetime.now() - start_time)
         print 'Finished. Saving...'
-        pickle.dump(self.U, file('trained_U' + str(self.amdp_id) + '.pkl', mode='w'))
+        self.save()
         print 'Utilities saved.'
+
+    def save(self, suffix=''):
+        pickle.dump(self.U, file('U' + str(self.amdp_id) + str(suffix) + '.pkl', mode='w'))
+        print 'Transition function saved.'
 
 
 if __name__ == '__main__':
