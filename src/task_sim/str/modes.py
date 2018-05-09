@@ -31,6 +31,22 @@ class DemonstrationMode(object):
         """`mode` is the bitwise OR of the available modes"""
         self.mode = mode
 
+    @property
+    def random(self):
+        return (self.mode & DemonstrationMode.RANDOM) > 0
+
+    @property
+    def shadow(self):
+        return (self.mode & DemonstrationMode.SHADOW) > 0
+
+    @property
+    def classifier(self):
+        return (self.mode & DemonstrationMode.CLASSIFIER) > 0
+
+    @property
+    def plan_network(self):
+        return (self.mode & DemonstrationMode.PLAN_NETWORK) > 0
+
     def configuration(self, **task_config):
         """Returns a dictionary of the pertinent objects given the selected
         mode and the configs for that mode. The configs are passed in as
@@ -41,30 +57,35 @@ class DemonstrationMode(object):
         demo_config = {}
 
         # Check each of the modes in turn. Start with Random
-        if (self.mode & DemonstrationMode.RANDOM) > 0:
+        if self.random:
             # Nothing needed for random
             pass
 
         # Check if we should return a demonstration policy
-        if (self.mode & DemonstrationMode.SHADOW) > 0:
+        if self.shadow:
             # Load the demonstration(s) and create a policy
-            demo_task = task_config['demo_task'] # TODO: The following assertion should be updated
-            assert (demo_task == 'task4' or demo_task == 'task7'), "Unknown task demo: {}".format(demo_task)
+            demo_tasks = task_config['demo_tasks'] # TODO: The following assertion should be updated
+            assert all(
+                [(x == 'task4' or x == 'task7') for x in demo_tasks]
+            ), "Unknown task demo: {}".format(demo_tasks)
             amdp_id = task_config['amdp_id']
             assert (amdp_id in [0,1,2,6,7,8]), "Unknown AMDP ID: {}".format(amdp_id)
 
-            print("Loading demonstrations for", demo_task, '...')
-            demo_list = glob.glob(os.path.join(
-                rospkg.RosPack().get_path('task_sim'),
-                'data',
-                demo_task,
-                'demos/*.bag'
-            ))
-            print("Found", len(demo_list), 'demonstrations.')
+            print("Loading demonstrations for", demo_tasks, '...')
+            demos_list = []
+            for demo_task in demo_tasks:
+                demo_list = glob.glob(os.path.join(
+                    rospkg.RosPack().get_path('task_sim'),
+                    'data',
+                    demo_task,
+                    'demos/*.bag'
+                ))
+                print("Found", len(demo_list), 'demonstrations for task', demo_task)
+                demos_list.extend(demo_list)
 
             sa_pairs = []
             prev_state_msg = None
-            for demo_file in demo_list:
+            for demo_file in demos_list:
                 print("Reading", demo_file, "...")
                 bag = rosbag.Bag(demo_file)
                 for topic, msg, t in bag.read_messages(topics=['/table_sim/task_log']):
@@ -135,9 +156,12 @@ class DemonstrationMode(object):
             demo_config['demo_policy'] = pi
 
         # Check if there's a classifier that we need to return
-        if (self.mode & DemonstrationMode.CLASSIFIER) > 0:
-            demo_task = task_config['demo_task'] # TODO: The following assertion should be updated
-            assert (demo_task == 'task4' or demo_task == 'task7'), "Unknown task demo: {}".format(demo_task)
+        if self.classifier:
+            # Load the demonstration(s) and create a policy
+            demo_tasks = task_config['demo_tasks'] # TODO: The following assertion should be updated
+            assert all(
+                [(x == 'task4' or x == 'task7') for x in demo_tasks]
+            ), "Unknown task demo: {}".format(demo_tasks)
             amdp_id = task_config['amdp_id']
             assert (amdp_id in [0,1,2,6,7,8]), "Unknown AMDP ID: {}".format(amdp_id)
 
@@ -145,7 +169,7 @@ class DemonstrationMode(object):
             classifier_path = os.path.join(
                 rospkg.RosPack().get_path('task_sim'),
                 'data',
-                demo_task,
+                demo_tasks[0], #TODO: Update this to use multiple...
                 'models',
                 classifier_name
             )
