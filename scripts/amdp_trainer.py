@@ -14,6 +14,7 @@ import rospy
 # task_sim imports
 from task_sim.str.modes import DemonstrationMode
 from task_sim.str.amdp_value_iteration import AMDPValueIteration
+from task_sim.str.amdp_transitions_learned import AMDPTransitionsLearned
 from learn_transition_function import LearnTransitionFunction
 from amdp_node import AMDPNode
 
@@ -26,6 +27,10 @@ class AMDPTrainer(object):
     transition functions and values"""
 
     def __init__(self):
+        # Assume that there is an experiment data folder. #TODO: Get this from
+        # an experiment config in the future
+        self.experiment_data_folder = ""
+
         # First set the demonstration mode. TODO: This should be in an
         # experiment config object
         mode = 0
@@ -38,10 +43,60 @@ class AMDPTrainer(object):
         if rospy.get_param('~demo_mode/plan_network', False):
             mode |= DemonstrationMode.PLAN_NETWORK
 
-        demo_mode = DemonstrationMode(mode)
+        self.demo_mode = DemonstrationMode(mode)
+
+        # Create the different amdp_ids
+        self.amdp_ids = (0,1,2,6,7,8,4,11,12,) # definition in amdp_node.py
+
+        # Get the tasks and amdp_ids for the task. #TODO: When we have different
+        # task envs, this should be more than just empty. Also the seeds should
+        # be picked according to the experiment's configuration
+        self.task_envs = [(0, "")] # Format: seed, task folder
+        self.demo_envs = [ # Format: env_name, amdp_ids
+            ("task4", (0,2)),
+            ("task7", (6,8))
+        ]
+
+        # Instantiate the transition functions and the utility functions
+        self.Ts = {}
+        self.Us = {}
+        for amdp_id in self.amdp_ids:
+            if amdp_id not in (1,7,): # Don't repeat transition functions
+                self.Ts[amdp_id] = AMDPTransitionsLearned(amdp_id=amdp_id, load=False)
+            else:
+                self.Ts[amdp_id] = self.Ts[amdp_id-1]
+            self.Us[amdp_id] = AMDPValueIteration(amdp_id, self.Ts[amdp_id])
+
+        # Instantiate interfaces to the environments. Always have 5 environments
+        self.simulators = {} # Format: (amdp_id, simulator_name). None -> full task
+        self.simulators[0] = rospy.get_param('~simulators/drawer_oc', 'drawer1')
+        self.simulators[2] = rospy.get_param('~simulators/drawer_p', 'drawer2')
+        self.simulators[6] = rospy.get_param('~simulators/box_oc', 'box1')
+        self.simulators[8] = rospy.get_param('~simulators/box_p', 'box2')
+        self.simulators[None] = rospy.get_param('~simulators/eval', 'eval')
+
+        # Instantiate the transition function learners
+        self.transition_learners = {}
+        self.demo_configs = {}
+        for container, amdp_ids in self.demo_envs:
+            for amdp_id in amdp_ids:
+                self.demo_configs[(container, amdp_id,)] = \
+                    self.demo_mode.configuration(
+                        container_env=container, amdp_id=amdp_id
+                    )
+                self.transition_learners[(container, amdp_id,)] = \
+                    LearnTransitionFunction(
+                        amdp_id, container,
+                        self.simulators[amdp_id],
+                        self.Ts[amdp_id],
+                        self.demo_mode, self.demo_configs[(container, amdp_id,)]
+                    )
+
+        # Instantiate the AMDP Node
+        # TODO
+
 
 # Main
-
 if __name__ == '__main__':
     rospy.init_node('amdp_trainer')
 

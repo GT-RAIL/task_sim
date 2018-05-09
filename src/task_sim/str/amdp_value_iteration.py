@@ -17,14 +17,14 @@ class AMDPValueIteration:
     move_objects = ['drawer', 'stack', 'apple', 'l', 'f', 'r', 'b', 'fl', 'fr', 'br', 'bl']
     gripper_objects = ['', 'drawer', 'apple']
 
-    def __init__(self, amdp_id=0):
+    def __init__(self, amdp_id=0, transition_function=None):
         self.U = {}
         self.actions = []
         self.amdp_id = amdp_id
 
-        self.initialize()
+        self.initialize(transition_function)
 
-    def initialize(self):
+    def initialize(self, transition_function=None):
         # initialize state list
         # print 'Enumerating states (started at: ' + str(datetime.datetime.now())  + ")"
         s = AMDPState(amdp_id=self.amdp_id)
@@ -350,10 +350,13 @@ class AMDPValueIteration:
             self.actions.append(deepcopy(a))
 
         # initialize transition function
-        if (self.amdp_id >= 3 and self.amdp_id <= 5) or self.amdp_id > 8:
-            self.T = AMDPTransitionsLearned(amdp_id=self.amdp_id, load=False)
+        if transition_function is None:
+            if (self.amdp_id >= 3 and self.amdp_id <= 5) or self.amdp_id > 8:
+                self.T = AMDPTransitionsLearned(amdp_id=self.amdp_id, load=False)
+            else:
+                self.T = AMDPTransitionsLearned(amdp_id=self.amdp_id, load=True)
         else:
-            self.T = AMDPTransitionsLearned(amdp_id=self.amdp_id, load=True)
+            self.T = transition_function
 
     def solve(self):
         gamma = 0.8
