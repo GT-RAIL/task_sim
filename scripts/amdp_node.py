@@ -126,22 +126,22 @@ class AMDPNode:
                 self.A[12].append(deepcopy(a))
 
             if value_tables is None:
-                self.U[0] = pickle.load(file('trained_U0.pkl'))
-                self.U[1] = pickle.load(file('trained_U1.pkl'))
-                self.U[2] = pickle.load(file('trained_U2.pkl'))
+                self.U[0] = pickle.load(file('U0.pkl'))
+                self.U[1] = pickle.load(file('U1.pkl'))
+                self.U[2] = pickle.load(file('U2.pkl'))
                 if self.experiment == 1:
-                    self.U[3] = pickle.load(file('trained_U3.pkl'))
+                    self.U[3] = pickle.load(file('U3.pkl'))
                 elif self.experiment == 2:
-                    self.U[4] = pickle.load(file('trained_U4.pkl'))
+                    self.U[4] = pickle.load(file('U4.pkl'))
                 elif self.experiment == 3:
-                    self.U[5] = pickle.load(file('trained_U5.pkl'))
+                    self.U[5] = pickle.load(file('U5.pkl'))
                 elif self.experiment == 4:
-                    self.U[4] = pickle.load(file('trained_U4.pkl'))
-                    self.U[6] = pickle.load(file('trained_U6.pkl'))
-                    self.U[7] = pickle.load(file('trained_U7.pkl'))
-                    self.U[8] = pickle.load(file('trained_U8.pkl'))
-                    self.U[11] = pickle.load(file('trained_U11.pkl'))
-                    self.U[12] = pickle.load(file('trained_U12.pkl'))
+                    self.U[4] = pickle.load(file('U4.pkl'))
+                    self.U[6] = pickle.load(file('U6.pkl'))
+                    self.U[7] = pickle.load(file('U7.pkl'))
+                    self.U[8] = pickle.load(file('U8.pkl'))
+                    self.U[11] = pickle.load(file('U11.pkl'))
+                    self.U[12] = pickle.load(file('U12.pkl'))
 
             if transition_functions is None:
                 self.T[0] = AMDPTransitionsLearned(amdp_id=0, load=True)
