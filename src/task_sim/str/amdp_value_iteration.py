@@ -12,10 +12,14 @@ from task_sim.str.amdp_reward import reward, is_terminal
 
 
 class AMDPValueIteration:
-    grasp_objects = ['drawer', 'apple']
-    place_objects = ['stack', 'drawer', '']
-    move_objects = ['drawer', 'stack', 'apple', 'l', 'f', 'r', 'b', 'fl', 'fr', 'br', 'bl']
-    gripper_objects = ['', 'drawer', 'apple']
+    grasp_objects_drawer = ['drawer', 'apple']
+    place_objects_drawer = ['stack', 'drawer', '']
+    move_objects_drawer = ['drawer', 'stack', 'apple', 'l', 'f', 'r', 'b', 'fl', 'fr', 'br', 'bl']
+    gripper_objects_drawer = ['', 'drawer', 'apple']
+    grasp_objects_box = ['lid', 'apple']
+    place_objects_box = ['lid', 'box', '']
+    move_objects_box = ['lid', 'box', 'apple', 'l', 'f', 'r', 'b', 'fl', 'fr', 'br', 'bl']
+    gripper_objects_box = ['', 'lid', 'apple']
 
     def __init__(self, amdp_id=0, transition_function=None):
         self.U = {}
@@ -303,9 +307,14 @@ class AMDPValueIteration:
             self.actions.append(deepcopy(a))
         else:
             a.action_type = Action.GRASP
-            for o in self.grasp_objects:
-                a.object = o
-                self.actions.append(deepcopy(a))
+            if self.amdp_id >= 0 and self.amdp_id <= 2:
+                for o in self.grasp_objects_drawer:
+                    a.object = o
+                    self.actions.append(deepcopy(a))
+            elif self.amdp_id >= 6 and self.amdp_id <= 8:
+                for o in self.grasp_objects_box:
+                    a.object = o
+                    self.actions.append(deepcopy(a))
             if self.amdp_id == -2:
                 a.object = 'banana'
                 self.actions.append(deepcopy(a))
@@ -313,25 +322,27 @@ class AMDPValueIteration:
                 a.object = 'banana'
                 self.actions.append(deepcopy(a))
                 a.object = 'carrot'
-                self.actions.append(deepcopy(a))
-            elif self.amdp_id >= 6 and self.amdp_id <= 8:
-                a.object = 'lid'
                 self.actions.append(deepcopy(a))
 
             a.action_type = Action.PLACE
-            for o in self.place_objects:
-                a.object = o
-                self.actions.append(deepcopy(a))
-            if self.amdp_id >= 6 and self.amdp_id <= 8:
-                a.object = 'lid'
-                self.actions.append(deepcopy(a))
-                a.object = 'box'
-                self.actions.append(deepcopy(a))
+            if self.amdp_id >= 0 and self.amdp_id <= 2:
+                for o in self.place_objects_drawer:
+                    a.object = o
+                    self.actions.append(deepcopy(a))
+            elif self.amdp_id >= 6 and self.amdp_id <= 8:
+                for o in self.place_objects_box:
+                    a.object = o
+                    self.actions.append(deepcopy(a))
 
             a.action_type = Action.MOVE_ARM
-            for o in self.move_objects:
-                a.object = o
-                self.actions.append(deepcopy(a))
+            if self.amdp_id >= 0 and self.amdp_id <= 2:
+                for o in self.move_objects_drawer:
+                    a.object = o
+                    self.actions.append(deepcopy(a))
+            elif self.amdp_id >= 6 and self.amdp_id <= 8:
+                for o in self.move_objects_box:
+                    a.object = o
+                    self.actions.append(deepcopy(a))
             if self.amdp_id == -2:
                 a.object = 'banana'
                 self.actions.append(deepcopy(a))
@@ -339,11 +350,6 @@ class AMDPValueIteration:
                 a.object = 'banana'
                 self.actions.append(deepcopy(a))
                 a.object = 'carrot'
-                self.actions.append(deepcopy(a))
-            elif self.amdp_id >= 6 and self.amdp_id <= 8:
-                a.object = 'lid'
-                self.actions.append(deepcopy(a))
-                a.object = 'box'
                 self.actions.append(deepcopy(a))
 
             a.object = ''
@@ -452,5 +458,5 @@ class AMDPValueIteration:
 
 
 if __name__ == '__main__':
-    a = AMDPValueIteration(amdp_id=11)
+    a = AMDPValueIteration(amdp_id=2)
     a.solve()

@@ -131,6 +131,8 @@ class AMDPTrainer(object):
             if epoch % test_every == 0 and epoch > 0:
                 # TODO: Perhaps we can fork off here as well?
                 for amdp_id, value_iterator in self.Us.iteritems():
+                    if amdp_id in [4,11,12]:
+                        continue
                     print("Solving:", amdp_id)
                     value_iterator.solve()
 

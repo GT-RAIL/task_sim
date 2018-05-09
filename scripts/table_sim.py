@@ -36,8 +36,9 @@ class TableSim:
         self.reset_service_ = rospy.Service('~reset_simulation', Empty, self.reset_sim)
         self.log_pub_ = rospy.Publisher('~task_log', Log, queue_size=1)
 
-        self.complexity = rospy.get_param('~complexity', 2)
-        self.obj_count = rospy.get_param('~objects', 1)
+        self.complexity = rospy.get_param('~complexity', 0)  # complexity of environment for AMDP training
+        self.env_type = rospy.get_param('~env_type', 0)  # optional param telling level 0 environments
+                                                         # whether to use only the drawer (0) or box (1)
 
         self.quiet_mode = rospy.get_param('~quiet_mode', False)
         self.terminal_input = rospy.get_param('~terminal_input', True)
@@ -130,59 +131,48 @@ class TableSim:
         # Container positions
         if level >= 1:
             # NOTE: Change for STR project
-            if self.complexity > 0:
-                drawer_set = False
-                while not drawer_set:
-                    self.state_.drawer_position.x = randint(self.drawerWidth/2 + 1,
-                                                            self.tableWidth - (self.drawerWidth/2 + 1))
-                    self.state_.drawer_position.y = randint(self.drawerDepth/2 + 1,
-                                                            self.tableDepth - (self.drawerDepth/2 + 1))
-                    self.state_.drawer_position.theta = randint(0, 3)*90 if level >= 2 else 0
+            drawer_set = False
+            while not drawer_set:
+                self.state_.drawer_position.x = randint(self.drawerWidth/2 + 1,
+                                                        self.tableWidth - (self.drawerWidth/2 + 1))
+                self.state_.drawer_position.y = randint(self.drawerDepth/2 + 1,
+                                                        self.tableDepth - (self.drawerDepth/2 + 1))
+                self.state_.drawer_position.theta = randint(0, 3)*90 if level >= 2 else 0
 
-                    xmin, xmax, ymin, ymax, xminDrawer, xmaxDrawer, yminDrawer, ymaxDrawer = self.getDrawerBounds()
-                    drawer_set = self.onTable(Point(xmin, ymin, self.drawerHeight)) \
-                                 and self.onTable(Point(xmin, ymax, self.drawerHeight)) \
-                                 and self.onTable(Point(xmax, ymin, self.drawerHeight)) \
-                                 and self.onTable(Point(xmax, ymax, self.drawerHeight)) \
-                                 and self.onTable(Point(xmaxDrawer, yminDrawer, self.drawerHeight - 1)) \
-                                 and self.onTable(Point(xmaxDrawer, ymaxDrawer, self.drawerHeight - 1))
+                xmin, xmax, ymin, ymax, xminDrawer, xmaxDrawer, yminDrawer, ymaxDrawer = self.getDrawerBounds()
+                drawer_set = self.onTable(Point(xmin, ymin, self.drawerHeight)) \
+                             and self.onTable(Point(xmin, ymax, self.drawerHeight)) \
+                             and self.onTable(Point(xmax, ymin, self.drawerHeight)) \
+                             and self.onTable(Point(xmax, ymax, self.drawerHeight)) \
+                             and self.onTable(Point(xmaxDrawer, yminDrawer, self.drawerHeight - 1)) \
+                             and self.onTable(Point(xmaxDrawer, ymaxDrawer, self.drawerHeight - 1))
 
-                    drawer_points = self.getDrawerValidPoints()
-                    for point in drawer_points:
-                        drawer_set = drawer_set and self.reachable(point)
+                drawer_points = self.getDrawerValidPoints()
+                for point in drawer_points:
+                    drawer_set = drawer_set and self.reachable(point)
 
-                self.state_.drawer_opening = randint(0, self.drawerDepth - 1)
+            self.state_.drawer_opening = randint(0, self.drawerDepth - 1)
 
-                box_set = False
-                while not box_set:
-                    self.state_.box_position.x = randint(self.boxRadius + 1,
-                                                         self.tableWidth - (self.boxRadius + 1))
-                    self.state_.box_position.y = randint(self.boxRadius + 1,
-                                                         self.tableDepth - (self.boxRadius + 1))
-                    self.state_.lid_position.x = self.state_.box_position.x
-                    self.state_.lid_position.y = self.state_.box_position.y
-                    self.state_.lid_position.z = self.boxHeight
-
-                    xmin = self.state_.box_position.x - self.boxRadius
-                    xmax = self.state_.box_position.x + self.boxRadius
-                    ymin = self.state_.box_position.y - self.boxRadius
-                    ymax = self.state_.box_position.y + self.boxRadius
-                    box_set = self.onTable(Point(xmin, ymin, 0)) and self.onTable(Point(xmin, ymax, 0)) \
-                              and self.onTable(Point(xmax, ymin, 0)) and self.onTable(Point(xmax, ymax, 0)) \
-                              and self.reachable(self.state_.lid_position) \
-                              and self.euclidean2D(self.state_.box_position.x, self.state_.box_position.y,
-                                                   self.state_.drawer_position.x, self.state_.drawer_position.y) \
-                                  >= max(self.drawerWidth, self.drawerDepth)*3/2 + self.boxRadius + 2
-            else:
-                self.state_.drawer_position.x = 7
-                self.state_.drawer_position.y = 10
-                self.state_.drawer_position.theta = 0
-                self.state_.drawer_opening = 0
-                self.state_.box_position.x = 30
-                self.state_.box_position.y = 11
+            box_set = False
+            while not box_set:
+                self.state_.box_position.x = randint(self.boxRadius + 1,
+                                                     self.tableWidth - (self.boxRadius + 1))
+                self.state_.box_position.y = randint(self.boxRadius + 1,
+                                                     self.tableDepth - (self.boxRadius + 1))
                 self.state_.lid_position.x = self.state_.box_position.x
                 self.state_.lid_position.y = self.state_.box_position.y
                 self.state_.lid_position.z = self.boxHeight
+
+                xmin = self.state_.box_position.x - self.boxRadius
+                xmax = self.state_.box_position.x + self.boxRadius
+                ymin = self.state_.box_position.y - self.boxRadius
+                ymax = self.state_.box_position.y + self.boxRadius
+                box_set = self.onTable(Point(xmin, ymin, 0)) and self.onTable(Point(xmin, ymax, 0)) \
+                          and self.onTable(Point(xmax, ymin, 0)) and self.onTable(Point(xmax, ymax, 0)) \
+                          and self.reachable(self.state_.lid_position) \
+                          and self.euclidean2D(self.state_.box_position.x, self.state_.box_position.y,
+                                               self.state_.drawer_position.x, self.state_.drawer_position.y) \
+                              >= max(self.drawerWidth, self.drawerDepth)*3/2 + self.boxRadius + 2
         else:
             self.state_.drawer_position.x = 10
             self.state_.drawer_position.y = 12
@@ -200,60 +190,69 @@ class TableSim:
         obj1.name = "apple"
         # handle name
         obj1.unique_name = obj1.name
+        # place object
+        object_set = False
+        while not object_set:
+            obj1.position.x = randint(1, self.tableWidth - 1)
+            obj1.position.y = randint(1, self.tableDepth - 1)
+            obj1.position.z = 0
+            object_set = not self.inCollision(obj1.position) and not self.inBox(obj1) and not self.inDrawer(obj1) \
+                             and self.reachable(obj1.position)
+        self.state_.objects.append(obj1)
 
         # NOTE: Change for STR project
-        if self.obj_count >= 2:
+        if self.complexity > 0:
             obj2 = Object()
             obj2.name = 'banana'
             obj2.unique_name = obj2.name
 
-            obj2.position.x = 23
-            obj2.position.y = 4
-            obj2.position.z = 0
+            # place object
+            object_set = False
+            while not object_set:
+                obj2.position.x = randint(1, self.tableWidth - 1)
+                obj2.position.y = randint(1, self.tableDepth - 1)
+                obj2.position.z = 0
+                object_set = not self.inCollision(obj2.position) and not self.inBox(obj2) and not self.inDrawer(obj2) \
+                             and self.reachable(obj2.position)
             self.state_.objects.append(obj2)
 
-        if self.obj_count >= 3:
             obj3 = Object()
             obj3.name = 'carrot'
             obj3.unique_name = obj3.name
 
-            obj3.position.x = 27
-            obj3.position.y = 6
-            obj3.position.z = 0
+            # place object
+            object_set = False
+            while not object_set:
+                obj3.position.x = randint(1, self.tableWidth - 1)
+                obj3.position.y = randint(1, self.tableDepth - 1)
+                obj3.position.z = 0
+                object_set = not self.inCollision(obj3.position) and not self.inBox(obj3) and not self.inDrawer(obj3) \
+                             and self.reachable(obj3.position)
             self.state_.objects.append(obj3)
 
-        if self.obj_count >= 4:
             obj4 = Object()
             obj4.name = 'daikon'
             obj4.unique_name = obj4.name
 
-            obj4.position.x = 23
-            obj4.position.y = 6
-            obj4.position.z = 0
-            self.state_.objects.append(obj4)
-
-        # NOTE: Change for STR project
-        if self.complexity > 0:
-            mod = 0
-            for o in self.state_.objects:
-                if o.name == obj1.name:
-                    mod += 1
-            obj1.unique_name += str(mod)
             # place object
             object_set = False
             while not object_set:
-                obj1.position.x = randint(1, self.tableWidth - 1)
-                obj1.position.y = randint(1, self.tableDepth - 1)
-                obj1.position.z = 0
-                object_set = not self.inCollision(obj1.position) and self.reachable(obj1.position)
-            self.state_.objects.append(obj1)
-        else:
-            obj1.position.x = 25
-            obj1.position.y = 5
-            obj1.position.z = 0
-            self.state_.objects.append(obj1)
+                obj4.position.x = randint(1, self.tableWidth - 1)
+                obj4.position.y = randint(1, self.tableDepth - 1)
+                obj4.position.z = 0
+                object_set = not self.inCollision(obj4.position) and not self.inBox(obj4) and not self.inDrawer(obj4) \
+                             and self.reachable(obj4.position)
+            self.state_.objects.append(obj4)
 
-        if self.complexity >= 1:
+        if self.complexity == 0:
+            # remove unused containers according to self.env_type
+            if self.env_type == 0:
+                self.state_.box_position.x = 50
+                self.state_.lid_position.x = 50
+            else:
+                self.state_.drawer_position.x = 50
+
+        if self.complexity >= 2:
             obj2 = Object()
             obj2.name = "batteries"
             # handle name
@@ -272,7 +271,6 @@ class TableSim:
                 object_set = not self.inCollision(obj2.position) and self.reachable(obj2.position)
             self.state_.objects.append(obj2)
 
-        if self.complexity >= 2:
             obj3 = Object()
             obj3.name = "flashlight"
             # handle name
@@ -351,14 +349,13 @@ class TableSim:
                                         and not self.inContainer(Point(c.position.x + x, c.position.y + y, c.position.z))
             self.state_.containers.append(c)
 
-        if self.complexity >= 1:
+        if self.complexity >= 2:
             c1 = SmallContainer()
             c1.name = "small"
             c1.width = 2
             c1.height = 2
             place_container(c1)
 
-        if self.complexity >= 2:
             c2 = SmallContainer()
             c2.name = "small"
             c2.width = 2
@@ -372,9 +369,19 @@ class TableSim:
             place_container(c3)
 
         # Initial robot configuration (home)
-        self.state_.gripper_position.x = 8
-        self.state_.gripper_position.y = 1
-        self.state_.gripper_position.z = 2
+        # Note: changes for amdp project (random gripper start state)
+        gripper_set = False
+        gripper_pos = Point()
+        while not gripper_set:
+            gripper_pos.x = randint(1, self.tableWidth - 1)
+            gripper_pos.y = randint(1, self.tableDepth - 1)
+            gripper_pos.z = randint(0, 4)
+            gripper_set = not self.inCollision(gripper_pos) \
+                          and not self.inVolume(gripper_pos,
+                                                self.state_.box_position.x - 2, self.state_.box_position.x + 2,
+                                                self.state_.box_position.y - 2, self.state_.box_position.y + 2,
+                                                0, 0) and self.reachable(gripper_pos)
+        self.state_.gripper_position = gripper_pos
         self.state_.gripper_open = True
 
         # Hidden state
@@ -382,6 +389,8 @@ class TableSim:
         for object in self.state_.objects:
             self.grasp_states[object.unique_name] = GraspState(self.getNeighborCount(object.position),
                                                         self.copyPoint(object.position))
+
+        seed(None)  # reset the random seed so that only environment initialization (not later interactions) is fixed
 
 
     # TODO: container version
