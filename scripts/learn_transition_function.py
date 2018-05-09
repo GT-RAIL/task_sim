@@ -256,7 +256,7 @@ class LearnTransitionFunction:
 
 
 def goal_check(s, amdp_id=0):
-    if amdp_id < 6:
+    if amdp_id < 6: # Drawer / Flat task
         for o in s.objects:
             if o.name == 'apple':
                 if not o.in_drawer:
@@ -273,7 +273,7 @@ def goal_check(s, amdp_id=0):
             return False
         if s.object_in_gripper == 'drawer':
             return False
-    else:
+    else: # Box task
         for o in s.objects:
             if o.name == 'apple':
                 if not o.in_box:
