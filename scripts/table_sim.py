@@ -201,47 +201,49 @@ class TableSim:
         self.state_.objects.append(obj1)
 
         # NOTE: Change for STR project
-        if self.complexity > 0:
-            obj2 = Object()
-            obj2.name = 'banana'
-            obj2.unique_name = obj2.name
+        obj2 = Object()
+        obj2.name = 'banana'
+        obj2.unique_name = obj2.name
 
-            # place object
-            object_set = False
-            while not object_set:
-                obj2.position.x = randint(1, self.tableWidth - 1)
-                obj2.position.y = randint(1, self.tableDepth - 1)
-                obj2.position.z = 0
-                object_set = not self.inCollision(obj2.position) and not self.inBox(obj2) and not self.inDrawer(obj2) \
-                             and self.reachable(obj2.position)
+        # place object
+        object_set = False
+        while not object_set:
+            obj2.position.x = randint(1, self.tableWidth - 1)
+            obj2.position.y = randint(1, self.tableDepth - 1)
+            obj2.position.z = 0
+            object_set = not self.inCollision(obj2.position) and not self.inBox(obj2) and not self.inDrawer(obj2) \
+                         and self.reachable(obj2.position)
+        if self.complexity > 0:
             self.state_.objects.append(obj2)
 
-            obj3 = Object()
-            obj3.name = 'carrot'
-            obj3.unique_name = obj3.name
+        obj3 = Object()
+        obj3.name = 'carrot'
+        obj3.unique_name = obj3.name
 
-            # place object
-            object_set = False
-            while not object_set:
-                obj3.position.x = randint(1, self.tableWidth - 1)
-                obj3.position.y = randint(1, self.tableDepth - 1)
-                obj3.position.z = 0
-                object_set = not self.inCollision(obj3.position) and not self.inBox(obj3) and not self.inDrawer(obj3) \
-                             and self.reachable(obj3.position)
+        # place object
+        object_set = False
+        while not object_set:
+            obj3.position.x = randint(1, self.tableWidth - 1)
+            obj3.position.y = randint(1, self.tableDepth - 1)
+            obj3.position.z = 0
+            object_set = not self.inCollision(obj3.position) and not self.inBox(obj3) and not self.inDrawer(obj3) \
+                         and self.reachable(obj3.position)
+        if self.complexity > 0:
             self.state_.objects.append(obj3)
 
-            obj4 = Object()
-            obj4.name = 'daikon'
-            obj4.unique_name = obj4.name
+        obj4 = Object()
+        obj4.name = 'daikon'
+        obj4.unique_name = obj4.name
 
-            # place object
-            object_set = False
-            while not object_set:
-                obj4.position.x = randint(1, self.tableWidth - 1)
-                obj4.position.y = randint(1, self.tableDepth - 1)
-                obj4.position.z = 0
-                object_set = not self.inCollision(obj4.position) and not self.inBox(obj4) and not self.inDrawer(obj4) \
-                             and self.reachable(obj4.position)
+        # place object
+        object_set = False
+        while not object_set:
+            obj4.position.x = randint(1, self.tableWidth - 1)
+            obj4.position.y = randint(1, self.tableDepth - 1)
+            obj4.position.z = 0
+            object_set = not self.inCollision(obj4.position) and not self.inBox(obj4) and not self.inDrawer(obj4) \
+                         and self.reachable(obj4.position)
+        if self.complexity > 0:
             self.state_.objects.append(obj4)
 
         if self.complexity == 0:
