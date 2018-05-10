@@ -8,6 +8,8 @@ import os
 import sys
 import pickle
 import datetime
+import threading
+import multiprocessing
 import numpy as np
 
 # ROS Imports
@@ -129,6 +131,10 @@ class AMDPTrainer(object):
         # Instantiate the AMDP Node
         self.amdp_node = AMDPNode(self.simulators[None], self.Ts, self.Us)
 
+    def _run_transition_learner(self, learner, epoch):
+        while learner.epoch == epoch:
+            learner.run()
+
     def train(self, epochs=1000, test_every=10, save_every=100):
         """Trains the transition function, the value function, etc.
         TODO: Maybe some of the options here should be part of the experiment
@@ -142,15 +148,25 @@ class AMDPTrainer(object):
 
         while epoch < epochs:
             current_seed = self.task_envs[(epoch%num_envs)][0]
-            # TODO: Perhaps we can fork off a process to run?
+
+            learn_workers = []
             for key, transition_learner in self.transition_learners.iteritems():
-                print("Training:", key, end=' ')
+                # print("Training:", key, end=' ')
                 simulator_api = self.simulator_api[self.simulators[key[1]]]
                 rospy.set_param(simulator_api['seed_param_name'], current_seed)
                 simulator_api['reset_sim']()
-                while transition_learner.epoch == epoch: # TODO: Perhaps a better way?
-                    transition_learner.run()
+
+                worker = threading.Thread(
+                    target=self._run_transition_learner,
+                    args=(transition_learner, epoch,)
+                )
+                learn_workers.append((key, transition_learner, worker,))
+                worker.start()
+
+            for key, transition_learner, worker in learn_workers:
+                worker.join()
                 print(
+                    "Trained:", key,
                     "Epoch:", transition_learner.epoch,
                     "\tSuccesses:", transition_learner.successes,
                     "\tAction executions:", transition_learner.action_executions
@@ -158,7 +174,8 @@ class AMDPTrainer(object):
 
             # If it is time to test
             if epoch % test_every == 0 and epoch > 0:
-                # TODO: Perhaps we can fork off here as well?
+                # TODO: Need better state management for speedup with
+                # multiprocessing here
                 for amdp_id, value_iterator in self.Us.iteritems():
                     # Don't run value iteration for the top-level AMDPs
                     if amdp_id in [4,11,12]:
@@ -232,4 +249,4 @@ if __name__ == '__main__':
     # seeds to the trainer. This config should also initialize the demo config
     # to use
     trainer = AMDPTrainer()
-    trainer.train(test_every=10)
+    trainer.train()

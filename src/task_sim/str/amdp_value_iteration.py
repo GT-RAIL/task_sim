@@ -198,17 +198,19 @@ class AMDPValueIteration:
         # initialize utilities for states in transition function
         self.init_utilities()
 
-    def init_utilities(self):
+    def init_utilities(self, debug=1):
         self.U = {}
         if self.amdp_id in self.abstract_amdps:
             s = AMDPState(amdp_id=self.amdp_id)
             self.enumerate_relations(s)
         else:
-            print 'Initializing utilities over all states in the state list...'
+            if debug > 0:
+                print 'Initializing utilities over all states in the state list...'
             states = self.T.get_states()
             for s in states:
                 self.U[deepcopy(s)] = 0.0
-            print 'Utilities initialized.'
+            if debug > 0:
+                print 'Utilities initialized.'
 
     def enumerate_relations(self, s, i=0):
         '''recursively set all attributes in an amdp state to cover all possible state assignments, store them in U'''
@@ -223,7 +225,7 @@ class AMDPValueIteration:
         s.relations[s.relations.keys()[i]] = False
         self.enumerate_relations(s, i + 1)
 
-    def solve(self):
+    def solve(self, debug=1):
         gamma = 0.8
         epsilon = 1
         n = 0
@@ -233,7 +235,8 @@ class AMDPValueIteration:
 
         while True:
             n += 1
-            print 'Iteration ' + str(n)
+            if debug > 0:
+                print 'Iteration ' + str(n)
             # if termination_check:
             #     print '\t(now checking for termination)'
             total = len(self.U.keys())
@@ -272,17 +275,20 @@ class AMDPValueIteration:
                 if d > delta:
                     delta = d
 
-                if count % 10000 == 0:
+                if count % 10000 == 0 and debug > 0:
                     print '\tprogress: ' + str(count/total)
 
             self.U = U_prime
             # if termination_check:
             if delta < epsilon*(1 - gamma)/gamma:
                 break
-            print 'Delta: ' + str(delta) + ', continuing...'
-            print 'Elapsed time: ' + str(datetime.datetime.now() - start_time)
 
-        print 'Total elapsed time: ' + str(datetime.datetime.now() - start_time)
+            if debug > 0:
+                print 'Delta: ' + str(delta) + ', continuing...'
+                print 'Elapsed time: ' + str(datetime.datetime.now() - start_time)
+
+        if debug > 0:
+            print 'Total elapsed time: ' + str(datetime.datetime.now() - start_time)
         # print 'Finished. Saving...'
         # self.save()
 
