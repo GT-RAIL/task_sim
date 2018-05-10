@@ -6,11 +6,13 @@ from __future__ import print_function, division
 # System imports
 import os
 import sys
+import pickle
 import datetime
 import numpy as np
 
 # ROS Imports
 import rospy
+import rospkg
 from std_srvs.srv import Empty
 
 # task_sim imports
@@ -31,6 +33,8 @@ class AMDPTrainer(object):
     transition functions and values"""
 
     def __init__(self):
+        root_path = rospkg.RosPack().get_path('task_sim')
+
         # Assume that there is an experiment data folder. #TODO: Get this from
         # an experiment config in the future
         self.experiment_data_folder = ""
@@ -69,7 +73,15 @@ class AMDPTrainer(object):
                 self.Ts[amdp_id] = AMDPTransitionsLearned(amdp_id=amdp_id, load=False)
             else:
                 self.Ts[amdp_id] = self.Ts[amdp_id-1]
+
+            # Initialize the value functions
             self.Us[amdp_id] = AMDPValueIteration(amdp_id, self.Ts[amdp_id])
+            if amdp_id in (4,11,12,): # Pre-calculated high-level value functions
+                with open(
+                    os.path.join(root_path, 'src/task_sim/str/U{}.pkl'.format(amdp_id)),
+                    'rb'
+                ) as fd:
+                    self.Us[amdp_id].U = pickle.load(fd)
 
         # Instantiate interfaces to the environments. Always have 5 environments
         self.simulators = {} # Format: (amdp_id, simulator_name). None -> full task
