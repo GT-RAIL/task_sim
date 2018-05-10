@@ -483,13 +483,12 @@ class AMDPValueIteration:
             print 'Elapsed time: ' + str(datetime.datetime.now() - start_time)
 
         print 'Total elapsed time: ' + str(datetime.datetime.now() - start_time)
-        print 'Finished. Saving...'
-        self.save()
-        print 'Utilities saved.'
+        # print 'Finished. Saving...'
+        # self.save()
 
     def save(self, suffix=''):
         pickle.dump(self.U, file('U' + str(self.amdp_id) + str(suffix) + '.pkl', mode='w'))
-        print 'Transition function saved.'
+        print 'Utilities saved.'
 
 
 if __name__ == '__main__':

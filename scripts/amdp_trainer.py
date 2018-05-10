@@ -6,11 +6,13 @@ from __future__ import print_function, division
 # System imports
 import os
 import sys
+import pickle
 import datetime
 import numpy as np
 
 # ROS Imports
 import rospy
+import rospkg
 from std_srvs.srv import Empty
 
 # task_sim imports
@@ -31,6 +33,8 @@ class AMDPTrainer(object):
     transition functions and values"""
 
     def __init__(self):
+        root_path = rospkg.RosPack().get_path('task_sim')
+
         # Assume that there is an experiment data folder. #TODO: Get this from
         # an experiment config in the future
         self.experiment_data_folder = ""
@@ -69,7 +73,15 @@ class AMDPTrainer(object):
                 self.Ts[amdp_id] = AMDPTransitionsLearned(amdp_id=amdp_id, load=False)
             else:
                 self.Ts[amdp_id] = self.Ts[amdp_id-1]
+
+            # Initialize the value functions
             self.Us[amdp_id] = AMDPValueIteration(amdp_id, self.Ts[amdp_id])
+            if amdp_id in (4,11,12,): # Pre-calculated high-level value functions
+                with open(
+                    os.path.join(root_path, 'src/task_sim/str/U{}.pkl'.format(amdp_id)),
+                    'rb'
+                ) as fd:
+                    self.Us[amdp_id].U = pickle.load(fd)
 
         # Instantiate interfaces to the environments. Always have 5 environments
         self.simulators = {} # Format: (amdp_id, simulator_name). None -> full task
@@ -114,7 +126,7 @@ class AMDPTrainer(object):
         # Instantiate the AMDP Node
         self.amdp_node = AMDPNode(self.simulators[None], self.Ts, self.Us)
 
-    def train(self, epochs=1000, test_every=10, save_every=100):
+    def train(self, epochs=1000, test_every=100, save_every=100):
         """Trains the transition function, the value function, etc.
         TODO: Maybe some of the options here should be part of the experiment
         config"""
@@ -129,13 +141,16 @@ class AMDPTrainer(object):
         while epoch < epochs:
             # TODO: Perhaps we can fork off a process to run?
             for key, transition_learner in self.transition_learners.iteritems():
-                print("Training:", key)
+                print("Training:", key, end=' ')
                 simulator_api = self.simulator_api[self.simulators[key[1]]]
                 rospy.set_param(simulator_api['seed_param_name'], current_seed)
                 simulator_api['reset_sim']()
                 while transition_learner.epoch == epoch: # TODO: Perhaps a better way?
                     transition_learner.run()
-                print("Success Rate:", transition_learner.successes/transition_learner.epoch)
+                print(
+                    "Epoch:", transition_learner.epoch,
+                    "Successes:", transition_learner.successes
+                )
 
             # If it is time to test
             if epoch % test_every == 0 and epoch > 0:
@@ -150,7 +165,7 @@ class AMDPTrainer(object):
 
                 # Reset the node with the current seed and run it too. TODO:
                 # Should this be its own internal function? Probably...
-                print("Evaluating")
+                print("Evaluating.", end=' ')
                 simulator_api = self.simulator_api[self.simulators[None]]
                 rospy.set_param(simulator_api['seed_param_name'], current_seed)
                 simulator_api['reset_sim']()
@@ -171,7 +186,10 @@ class AMDPTrainer(object):
                     num_steps += 1
 
                 amdp_node_successes += (1 if status == Status.COMPLETED else 0)
-                print("Success Rate:", amdp_node_successes/amdp_node_executions)
+                print(
+                    "Tests:", amdp_node_executions,
+                    "Successes:", amdp_node_successes
+                )
 
             # If it is time to save
             if epoch % save_every == 0 and epoch > 0:

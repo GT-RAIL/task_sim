@@ -167,388 +167,394 @@ class AMDPNode:
         print 'AMDP node loaded and initialized.'
 
 
-    def select_action(self, req):
+    def select_action(self, req, debug=0):
         action = None
 
         action_list = []
 
         oo_state = OOState(state=req.state)
-        if self.experiment == 0:
-            s = AMDPState(amdp_id=-1, state=oo_state, ground_ites = ['apple'])
+        # if self.experiment == 0:
+        #     s = AMDPState(amdp_id=-1, state=oo_state, ground_ites = ['apple'])
 
-            utilities = {}
-            for a in self.A[-1]:
-                successors = self.T[t_id_map[-1]].transition_function(s, a)
-                u = 0
-                for i in range(len(successors)):
-                    p = successors[i][0]
-                    s_prime = successors[i][1]
-                    if s_prime in self.U[-1]:
-                        u += p*self.U[-1][s_prime]
-                    elif is_terminal(s_prime, amdp_id=-1):
-                        u += p*reward(s_prime, amdp_id=-1)
-                utilities[a] = u
+        #     utilities = {}
+        #     for a in self.A[-1]:
+        #         successors = self.T[t_id_map[-1]].transition_function(s, a)
+        #         u = 0
+        #         for i in range(len(successors)):
+        #             p = successors[i][0]
+        #             s_prime = successors[i][1]
+        #             if s_prime in self.U[-1]:
+        #                 u += p*self.U[-1][s_prime]
+        #             elif is_terminal(s_prime, amdp_id=-1):
+        #                 u += p*reward(s_prime, amdp_id=-1)
+        #         utilities[a] = u
 
-            # print '\n---'
-            # for key in utilities:
-            #     print str(key)
-            #     print 'utility: ' + str(utilities[key])
+        #     # print '\n---'
+        #     # for key in utilities:
+        #     #     print str(key)
+        #     #     print 'utility: ' + str(utilities[key])
 
-            # pick top action deterministically
-            max_utility = -999999
-            for a in utilities.keys():
-                if utilities[a] > max_utility:
-                    max_utility = utilities[a]
-                    action_list = []
-                    action_list.append(deepcopy(a))
-                elif utilities[a] == max_utility:
-                    action_list.append(deepcopy(a))
+        #     # pick top action deterministically
+        #     max_utility = -999999
+        #     for a in utilities.keys():
+        #         if utilities[a] > max_utility:
+        #             max_utility = utilities[a]
+        #             action_list = []
+        #             action_list.append(deepcopy(a))
+        #         elif utilities[a] == max_utility:
+        #             action_list.append(deepcopy(a))
 
-        elif self.experiment == 1:
-            # start at the top level
-            s = AMDPState(amdp_id=3, state=oo_state, ground_items=['apple'])
+        # elif self.experiment == 1:
+        #     # start at the top level
+        #     s = AMDPState(amdp_id=3, state=oo_state, ground_items=['apple'])
 
-            utilities = {}
-            for a in self.A[3]:
-                successors = self.T[t_id_map[3]].transition_function(s, a)
-                u = 0
-                for i in range(len(successors)):
-                    p = successors[i][0]
-                    s_prime = successors[i][1]
-                    if s_prime in self.U[3]:
-                        u += p*self.U[3][s_prime]
-                    elif is_terminal(s_prime, amdp_id=3):
-                        u += p*reward(s_prime, amdp_id=3)
-                utilities[a] = u
+        #     utilities = {}
+        #     for a in self.A[3]:
+        #         successors = self.T[t_id_map[3]].transition_function(s, a)
+        #         u = 0
+        #         for i in range(len(successors)):
+        #             p = successors[i][0]
+        #             s_prime = successors[i][1]
+        #             if s_prime in self.U[3]:
+        #                 u += p*self.U[3][s_prime]
+        #             elif is_terminal(s_prime, amdp_id=3):
+        #                 u += p*reward(s_prime, amdp_id=3)
+        #         utilities[a] = u
 
-            # print '\n---'
-            # for key in utilities:
-            #     print str(key)
-            #     print 'utility: ' + str(utilities[key])
+        #     # print '\n---'
+        #     # for key in utilities:
+        #     #     print str(key)
+        #     #     print 'utility: ' + str(utilities[key])
 
-            # pick top action deterministically
-            max_utility = -999999
-            for a in utilities.keys():
-                if utilities[a] > max_utility:
-                    max_utility = utilities[a]
-                    action_list = []
-                    action_list.append(deepcopy(a))
-                elif utilities[a] == max_utility:
-                    action_list.append(deepcopy(a))
+        #     # pick top action deterministically
+        #     max_utility = -999999
+        #     for a in utilities.keys():
+        #         if utilities[a] > max_utility:
+        #             max_utility = utilities[a]
+        #             action_list = []
+        #             action_list.append(deepcopy(a))
+        #         elif utilities[a] == max_utility:
+        #             action_list.append(deepcopy(a))
 
-            # select action
-            i = randint(0, len(action_list) - 1)
-            id = action_list[i].action_type
+        #     # select action
+        #     i = randint(0, len(action_list) - 1)
+        #     id = action_list[i].action_type
 
-            print 'High level action selection: ' + str(id)
+        #     print 'High level action selection: ' + str(id)
 
-            # solve lower level mdp for executable action
-            action_list = []
-            s = AMDPState(amdp_id=id, state=oo_state, ground_items=['apple'])
+        #     # solve lower level mdp for executable action
+        #     action_list = []
+        #     s = AMDPState(amdp_id=id, state=oo_state, ground_items=['apple'])
 
-            utilities = {}
-            for a in self.A[id]:
-                successors = self.T[t_id_map[id]].transition_function(s, a)
-                u = 0
-                for i in range(len(successors)):
-                    p = successors[i][0]
-                    s_prime = successors[i][1]
-                    if s_prime in self.U[id]:
-                        u += p*self.U[id][s_prime]
-                    elif is_terminal(s_prime, amdp_id=id):
-                        u += p*reward(s_prime, amdp_id=id)
-                utilities[a] = u
+        #     utilities = {}
+        #     for a in self.A[id]:
+        #         successors = self.T[t_id_map[id]].transition_function(s, a)
+        #         u = 0
+        #         for i in range(len(successors)):
+        #             p = successors[i][0]
+        #             s_prime = successors[i][1]
+        #             if s_prime in self.U[id]:
+        #                 u += p*self.U[id][s_prime]
+        #             elif is_terminal(s_prime, amdp_id=id):
+        #                 u += p*reward(s_prime, amdp_id=id)
+        #         utilities[a] = u
 
-            # print '\n---'
-            # for key in utilities:
-            #     print str(key)
-            #     print 'utility: ' + str(utilities[key])
+        #     # print '\n---'
+        #     # for key in utilities:
+        #     #     print str(key)
+        #     #     print 'utility: ' + str(utilities[key])
 
-            # pick top action deterministically
-            max_utility = -999999
-            for a in utilities.keys():
-                if utilities[a] > max_utility:
-                    max_utility = utilities[a]
-                    action_list = []
-                    action_list.append(deepcopy(a))
-                elif utilities[a] == max_utility:
-                    action_list.append(deepcopy(a))
+        #     # pick top action deterministically
+        #     max_utility = -999999
+        #     for a in utilities.keys():
+        #         if utilities[a] > max_utility:
+        #             max_utility = utilities[a]
+        #             action_list = []
+        #             action_list.append(deepcopy(a))
+        #         elif utilities[a] == max_utility:
+        #             action_list.append(deepcopy(a))
 
-        elif self.experiment == 2:
-            # start at the top level
-            s = AMDPState(amdp_id=4, state=oo_state, ground_items=['apple', 'banana'])
+        # elif self.experiment == 2:
+        #     # start at the top level
+        #     s = AMDPState(amdp_id=4, state=oo_state, ground_items=['apple', 'banana'])
 
-            utilities = {}
-            for a in self.A[4]:
-                successors = self.T[t_id_map[4]].transition_function(s, a)
-                u = 0
-                for i in range(len(successors)):
-                    p = successors[i][0]
-                    s_prime = successors[i][1]
-                    if s_prime in self.U[4]:
-                        u += p*self.U[4][s_prime]
-                    elif is_terminal(s_prime, amdp_id=4):
-                        u += p*reward(s_prime, amdp_id=4)
-                utilities[a] = u
+        #     utilities = {}
+        #     for a in self.A[4]:
+        #         successors = self.T[t_id_map[4]].transition_function(s, a)
+        #         u = 0
+        #         for i in range(len(successors)):
+        #             p = successors[i][0]
+        #             s_prime = successors[i][1]
+        #             if s_prime in self.U[4]:
+        #                 u += p*self.U[4][s_prime]
+        #             elif is_terminal(s_prime, amdp_id=4):
+        #                 u += p*reward(s_prime, amdp_id=4)
+        #         utilities[a] = u
 
-            # print '\n---'
-            # for key in utilities:
-            #     print str(key)
-            #     print 'utility: ' + str(utilities[key])
+        #     # print '\n---'
+        #     # for key in utilities:
+        #     #     print str(key)
+        #     #     print 'utility: ' + str(utilities[key])
 
-            # pick top action deterministically
-            max_utility = -999999
-            for a in utilities.keys():
-                if utilities[a] > max_utility:
-                    max_utility = utilities[a]
-                    action_list = []
-                    action_list.append(deepcopy(a))
-                elif utilities[a] == max_utility:
-                    action_list.append(deepcopy(a))
+        #     # pick top action deterministically
+        #     max_utility = -999999
+        #     for a in utilities.keys():
+        #         if utilities[a] > max_utility:
+        #             max_utility = utilities[a]
+        #             action_list = []
+        #             action_list.append(deepcopy(a))
+        #         elif utilities[a] == max_utility:
+        #             action_list.append(deepcopy(a))
 
-            # select action
-            i = randint(0, len(action_list) - 1)
-            id = action_list[i].action_type
-            obj = action_list[i].object
+        #     # select action
+        #     i = randint(0, len(action_list) - 1)
+        #     id = action_list[i].action_type
+        #     obj = action_list[i].object
 
-            print 'High level action selection: ' + str(id) + ', ' + str(obj)
+        #     print 'High level action selection: ' + str(id) + ', ' + str(obj)
 
-            # solve lower level mdp for executable action
-            action_list = []
-            s = AMDPState(amdp_id=id, state=oo_state, ground_items=[obj])
+        #     # solve lower level mdp for executable action
+        #     action_list = []
+        #     s = AMDPState(amdp_id=id, state=oo_state, ground_items=[obj])
 
-            utilities = {}
-            for a in self.A[id]:
-                successors = self.T[t_id_map[id]].transition_function(s, a)
-                u = 0
-                for i in range(len(successors)):
-                    p = successors[i][0]
-                    s_prime = successors[i][1]
-                    if s_prime in self.U[id]:
-                        u += p*self.U[id][s_prime]
-                    elif is_terminal(s_prime, amdp_id=id):
-                        u += p*reward(s_prime, amdp_id=id)
-                utilities[a] = u
+        #     utilities = {}
+        #     for a in self.A[id]:
+        #         successors = self.T[t_id_map[id]].transition_function(s, a)
+        #         u = 0
+        #         for i in range(len(successors)):
+        #             p = successors[i][0]
+        #             s_prime = successors[i][1]
+        #             if s_prime in self.U[id]:
+        #                 u += p*self.U[id][s_prime]
+        #             elif is_terminal(s_prime, amdp_id=id):
+        #                 u += p*reward(s_prime, amdp_id=id)
+        #         utilities[a] = u
 
-            # print '\n---'
-            # for key in utilities:
-            #     print str(key)
-            #     print 'utility: ' + str(utilities[key])
+        #     # print '\n---'
+        #     # for key in utilities:
+        #     #     print str(key)
+        #     #     print 'utility: ' + str(utilities[key])
 
-            # pick top action deterministically
-            max_utility = -999999
-            for a in utilities.keys():
-                if utilities[a] > max_utility:
-                    max_utility = utilities[a]
-                    action_list = []
-                    action = deepcopy(a)
-                    if action.object == 'apple':
-                        action.object = obj
-                    action_list.append(deepcopy(action))
-                elif utilities[a] == max_utility:
-                    action = deepcopy(a)
-                    if action.object == 'apple':
-                        action.object = obj
-                    action_list.append(deepcopy(action))
+        #     # pick top action deterministically
+        #     max_utility = -999999
+        #     for a in utilities.keys():
+        #         if utilities[a] > max_utility:
+        #             max_utility = utilities[a]
+        #             action_list = []
+        #             action = deepcopy(a)
+        #             if action.object == 'apple':
+        #                 action.object = obj
+        #             action_list.append(deepcopy(action))
+        #         elif utilities[a] == max_utility:
+        #             action = deepcopy(a)
+        #             if action.object == 'apple':
+        #                 action.object = obj
+        #             action_list.append(deepcopy(action))
 
-        elif self.experiment == 3:
-            # start at the top level
-            s = AMDPState(amdp_id=5, state=oo_state, ground_items=['apple', 'banana', 'carrot'])
+        # elif self.experiment == 3:
+        #     # start at the top level
+        #     s = AMDPState(amdp_id=5, state=oo_state, ground_items=['apple', 'banana', 'carrot'])
 
-            utilities = {}
-            for a in self.A[5]:
-                successors = self.T[t_id_map[5]].transition_function(s, a)
-                u = 0
-                for i in range(len(successors)):
-                    p = successors[i][0]
-                    s_prime = successors[i][1]
-                    if s_prime in self.U[5]:
-                        u += p*self.U[5][s_prime]
-                    elif is_terminal(s_prime, amdp_id=5):
-                        u += p*reward(s_prime, amdp_id=5)
-                utilities[a] = u
+        #     utilities = {}
+        #     for a in self.A[5]:
+        #         successors = self.T[t_id_map[5]].transition_function(s, a)
+        #         u = 0
+        #         for i in range(len(successors)):
+        #             p = successors[i][0]
+        #             s_prime = successors[i][1]
+        #             if s_prime in self.U[5]:
+        #                 u += p*self.U[5][s_prime]
+        #             elif is_terminal(s_prime, amdp_id=5):
+        #                 u += p*reward(s_prime, amdp_id=5)
+        #         utilities[a] = u
 
-            # print '\n---'
-            # for key in utilities:
-            #     print str(key)
-            #     print 'utility: ' + str(utilities[key])
+        #     # print '\n---'
+        #     # for key in utilities:
+        #     #     print str(key)
+        #     #     print 'utility: ' + str(utilities[key])
 
-            # pick top action deterministically
-            max_utility = -999999
-            for a in utilities.keys():
-                if utilities[a] > max_utility:
-                    max_utility = utilities[a]
-                    action_list = []
-                    action_list.append(deepcopy(a))
-                elif utilities[a] == max_utility:
-                    action_list.append(deepcopy(a))
+        #     # pick top action deterministically
+        #     max_utility = -999999
+        #     for a in utilities.keys():
+        #         if utilities[a] > max_utility:
+        #             max_utility = utilities[a]
+        #             action_list = []
+        #             action_list.append(deepcopy(a))
+        #         elif utilities[a] == max_utility:
+        #             action_list.append(deepcopy(a))
 
-            # select action
-            i = randint(0, len(action_list) - 1)
-            id = action_list[i].action_type
-            obj = action_list[i].object
+        #     # select action
+        #     i = randint(0, len(action_list) - 1)
+        #     id = action_list[i].action_type
+        #     obj = action_list[i].object
 
-            print 'High level action selection: ' + str(id) + ', ' + str(obj)
+        #     print 'High level action selection: ' + str(id) + ', ' + str(obj)
 
-            # solve lower level mdp for executable action
-            action_list = []
-            s = AMDPState(amdp_id=id, state=oo_state, ground_items=[obj])
+        #     # solve lower level mdp for executable action
+        #     action_list = []
+        #     s = AMDPState(amdp_id=id, state=oo_state, ground_items=[obj])
 
-            utilities = {}
-            for a in self.A[id]:
-                successors = self.T[t_id_map[id]].transition_function(s, a)
-                u = 0
-                for i in range(len(successors)):
-                    p = successors[i][0]
-                    s_prime = successors[i][1]
-                    if s_prime in self.U[id]:
-                        u += p*self.U[id][s_prime]
-                    elif is_terminal(s_prime, amdp_id=id):
-                        u += p*reward(s_prime, amdp_id=id)
-                utilities[a] = u
+        #     utilities = {}
+        #     for a in self.A[id]:
+        #         successors = self.T[t_id_map[id]].transition_function(s, a)
+        #         u = 0
+        #         for i in range(len(successors)):
+        #             p = successors[i][0]
+        #             s_prime = successors[i][1]
+        #             if s_prime in self.U[id]:
+        #                 u += p*self.U[id][s_prime]
+        #             elif is_terminal(s_prime, amdp_id=id):
+        #                 u += p*reward(s_prime, amdp_id=id)
+        #         utilities[a] = u
 
-            # print '\n---'
-            # for key in utilities:
-            #     print str(key)
-            #     print 'utility: ' + str(utilities[key])
+        #     # print '\n---'
+        #     # for key in utilities:
+        #     #     print str(key)
+        #     #     print 'utility: ' + str(utilities[key])
 
-            # pick top action deterministically
-            max_utility = -999999
-            for a in utilities.keys():
-                if utilities[a] > max_utility:
-                    max_utility = utilities[a]
-                    action_list = []
-                    action = deepcopy(a)
-                    if action.object == 'apple':
-                        action.object = obj
-                    action_list.append(deepcopy(action))
-                elif utilities[a] == max_utility:
-                    action = deepcopy(a)
-                    if action.object == 'apple':
-                        action.object = obj
-                    action_list.append(deepcopy(action))
+        #     # pick top action deterministically
+        #     max_utility = -999999
+        #     for a in utilities.keys():
+        #         if utilities[a] > max_utility:
+        #             max_utility = utilities[a]
+        #             action_list = []
+        #             action = deepcopy(a)
+        #             if action.object == 'apple':
+        #                 action.object = obj
+        #             action_list.append(deepcopy(action))
+        #         elif utilities[a] == max_utility:
+        #             action = deepcopy(a)
+        #             if action.object == 'apple':
+        #                 action.object = obj
+        #             action_list.append(deepcopy(action))
 
-        elif self.experiment == 4:
-            # start at the top level
-            s = AMDPState(amdp_id=12, state=oo_state)
-            utilities = {}
-            for a in self.A[12]:
-                successors = self.T[t_id_map[12]].transition_function(s, a)
-                u = 0
-                for i in range(len(successors)):
-                    p = successors[i][0]
-                    s_prime = successors[i][1]
-                    if s_prime in self.U[12]:
-                        u += p*self.U[12][s_prime]
-                    elif is_terminal(s_prime, amdp_id=12):
-                        u += p*reward(s_prime, amdp_id=12)
-                utilities[a] = u
+        # elif self.experiment == 4:
 
-            # print '\n---'
-            # for key in utilities:
-            #     print str(key)
-            #     print 'utility: ' + str(utilities[key])
+        # NOTE: This section was indented back out after commenting the above
+        # parts in
+        # start at the top level
+        s = AMDPState(amdp_id=12, state=oo_state)
+        utilities = {}
+        for a in self.A[12]:
+            successors = self.T[t_id_map[12]].transition_function(s, a)
+            u = 0
+            for i in range(len(successors)):
+                p = successors[i][0]
+                s_prime = successors[i][1]
+                if s_prime in self.U[12]:
+                    u += p*self.U[12][s_prime]
+                elif is_terminal(s_prime, amdp_id=12):
+                    u += p*reward(s_prime, amdp_id=12)
+            utilities[a] = u
 
-            # pick top action deterministically
-            max_utility = -999999
-            for a in utilities.keys():
-                if utilities[a] > max_utility:
-                    max_utility = utilities[a]
-                    action_list = []
-                    action_list.append(deepcopy(a))
-                elif utilities[a] == max_utility:
-                    action_list.append(deepcopy(a))
+        # print '\n---'
+        # for key in utilities:
+        #     print str(key)
+        #     print 'utility: ' + str(utilities[key])
 
-            # select action
-            # i = randint(0, len(action_list) - 1)
-            i = 0
-            id = action_list[i].action_type
-            #obj = action_list[i].object
+        # pick top action deterministically
+        max_utility = -999999
+        for a in utilities.keys():
+            if utilities[a] > max_utility:
+                max_utility = utilities[a]
+                action_list = []
+                action_list.append(deepcopy(a))
+            elif utilities[a] == max_utility:
+                action_list.append(deepcopy(a))
 
+        # select action
+        # i = randint(0, len(action_list) - 1)
+        i = 0
+        id = action_list[i].action_type
+        #obj = action_list[i].object
+
+        if debug > 0:
             print 'Top level action selection: ' + str(id)
 
 
-            s = AMDPState(amdp_id=id, state=oo_state)
+        s = AMDPState(amdp_id=id, state=oo_state)
 
-            utilities = {}
-            for a in self.A[id]:
-                successors = self.T[t_id_map[id]].transition_function(s, a)
-                u = 0
-                for i in range(len(successors)):
-                    p = successors[i][0]
-                    s_prime = successors[i][1]
-                    if s_prime in self.U[id]:
-                        u += p*self.U[id][s_prime]
-                    elif is_terminal(s_prime, amdp_id=id):
-                        u += p*reward(s_prime, amdp_id=id)
-                utilities[a] = u
+        utilities = {}
+        for a in self.A[id]:
+            successors = self.T[t_id_map[id]].transition_function(s, a)
+            u = 0
+            for i in range(len(successors)):
+                p = successors[i][0]
+                s_prime = successors[i][1]
+                if s_prime in self.U[id]:
+                    u += p*self.U[id][s_prime]
+                elif is_terminal(s_prime, amdp_id=id):
+                    u += p*reward(s_prime, amdp_id=id)
+            utilities[a] = u
 
-            # print '\n---'
-            # for key in utilities:
-            #     print str(key)
-            #     print 'utility: ' + str(utilities[key])
+        # print '\n---'
+        # for key in utilities:
+        #     print str(key)
+        #     print 'utility: ' + str(utilities[key])
 
-            # pick top action deterministically
-            max_utility = -999999
-            for a in utilities.keys():
-                if utilities[a] > max_utility:
-                    max_utility = utilities[a]
-                    action_list = []
-                    action_list.append(deepcopy(a))
-                elif utilities[a] == max_utility:
-                    action_list.append(deepcopy(a))
+        # pick top action deterministically
+        max_utility = -999999
+        for a in utilities.keys():
+            if utilities[a] > max_utility:
+                max_utility = utilities[a]
+                action_list = []
+                action_list.append(deepcopy(a))
+            elif utilities[a] == max_utility:
+                action_list.append(deepcopy(a))
 
-            # select action
-            # i = randint(0, len(action_list) - 1)
-            i = 0
-            id = action_list[i].action_type
-            obj = action_list[i].object
+        # select action
+        # i = randint(0, len(action_list) - 1)
+        i = 0
+        id = action_list[i].action_type
+        obj = action_list[i].object
 
+        if debug > 0:
             print '\tMid level action selection: ' + str(id) + ', ' + str(obj)
 
-            # solve lower level mdp for executable action
-            action_list = []
-            s = AMDPState(amdp_id=id, state=oo_state, ground_items=[obj])
+        # solve lower level mdp for executable action
+        action_list = []
+        s = AMDPState(amdp_id=id, state=oo_state, ground_items=[obj])
 
-            utilities = {}
-            for a in self.A[id]:
-                successors = self.T[t_id_map[id]].transition_function(s, a)
-                u = 0
-                for i in range(len(successors)):
-                    p = successors[i][0]
-                    s_prime = successors[i][1]
-                    if s_prime in self.U[id]:
-                        u += p*self.U[id][s_prime]
-                    elif is_terminal(s_prime, amdp_id=id):
-                        u += p*reward(s_prime, amdp_id=id)
-                utilities[a] = u
+        utilities = {}
+        for a in self.A[id]:
+            successors = self.T[t_id_map[id]].transition_function(s, a)
+            u = 0
+            for i in range(len(successors)):
+                p = successors[i][0]
+                s_prime = successors[i][1]
+                if s_prime in self.U[id]:
+                    u += p*self.U[id][s_prime]
+                elif is_terminal(s_prime, amdp_id=id):
+                    u += p*reward(s_prime, amdp_id=id)
+            utilities[a] = u
 
-            # print '\n---'
-            # for key in utilities:
-            #     print str(key)
-            #     print 'utility: ' + str(utilities[key])
+        # print '\n---'
+        # for key in utilities:
+        #     print str(key)
+        #     print 'utility: ' + str(utilities[key])
 
-            # pick top action deterministically
-            max_utility = -999999
-            for a in utilities.keys():
-                if utilities[a] > max_utility:
-                    max_utility = utilities[a]
-                    action_list = []
-                    action = deepcopy(a)
-                    if action.object == 'apple':
-                        action.object = obj
-                    action_list.append(deepcopy(action))
-                elif utilities[a] == max_utility:
-                    action = deepcopy(a)
-                    if action.object == 'apple':
-                        action.object = obj
-                    action_list.append(deepcopy(action))
+        # pick top action deterministically
+        max_utility = -999999
+        for a in utilities.keys():
+            if utilities[a] > max_utility:
+                max_utility = utilities[a]
+                action_list = []
+                action = deepcopy(a)
+                if action.object == 'apple':
+                    action.object = obj
+                action_list.append(deepcopy(action))
+            elif utilities[a] == max_utility:
+                action = deepcopy(a)
+                if action.object == 'apple':
+                    action.object = obj
+                action_list.append(deepcopy(action))
 
         if len(action_list) > 0:
             # i = randint(0, len(action_list) - 1)
             i = 0
             action = action_list[i]
-            print '\t\tLow level action selection: ' + str(action.action_type) + ', ' + str(action.object)
+            if debug > 0:
+                print '\t\tLow level action selection: ' + str(action.action_type) + ', ' + str(action.object)
             if action.action_type == Action.PLACE:
                 action.position = DataUtils.semantic_action_to_position(req.state, action.object)
                 action.object = ''
