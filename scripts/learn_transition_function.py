@@ -109,10 +109,12 @@ class LearnTransitionFunction:
             self.A.append(deepcopy(a))
 
         # fill in the policy directly from demonstrations (if demo_mode calls for it)
-        self.pi = self.demo_config.get('demo_policy')
+        if self.demo_mode.shadow:
+            self.pi = self.demo_config.get('demo_policy')
 
         # load weak classifier to bias random exploration (if demo_mode calls for it)
-        self.action_bias = self.demo_config.get('action_bias')
+        if self.demo_mode.classifier:
+            self.action_bias = self.demo_config.get('action_bias')
 
         # Setup the services
         self.query_state = rospy.ServiceProxy(simulator_node + '/query_state', QueryState)
@@ -139,13 +141,13 @@ class LearnTransitionFunction:
                 self.successes += 1
             return
 
-        if s in self.pi:
+        if self.demo_mode.shadow and s in self.pi:
             if random() < self.alpha:
                 a = self.pi[s].select_action()
             else:
                 a = self.A[randint(0, len(self.A) - 1)]
         else:
-            if random() > self.epsilon:
+            if self.demo_mode.classifier and random() > self.epsilon:
                 features = s.to_vector()
 
                 # Classify action
