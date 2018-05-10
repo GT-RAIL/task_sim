@@ -54,6 +54,7 @@ class LearnTransitionFunction:
 
         self.epoch = 0
         self.successes = 0
+        self.action_executions = 0
 
         # Read demo data and config
         self.container_env = rospy.get_param('~container_env', container_env)
@@ -169,6 +170,7 @@ class LearnTransitionFunction:
 
         self.execute_action(action_to_sim(deepcopy(a), state_msg))
         s_prime = AMDPState(amdp_id=self.amdp_id, state=OOState(state=self.query_state().state))
+        self.action_executions += 1
 
         self.transition_function.update_transition(s, a, s_prime)
         self.n += 1

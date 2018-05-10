@@ -59,7 +59,9 @@ class AMDPTrainer(object):
         # Get the tasks and amdp_ids for the task. #TODO: When we have different
         # task envs, this should be more than just empty. Also the seeds should
         # be picked according to the experiment's configuration
-        self.task_envs = [(0, "")] # Format: seed, task folder
+        self.task_envs = [] # Format: seed, task folder
+        for i in range(20):
+            self.task_envs.append((i, ""))
         self.demo_envs = [ # Format: env_name, amdp_ids
             ("task4", (0,2)),
             ("task7", (6,8))
@@ -132,13 +134,13 @@ class AMDPTrainer(object):
         config"""
         epoch = 0
         num_envs = len(self.task_envs)
-        current_seed = self.task_envs[(epoch%num_envs)][0]
         start = datetime.datetime.now()
 
         # Keep track of the number of executions and successes of the test
         amdp_node_executions = amdp_node_successes = 0
 
         while epoch < epochs:
+            current_seed = self.task_envs[(epoch%num_envs)][0]
             # TODO: Perhaps we can fork off a process to run?
             for key, transition_learner in self.transition_learners.iteritems():
                 print("Training:", key, end=' ')
@@ -149,7 +151,8 @@ class AMDPTrainer(object):
                     transition_learner.run()
                 print(
                     "Epoch:", transition_learner.epoch,
-                    "Successes:", transition_learner.successes
+                    "\tSuccesses:", transition_learner.successes,
+                    "\tAction executions:", transition_learner.action_executions
                 )
 
             # If it is time to test
@@ -164,33 +167,23 @@ class AMDPTrainer(object):
                     value_iterator.init_utilities()
                     value_iterator.solve()
 
-                # Reset the node with the current seed and run it too. TODO:
-                # Should this be its own internal function? Probably...
-                print("Evaluating.", end=' ')
-                simulator_api = self.simulator_api[self.simulators[None]]
-                rospy.set_param(simulator_api['seed_param_name'], current_seed)
-                simulator_api['reset_sim']()
-                num_steps = 0
-
-                amdp_node_executions += 1
-                status = Status.IN_PROGRESS
-                while status == Status.IN_PROGRESS:
-                    if num_steps > self.max_episode_length:
-                        status = Status.TIMEOUT
-                        break
-
-                    state = simulator_api['query_state']().state
-                    action = simulator_api['select_action'](state, Action()).action
-                    next_state = simulator_api['execute'](action)
-                    status = simulator_api['query_status'](next_state.state).status.status_code
-
-                    num_steps += 1
-
-                amdp_node_successes += (1 if status == Status.COMPLETED else 0)
+                print("Evaluating for 5 trials over all training environments...")
+                success_rate = 0.0
+                for env in self.task_envs:
+                    eval_seed = env[0]
+                    for i in range(5):
+                        if self.evaluate(eval_seed):
+                            success_rate += 1
+                            amdp_node_successes += 1
+                        amdp_node_executions += 1
+                print("**********************************************************************************")
                 print(
-                    "Tests:", amdp_node_executions,
-                    "Successes:", amdp_node_successes
+                    "\nTests:", amdp_node_executions,
+                    "\tSuccesses:", amdp_node_successes
                 )
+                # TODO: training execution count
+                print("Epoch:", epoch, "\tSuccess rate:", success_rate/(len(self.task_envs)*5), "Total executions:", "tbd...")
+                print("\n**********************************************************************************")
 
             # If it is time to save
             if epoch % save_every == 0 and epoch > 0:
@@ -198,7 +191,27 @@ class AMDPTrainer(object):
                 pass
 
             epoch += 1
-            current_seed = self.task_envs[(epoch%num_envs)][0]
+
+    def evaluate(self, eval_seed):
+        simulator_api = self.simulator_api[self.simulators[None]]
+        rospy.set_param(simulator_api['seed_param_name'], eval_seed)
+        simulator_api['reset_sim']()
+        num_steps = 0
+
+        status = Status.IN_PROGRESS
+        while status == Status.IN_PROGRESS:
+            if num_steps > self.max_episode_length:
+                status = Status.TIMEOUT
+                break
+
+            state = simulator_api['query_state']().state
+            action = simulator_api['select_action'](state, Action()).action
+            next_state = simulator_api['execute'](action)
+            status = simulator_api['query_status'](next_state.state).status.status_code
+
+            num_steps += 1
+
+        return status == Status.COMPLETED
 
 
 # Main
