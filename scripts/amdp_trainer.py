@@ -129,7 +129,7 @@ class AMDPTrainer(object):
         # Instantiate the AMDP Node
         self.amdp_node = AMDPNode(self.simulators[None], self.Ts, self.Us)
 
-    def train(self, epochs=1000, test_every=10, save_every=100):
+    def train(self, epochs=100000, test_every=10, save_every=100):
         """Trains the transition function, the value function, etc.
         TODO: Maybe some of the options here should be part of the experiment
         config"""
