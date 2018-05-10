@@ -21,7 +21,6 @@ from task_sim.msg import Action
 from task_sim.srv import QueryState, Execute
 
 from task_sim.oomdp.oo_state import OOState
-from task_sim.str.stochastic_state_action import StochasticAction
 from task_sim.str.modes import DemonstrationMode
 from task_sim.str.amdp_state import AMDPState
 from task_sim.str.amdp_transitions_learned import AMDPTransitionsLearned

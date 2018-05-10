@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from copy import copy
+from copy import copy, deepcopy
 
 item_map = {0:'apple', 1:'banana', 2:'carrot', 3:'daikon'}
 
@@ -380,6 +380,11 @@ class AMDPState:
         for r in self.relation_names:
             v.append(int(self.relations[r]))
         return v
+
+    def from_vector(self, v):
+        for i,r in enumerate(self.relation_names):
+            self.relations[r] = bool(v[i])
+        return deepcopy(self)
 
     def __str__(self):
         s = ''

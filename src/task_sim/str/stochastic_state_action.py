@@ -3,6 +3,7 @@
 
 from copy import deepcopy
 from random import random
+import h5py
 
 class StochasticAction:
     """Set a distribution over states and sample based on probabilities"""

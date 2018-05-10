@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 
 from copy import deepcopy
+import ast
 import pickle
+import h5py
+import numpy as np
 
 from task_sim.str.amdp_state import AMDPState
 from task_sim.msg import Action
@@ -9,30 +12,60 @@ from task_sim.str.stochastic_state_action import StochasticState
 
 class AMDPTransitionsLearned:
 
-    def __init__(self, amdp_id=0, load=False):
+    def __init__(self, amdp_id=0, filename=None, reinit=True):
         self.amdp_id = amdp_id
-        if load:
-            self.transition = pickle.load(file('T' + str(self.amdp_id) + '.pkl', mode='r'))
-            print 'Loaded T' + str(self.amdp_id) + '.pkl'
-            print str(len(self.transition.keys()))
-        else:
-            self.transition = {}
+
+        # If there is an HDF5 file to save, then populate this function with the
+        # learners' code
+        if filename is not None:
+            self.filename = filename
+            if reinit:
+                with h5py.File(self.filename, 'w') as fd:
+                    fd.attrs["amdp_id"] = self.amdp_id
+
+            self.transition = h5py.File(self.filename, 'a')
+            assert self.amdp_id == self.transition.attrs["amdp_id"], \
+                "AMDP ID mismatch. filename: {}, expected: {}, observed: {}".format(
+                    self.filename, self.amdp_id, self.transition.attrs["amdp_id"]
+                )
+
+            self._state_idx = lambda s: str(s.to_vector())
+            self._action_idx = lambda a: str([a.action_type, a.object])
+            self._state_template = AMDPState(self.amdp_id)
+
 
     def update_transition(self, s, a, s_prime):
-        q = (s, a.action_type, a.object)
-        if q not in self.transition:
-            self.transition[q] = StochasticState()
-        self.transition[q].add_state(s_prime)
+        # Update the new transition function
+        sa_group = "{}/{}".format(self._state_idx(s), self._action_idx(a))
+        s_prime_key = self._state_idx(s_prime)
+
+        if sa_group in self.transition:
+            sa = self.transition[sa_group]
+        else:
+            sa = self.transition.create_group(sa_group)
+            sa.attrs["total"] = 0.
+
+        if s_prime_key in sa:
+            sas = sa[s_prime_key]
+        else:
+            sas = sa.create_dataset(s_prime_key, data=[0.])
+
+        # Update the dataset and the attr
+        sas[0] += 1
+        sa.attrs["total"] += 1
 
     def get_states(self):
-        s = []
-        for q in self.transition:
-            if q[0] not in s:
-                s.append(q[0])
-            for s_prime in self.transition[q].states:
-                if s_prime not in s:
-                    s.append(s_prime)
-        return s
+        s = set()
+        for state_s, transitions in self.transition.iteritems():
+            state_v = ast.literal_eval(state_s)
+            s.add(self._state_template.from_vector(state_v))
+
+            for action_s, results in transitions.iteritems():
+                for s_prime_s in results.keys():
+                    s_prime_v = ast.literal_eval(s_prime_s)
+                    s.add(self._state_template.from_vector(s_prime_v))
+
+        return list(s)
 
     def transition_function(self, s, a):
         if self.amdp_id == 3:
@@ -164,29 +197,31 @@ class AMDPTransitionsLearned:
                 s_prime.relations['daikon_inside_box'] = True
                 s_prime.relations['lid_closing_box'] = True
             return [(1.0, s_prime)]
+
+        # Otherwise, use the transition function that we're learning
         else:
-            q = (s, a.action_type, a.object)
-            # states = []
-            # print 'state space size: ' + str(len(self.transition.keys()))
-            # for state in states:
-            #     print str(state)
-            # print str(s.relations)
-            # print str(a.action_type)
-            # print str(a.object)
-            # print str(self.transition.keys()[0][0].relations)
-            # print str(self.transition.keys()[0][1])
-            # print str(self.transition.keys()[0][2])
-            if q in self.transition:
-                return self.transition[q].get_distribution()
+            sa_group = "{}/{}".format(self._state_idx(s), self._action_idx(a))
+            if sa_group in self.transition:
+                next_states = []
+                total = self.transition[sa_group].attrs["total"]
+                for s_prime_s, freq in self.transition[sa_group].iteritems():
+                    s_prime_v = ast.literal_eval(s_prime_s)
+                    s_prime = self._state_template.from_vector(s_prime_v)
+                    next_states.append((freq[0]/total, s_prime,))
+
+                return next_states
             else:
                 return [(1.0, s)]
 
+
+
+
     def save(self, suffix=''):
-        pickle.dump(self.transition, file('T' + str(self.amdp_id) + str(suffix) + '.pkl', mode='w'))
-        print 'Transition function saved.'
+        # Do nothing
+        # pickle.dump(self.transition, file('T' + str(self.amdp_id) + str(suffix) + '.pkl', mode='w'))
+        # print 'Transition function saved.'
+        pass
 
 
 if __name__ == '__main__':
-    a = AMDPTransitionsLearned(load=True)
-
-    print 'Success, can load pickle file'
+    pass
