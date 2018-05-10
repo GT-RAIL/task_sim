@@ -23,194 +23,14 @@ class AMDPValueIteration:
 
     abstract_amdps = [3, 4, 5, 9, 10, 11, 12]
 
-    def __init__(self, amdp_id=0, transition_function=None):
+    def __init__(self, amdp_id, transition_function):
         self.U = {}
         self.actions = []
         self.amdp_id = amdp_id
 
         self.initialize(transition_function)
 
-    def initialize(self, transition_function=None):
-        # initialize state list
-        # print 'Enumerating states (started at: ' + str(datetime.datetime.now())  + ")"
-
-        # s = AMDPState(amdp_id=self.amdp_id)
-        # if self.amdp_id == 0:
-        #     s.relations['gripper_in_front_of_drawer'] = True
-        #     s.relations['gripper_open'] = True
-        #     s.relations['drawer_closing_stack'] = True
-        #     self.U[deepcopy(s)] = 0.0
-        # elif self.amdp_id == 1:
-        #     self.U[deepcopy(s)] = 0.0
-        #     s.relations['gripper_open'] = True
-        #     self.U[deepcopy(s)] = 0.0
-        #     s.relations['gripper_touching_drawer'] = True
-        #     self.U[deepcopy(s)] = 0.0
-        #     s.relations['gripper_open'] = False
-        #     self.U[deepcopy(s)] = 0.0
-        #     s.relations['gripper_open'] = True
-        #     s.relations['gripper_touching_stack'] = True
-        #     self.U[deepcopy(s)] = 0.0
-        #     s.relations['gripper_open'] = False
-        #     self.U[deepcopy(s)] = 0.0
-        #     s.relations['gripper_touching_stack'] = False
-        #     s.relations['gripper_touching_drawer'] = False
-        #     s.relations['gripper_above_drawer'] = True
-        #     self.U[deepcopy(s)] = 0.0
-        # elif self.amdp_id == 2:
-        #     s.relations['apple_right_of_drawer'] = True
-        #     s.relations['apple_in_front_of_drawer'] = True
-        #     s.relations['apple_below_drawer'] = True
-        #     s.relations['apple_right_of_gripper'] = True
-        #     s.relations['apple_in_front_of_gripper'] = True
-        #     s.relations['apple_below_gripper'] = True
-        #     s.relations['gripper_right_of_drawer'] = True
-        #     s.relations['gripper_holding_drawer'] = True
-        #     s.relations['gripper_touching_drawer'] = True
-        #     self.U[deepcopy(s)] = 0.0
-        #     s.relations['gripper_right_of_drawer'] = False
-        #     s.relations['gripper_holding_drawer'] = False
-        #     s.relations['gripper_touching_drawer'] = False
-        #     self.U[deepcopy(s)] = 0.0
-        #     s.relations['gripper_touching_drawer'] = True
-        #     self.U[deepcopy(s)] = 0.0
-        #     s.relations['gripper_touching_drawer'] = True
-        #     s.relations['gripper_touching_stack'] = True
-        #     self.U[deepcopy(s)] = 0.0
-        #     s.relations['gripper_touching_drawer'] = False
-        #     s.relations['gripper_touching_stack'] = True
-        #     self.U[deepcopy(s)] = 0.0
-        #     s.relations['gripper_touching_stack'] = False
-        #     s.relations['gripper_above_drawer'] = True
-        #     self.U[deepcopy(s)] = 0.0
-        # elif self.amdp_id == 3:
-        #     s.relations['apple_inside_drawer'] = False
-        #     s.relations['drawer_closing_stack'] = True
-        #     self.U[deepcopy(s)] = 0.0
-        # elif self.amdp_id == 4:
-        #     s.relations['apple_inside_drawer'] = False
-        #     s.relations['banana_inside_drawer'] = False
-        #     s.relations['drawer_closing_stack'] = True
-        #     self.U[deepcopy(s)] = 0.0
-        # elif self.amdp_id == 5:
-        #     s.relations['apple_inside_drawer'] = False
-        #     s.relations['banana_inside_drawer'] = False
-        #     s.relations['carrot_inside_drawer'] = False
-        #     s.relations['drawer_closing_stack'] = True
-        #     self.U[deepcopy(s)] = 0.0
-        # elif self.amdp_id == -1:
-        #     s.relations['apple_right_of_drawer'] = True
-        #     s.relations['apple_in_front_of_drawer'] = True
-        #     s.relations['apple_below_drawer'] = True
-        #     s.relations['apple_right_of_gripper'] = True
-        #     s.relations['apple_behind_gripper'] = True
-        #     s.relations['apple_below_gripper'] = True
-        #     s.relations['gripper_in_front_of_drawer'] = True
-        #     s.relations['gripper_open'] = True
-        #     s.relations['drawer_closing_stack'] = True
-        #     self.U[deepcopy(s)] = 0.0
-        # elif self.amdp_id == -2:
-        #     s.relations['apple_behind_gripper'] = True
-        #     s.relations['gripper_in_front_of_drawer'] = True
-        #     s.relations['banana_in_front_of_drawer'] = True
-        #     s.relations['apple_below_gripper'] = True
-        #     s.relations['apple_below_drawer'] = True
-        #     s.relations['banana_below_gripper'] = True
-        #     s.relations['apple_right_of_gripper'] = True
-        #     s.relations['banana_behind_gripper'] = True
-        #     s.relations['apple_in_front_of_drawer'] = True
-        #     s.relations['banana_below_drawer'] = True
-        #     s.relations['drawer_closing_stack'] = True
-        #     s.relations['gripper_open'] = True
-        #     s.relations['banana_right_of_gripper'] = True
-        #     s.relations['apple_right_of_drawer'] = True
-        #     s.relations['apple_right_of_banana'] = True
-        #     s.relations['banana_right_of_drawer'] = True
-        #     s.relations['apple_behind_banana'] = True
-        #     self.U[deepcopy(s)] = 0.0
-        # elif self.amdp_id == -3:
-        #     s.relations['apple_behind_gripper'] = True
-        #     s.relations['gripper_in_front_of_drawer'] = True
-        #     s.relations['apple_left_of_carrot'] = True
-        #     s.relations['banana_left_of_carrot'] = True
-        #     s.relations['banana_in_front_of_drawer'] = True
-        #     s.relations['apple_below_gripper'] = True
-        #     s.relations['carrot_below_drawer'] = True
-        #     s.relations['apple_below_drawer'] = True
-        #     s.relations['carrot_behind_gripper'] = True
-        #     s.relations['banana_below_gripper'] = True
-        #     s.relations['apple_right_of_gripper'] = True
-        #     s.relations['banana_behind_gripper'] = True
-        #     s.relations['apple_in_front_of_drawer'] = True
-        #     s.relations['banana_below_drawer'] = True
-        #     s.relations['carrot_right_of_gripper'] = True
-        #     s.relations['drawer_closing_stack'] = True
-        #     s.relations['carrot_right_of_drawer'] = True
-        #     s.relations['carrot_below_gripper'] = True
-        #     s.relations['gripper_open'] = True
-        #     s.relations['banana_in_front_of_carrot'] = True
-        #     s.relations['banana_right_of_gripper'] = True
-        #     s.relations['apple_in_front_of_carrot'] = True
-        #     s.relations['apple_right_of_drawer'] = True
-        #     s.relations['carrot_in_front_of_drawer'] = True
-        #     s.relations['apple_right_of_banana'] = True
-        #     s.relations['banana_right_of_drawer'] = True
-        #     s.relations['apple_behind_banana'] = True
-        #     self.U[deepcopy(s)] = 0.0
-        # elif self.amdp_id == 6:
-        #     s.relations['gripper_left_of_box'] = True
-        #     s.relations['gripper_in_front_of_box'] = True
-        #     s.relations['gripper_above_box'] = True
-        #     s.relations['gripper_left_of_lid'] = True
-        #     s.relations['gripper_in_front_of_lid'] = True
-        #     s.relations['gripper_above_lid'] = True
-        #     s.relations['lid_closing_box'] = True
-        #     s.relations['gripper_open'] = True
-        #     self.U[deepcopy(s)] = 0.0
-        # elif self.amdp_id == 7:
-        #     self.U[deepcopy(s)] = 0.0
-        #     s.relations['gripper_touching_box'] = True
-        #     self.U[deepcopy(s)] = 0.0
-        #     s.relations['gripper_above_lid'] = True
-        #     self.U[deepcopy(s)] = 0.0
-        #     s.relations['gripper_touching_box'] = True
-        #     self.U[deepcopy(s)] = 0.0
-        #     s.relations['gripper_touching_box'] = False
-        #     s.relations['gripper_above_box'] = True
-        #     self.U[deepcopy(s)] = 0.0
-        # elif self.amdp_id == 8:
-        #     s.relations['gripper_left_of_box'] = True
-        #     s.relations['apple_left_of_box'] = True
-        #     s.relations['apple_in_front_of_box'] = True
-        #     s.relations['apple_below_gripper'] = True
-        #     s.relations['apple_right_of_gripper'] = True
-        #     s.relations['gripper_holding_lid'] = True
-        #     s.relations['apple_in_front_of_gripper'] = True
-        #     self.U[deepcopy(s)] = 0.0
-        #     s.relations['gripper_holding_lid'] = False
-        #     s.relations['gripper_open'] = True
-        #     s.relations['gripper_above_lid'] = True
-        #     self.U[deepcopy(s)] = 0.0
-        #     s.relations['gripper_above_lid'] = False
-        #     s.relations['apple_below_gripper'] = False
-        # elif self.amdp_id == 9:
-        #     s.relations['carrot_inside_box'] = False
-        #     s.relations['lid_closing_box'] = True
-        #     self.U[deepcopy(s)] = 0.0
-        # elif self.amdp_id == 10:
-        #     s.relations['lid_closing_box'] = True
-        #     s.relations['drawer_closing_stack'] = True
-        #     self.U[deepcopy(s)] = 0.0
-        # elif self.amdp_id == 11:
-        #     s.relations['lid_closing_box'] = True
-        #     self.U[deepcopy(s)] = 0.0
-        # elif self.amdp_id == 12:
-        #     s.relations['lid_closing_box'] = True
-        #     s.relations['drawer_closing_stack'] = True
-        #     self.U[deepcopy(s)] = 0.0
-        # else:
-        #     self.U[deepcopy(s)] = 0.0
-
+    def initialize(self, transition_function):
         # initialize action list
         a = Action()
 
@@ -372,13 +192,8 @@ class AMDPValueIteration:
             self.actions.append(deepcopy(a))
 
         # initialize transition function
-        if transition_function is None:
-            if (self.amdp_id >= 3 and self.amdp_id <= 5) or self.amdp_id > 8:
-                self.T = AMDPTransitionsLearned(amdp_id=self.amdp_id, load=False)
-            else:
-                self.T = AMDPTransitionsLearned(amdp_id=self.amdp_id, load=True)
-        else:
-            self.T = transition_function
+        assert transition_function is not None, "Unknown transition function!"
+        self.T = transition_function
 
         # initialize utilities for states in transition function
         self.init_utilities()
@@ -477,5 +292,5 @@ class AMDPValueIteration:
 
 
 if __name__ == '__main__':
-    a = AMDPValueIteration(amdp_id=2)
+    a = AMDPValueIteration(2, None)
     a.solve()
