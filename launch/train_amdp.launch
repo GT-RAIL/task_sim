@@ -1,0 +1,45 @@
+<!-- Script to train RL agents -->
+<launch>
+
+    <arg name="max_episode_length" default="100" />
+
+    <!-- Table sim environments -->
+    <node name="eval" pkg="task_sim" type="table_sim.py">
+        <param name="terminal_input" value="false" />
+        <param name="quiet_mode" value="false" />
+        <param name="seed" value="0" />
+    </node>
+
+    <node name="drawer1" pkg="task_sim" type="table_sim.py">
+        <param name="terminal_input" value="false" />
+        <param name="quiet_mode" value="false" />
+        <param name="env_type" value="0" />
+        <param name="seed" value="0" />
+    </node>
+
+    <node name="drawer2" pkg="task_sim" type="table_sim.py">
+        <param name="terminal_input" value="false" />
+        <param name="quiet_mode" value="false" />
+        <param name="env_type" value="0" />
+        <param name="seed" value="0" />
+    </node>
+
+    <node name="box1" pkg="task_sim" type="table_sim.py">
+        <param name="terminal_input" value="false" />
+        <param name="quiet_mode" value="false" />
+        <param name="env_type" value="1" />
+        <param name="seed" value="0" />
+    </node>
+
+    <node name="box2" pkg="task_sim" type="table_sim.py">
+        <param name="terminal_input" value="false" />
+        <param name="quiet_mode" value="false" />
+        <param name="env_type" value="1" />
+        <param name="seed" value="0" />
+    </node>
+
+    <!-- Trainer node -->
+    <node name="amdp_trainer" pkg="task_sim" type="amdp_trainer.py" required="true" output="screen">
+        <param name="max_episode_length" type="int" value="$(arg max_episode_length)" />
+    </node>
+</launch>
