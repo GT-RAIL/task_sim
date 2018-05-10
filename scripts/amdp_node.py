@@ -20,6 +20,7 @@ from task_sim.str.amdp_reward import reward, is_terminal
 
 
 t_id_map = {0:0, 1:0, 2:2, -1:2, 3:3, 4:4, 5:5, 6:6, 7:6, 8:8, 9:9, 10:10, 11:11, 12:12}
+items = ['apple', 'banana', 'carrot', 'daikon']
 
 class AMDPNode:
 
@@ -220,18 +221,25 @@ class AMDPNode:
                 action_list = []
                 action = deepcopy(a)
                 if action.object == 'apple':
-                    action.object = obj
+                    if obj not in items:
+                        action.object = items[randint(0, len(items) - 1)]
+                    else:
+                        action.object = obj
                 action_list.append(deepcopy(action))
             elif utilities[a] == max_utility:
                 action = deepcopy(a)
                 if action.object == 'apple':
-                    action.object = obj
+                    if obj not in items:
+                        action.object = items[randint(0, len(items) - 1)]
+                    else:
+                        action.object = obj
                 action_list.append(deepcopy(action))
-            # print 'Action: ', a.action_type, ':', a.object, ', Utility: ', utilities[a]
+            if debug > 0:
+                print 'Action: ', a.action_type, ':', a.object, ', Utility: ', utilities[a]
 
         if len(action_list) > 0:
-            # i = randint(0, len(action_list) - 1)
-            i = 0
+            i = randint(0, len(action_list) - 1)
+            # i = 0
             action = action_list[i]
             if debug > 0:
                 print '\t\tLow level action selection: ' + str(action.action_type) + ', ' + str(action.object)

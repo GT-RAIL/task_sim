@@ -214,8 +214,6 @@ class AMDPTransitionsLearned:
                 return [(1.0, s)]
 
 
-
-
     def save(self, suffix=''):
         self.transition.flush()
 

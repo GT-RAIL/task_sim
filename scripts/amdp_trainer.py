@@ -182,10 +182,16 @@ class AMDPTrainer(object):
                 print("**********************************************************************************")
                 print(
                     "\nTests:", amdp_node_executions,
-                    "\tSuccesses:", amdp_node_successes
+                    "Successes:", amdp_node_successes
                 )
                 # TODO: training execution count
-                print("Epoch:", epoch, "\tSuccess rate:", success_rate/(len(self.task_envs)*5), "Total executions:", "tbd...")
+                ex_count = 0
+                for key, transition_learner in self.transition_learners.iteritems():
+                    ex_count += transition_learner.action_executions
+                print("Epoch:", epoch, "\tSuccess rate:", success_rate/(len(self.task_envs)*5),
+                      "\tTotal training executions:", ex_count)
+                for key, transition_learner in self.transition_learners.iteritems():
+                    print('\t', key, transition_learner.action_executions, 'training action executions')
                 print("\n**********************************************************************************")
 
             # If it is time to save
