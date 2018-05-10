@@ -161,6 +161,7 @@ class AMDPTrainer(object):
                         continue
 
                     print("Solving:", amdp_id)
+                    value_iterator.init_utilities()
                     value_iterator.solve()
 
                 # Reset the node with the current seed and run it too. TODO:
@@ -208,4 +209,4 @@ if __name__ == '__main__':
     # seeds to the trainer. This config should also initialize the demo config
     # to use
     trainer = AMDPTrainer()
-    trainer.train()
+    trainer.train(test_every=10)

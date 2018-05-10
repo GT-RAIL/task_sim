@@ -381,13 +381,19 @@ class AMDPValueIteration:
             self.T = transition_function
 
         # initialize utilities for states in transition function
+        self.init_utilities()
+
+    def init_utilities(self):
+        self.U = {}
         if self.amdp_id in self.abstract_amdps:
             s = AMDPState(amdp_id=self.amdp_id)
             self.enumerate_relations(s)
         else:
+            print 'Initializing utilities over all states in the state list...'
             states = self.T.get_states()
             for s in states:
                 self.U[deepcopy(s)] = 0.0
+            print 'Utilities initialized.'
 
     def enumerate_relations(self, s, i=0):
         '''recursively set all attributes in an amdp state to cover all possible state assignments, store them in U'''
@@ -424,15 +430,11 @@ class AMDPValueIteration:
                 count += 1
                 if is_terminal(s, amdp_id=self.amdp_id):
                     u = reward(s, amdp_id=self.amdp_id)
-                    U_prime[deepcopy(s)] = u
+                    U_prime[s] = u
                     # termination_check = True
-                    if s in self.U:
-                        d = abs(self.U[s] - u)
-                        if d > delta:
-                            delta = d
-                    else:
-                        if abs(u) > delta:
-                            delta = abs(u)
+                    d = abs(self.U[s] - u)
+                    if d > delta:
+                        delta = d
                     continue
 
                 max_u = -999999
@@ -443,26 +445,15 @@ class AMDPValueIteration:
                         p = successors[i][0]
                         s_prime = successors[i][1]
 
-                        if s_prime not in self.U:
-                            # # Fix state size at iteration 8
-                            # if n > 8:
-                            #     continue
-                            # else:
-                            #     U_prime[deepcopy(s_prime)] = 0.0
-                            U_prime[deepcopy(s_prime)] = 0.0
-                        else:
-                            current_u += p*self.U[s_prime]
+                        current_u += p*self.U[s_prime]
 
                     if current_u > max_u:
                         max_u = current_u
 
                 u = reward(s, amdp_id=self.amdp_id) + gamma*max_u
-                U_prime[deepcopy(s)] = u
+                U_prime[s] = u
                 # if termination_check:
-                if s in self.U:
-                    d = abs(self.U[s] - u)
-                else:
-                    d = abs(u)
+                d = abs(self.U[s] - u)
                 if d > delta:
                     delta = d
 
@@ -474,12 +465,6 @@ class AMDPValueIteration:
             if delta < epsilon*(1 - gamma)/gamma:
                 break
             print 'Delta: ' + str(delta) + ', continuing...'
-            # else:
-            #     # check for early termination
-            #     if num_states == total:
-            #         print 'Fully explored state-action space without finding a goal, terminating value iteration...'
-            #         break
-            #     num_states = total
             print 'Elapsed time: ' + str(datetime.datetime.now() - start_time)
 
         print 'Total elapsed time: ' + str(datetime.datetime.now() - start_time)

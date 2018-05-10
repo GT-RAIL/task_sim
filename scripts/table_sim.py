@@ -151,7 +151,10 @@ class TableSim:
                 for point in drawer_points:
                     drawer_set = drawer_set and self.reachable(point)
 
-            self.state_.drawer_opening = randint(0, self.drawerDepth - 1)
+            if level == 2:
+                self.state_.drawer_opening = randint(0, self.drawerDepth - 1)
+            else:
+                self.state_.drawer_opening = 0
 
             box_set = False
             while not box_set:
