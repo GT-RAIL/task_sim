@@ -227,6 +227,7 @@ class AMDPNode:
                 if action.object == 'apple':
                     action.object = obj
                 action_list.append(deepcopy(action))
+            # print 'Action: ', a.action_type, ':', a.object, ', Utility: ', utilities[a]
 
         if len(action_list) > 0:
             # i = randint(0, len(action_list) - 1)

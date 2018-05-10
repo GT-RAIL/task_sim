@@ -168,6 +168,8 @@ class AMDPTrainer(object):
                     value_iterator.init_utilities()
                     value_iterator.solve()
 
+                self.amdp_node.reinit_U()
+
                 print("Evaluating for 5 trials over all training environments...")
                 success_rate = 0.0
                 for env in self.task_envs:
@@ -199,7 +201,6 @@ class AMDPTrainer(object):
         simulator_api['reset_sim']()
         num_steps = 0
 
-        self.amdp_node.reinit_U()
         status = Status.IN_PROGRESS
         while status == Status.IN_PROGRESS:
             if num_steps > self.max_episode_length:
@@ -212,6 +213,7 @@ class AMDPTrainer(object):
             status = simulator_api['query_status'](next_state.state).status.status_code
 
             num_steps += 1
+            # rospy.sleep(1)
 
         return status == Status.COMPLETED
 

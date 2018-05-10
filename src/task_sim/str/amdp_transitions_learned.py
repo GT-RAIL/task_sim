@@ -217,10 +217,7 @@ class AMDPTransitionsLearned:
 
 
     def save(self, suffix=''):
-        # Do nothing
-        # pickle.dump(self.transition, file('T' + str(self.amdp_id) + str(suffix) + '.pkl', mode='w'))
-        # print 'Transition function saved.'
-        pass
+        self.transition.flush()
 
 
 if __name__ == '__main__':
