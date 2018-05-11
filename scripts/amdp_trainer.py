@@ -135,7 +135,7 @@ class AMDPTrainer(object):
         while learner.epoch == epoch:
             learner.run()
 
-    def train(self, epochs=100000, test_every=100, save_every=100):
+    def train(self, epochs=100000, test_every=10, save_every=100):
         """Trains the transition function, the value function, etc.
         TODO: Maybe some of the options here should be part of the experiment
         config"""
@@ -171,6 +171,8 @@ class AMDPTrainer(object):
                     "\tSuccesses:", transition_learner.successes,
                     "\tAction executions:", transition_learner.action_executions
                 )
+
+            # rospy.sleep(1)
 
             # If it is time to test
             if epoch % test_every == 0 and epoch > 0:

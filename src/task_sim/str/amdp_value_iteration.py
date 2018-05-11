@@ -233,6 +233,8 @@ class AMDPValueIteration:
         start_time = datetime.datetime.now()
         num_states = 0
 
+        print 'States in utility function:', len(self.U.keys())
+
         while True:
             n += 1
             if debug > 0:
