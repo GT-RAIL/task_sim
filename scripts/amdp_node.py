@@ -3,8 +3,11 @@
 # Python
 from copy import deepcopy
 from math import sqrt
+import numpy as np
+import os
 import pickle
 from random import random, randint
+from sklearn.externals import joblib
 
 # ROS
 import rospy
@@ -95,6 +98,17 @@ class AMDPNode:
             self.T[4] = AMDPTransitionsLearned(amdp_id=4)
             self.T[11] = AMDPTransitionsLearned(amdp_id=11)
             self.T[12] = AMDPTransitionsLearned(amdp_id=12)
+
+        # load decision trees
+        self.classifiers = {}
+        self.classifiers[0] = joblib.load(os.path.join(rospkg.RosPack().get_path('task_sim'), 'data', 'task4',
+                                                       'models', 'decision_tree_action_0.pkl'))
+        self.classifiers[2] = joblib.load(os.path.join(rospkg.RosPack().get_path('task_sim'), 'data', 'task4',
+                                                       'models', 'decision_tree_action_2.pkl'))
+        self.classifiers[6] = joblib.load(os.path.join(rospkg.RosPack().get_path('task_sim'), 'data', 'task7',
+                                                       'models', 'decision_tree_action_6.pkl'))
+        self.classifiers[8] = joblib.load(os.path.join(rospkg.RosPack().get_path('task_sim'), 'data', 'task7',
+                                                       'models', 'decision_tree_action_8.pkl'))
 
         self.service = rospy.Service(simulator_name + '/select_action', SelectAction, self.select_action)
         self.status_service = rospy.Service(simulator_name + '/query_status', QueryStatus, self.query_status)
@@ -237,47 +251,82 @@ class AMDPNode:
             if debug > 0:
                 print 'Action: ', a.action_type, ':', a.object, ', Utility: ', utilities[a]
 
-        if len(action_list) > 0:
+        if max_utility != 0:  # there is a successor state is in the utility table
             i = randint(0, len(action_list) - 1)
             # i = 0
             action = action_list[i]
+        else:  # we need to select an action a different way
+            # TODO: adapt this for mode, currently just uses decision tree
+            features = s.to_vector()
+            probs = self.classifiers[t_id_map[id]].predict_proba(np.asarray(features).reshape(1, -1)).flatten().tolist()
+            selection = random()
+            cprob = 0
+            action_label = '0:apple'
+            for i in range(0, len(probs)):
+                cprob += probs[i]
+                if cprob >= selection:
+                    action_label = self.classifiers[t_id_map[id]].classes_[i]
+                    break
+            # Convert back to action
+            result = action_label.split(':')
+            action.action_type = int(result[0])
+            if len(result) > 1:
+                action.object = result[1]
+                if action.object == 'apple':
+                    if obj not in items:
+                        action.object = items[randint(0, len(items) - 1)]
+                    else:
+                        action.object = obj
             if debug > 0:
-                print '\t\tLow level action selection: ' + str(action.action_type) + ', ' + str(action.object)
-            if action.action_type == Action.PLACE:
+                print '***** Action selected from decision tree. *****'
+
+            # random action
+            # action_list = []
+            # for a in self.A[id]:
+            #     action = deepcopy(a)
+            #     if action.object == 'apple':
+            #         if obj not in items:
+            #             action.object = items[randint(0, len(items) - 1)]
+            #         else:
+            #             action.object = obj
+            #     action_list.append(a)
+            # action = action_list[randint(0, len(action_list) - 1)]
+
+        if debug > 0:
+            print '\t\tLow level action selection: ' + str(action.action_type) + ', ' + str(action.object)
+        if action.action_type == Action.PLACE:
+            action.position = DataUtils.semantic_action_to_position(req.state, action.object)
+            action.object = ''
+        elif action.action_type == Action.MOVE_ARM:
+            if action.object == 'l':
+                action.position.x = req.state.gripper_position.x - 10
+                action.position.y = req.state.gripper_position.y
+            elif action.object == 'fl':
+                action.position.x = req.state.gripper_position.x - 10
+                action.position.y = req.state.gripper_position.y - 5
+            elif action.object == 'f':
+                action.position.x = req.state.gripper_position.x
+                action.position.y = req.state.gripper_position.y - 5
+            elif action.object == 'fr':
+                action.position.x = req.state.gripper_position.x + 10
+                action.position.y = req.state.gripper_position.y - 5
+            elif action.object == 'r':
+                action.position.x = req.state.gripper_position.x + 10
+                action.position.y = req.state.gripper_position.y
+            elif action.object == 'br':
+                action.position.x = req.state.gripper_position.x + 10
+                action.position.y = req.state.gripper_position.y + 5
+            elif action.object == 'b':
+                action.position.x = req.state.gripper_position.x
+                action.position.y = req.state.gripper_position.y + 5
+            elif action.object == 'bl':
+                action.position.x = req.state.gripper_position.x - 10
+                action.position.y = req.state.gripper_position.y + 5
+            else:
                 action.position = DataUtils.semantic_action_to_position(req.state, action.object)
-                action.object = ''
-            elif action.action_type == Action.MOVE_ARM:
-                if action.object == 'l':
-                    action.position.x = req.state.gripper_position.x - 10
-                    action.position.y = req.state.gripper_position.y
-                elif action.object == 'fl':
-                    action.position.x = req.state.gripper_position.x - 10
-                    action.position.y = req.state.gripper_position.y - 5
-                elif action.object == 'f':
-                    action.position.x = req.state.gripper_position.x
-                    action.position.y = req.state.gripper_position.y - 5
-                elif action.object == 'fr':
-                    action.position.x = req.state.gripper_position.x + 10
-                    action.position.y = req.state.gripper_position.y - 5
-                elif action.object == 'r':
-                    action.position.x = req.state.gripper_position.x + 10
-                    action.position.y = req.state.gripper_position.y
-                elif action.object == 'br':
-                    action.position.x = req.state.gripper_position.x + 10
-                    action.position.y = req.state.gripper_position.y + 5
-                elif action.object == 'b':
-                    action.position.x = req.state.gripper_position.x
-                    action.position.y = req.state.gripper_position.y + 5
-                elif action.object == 'bl':
-                    action.position.x = req.state.gripper_position.x - 10
-                    action.position.y = req.state.gripper_position.y + 5
-                else:
-                    action.position = DataUtils.semantic_action_to_position(req.state, action.object)
-                action.object = ''
-            elif action.action_type != Action.GRASP:
-                action.object = ''
-        else:
-            action.action_type = Action.NOOP
+            action.object = ''
+        elif action.action_type != Action.GRASP:
+            action.object = ''
 
         # print '\n\n-------------------'
         # print 'Selected action: '

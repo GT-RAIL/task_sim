@@ -37,6 +37,9 @@ class AMDPTrainer(object):
     def __init__(self):
         root_path = rospkg.RosPack().get_path('task_sim')
 
+        # TODO: come up with something more permanent
+        self.report = []
+
         # Assume that there is an experiment data folder. #TODO: Get this from
         # an experiment config in the future
         self.experiment_data_folder = ""
@@ -46,7 +49,7 @@ class AMDPTrainer(object):
         mode = 0
         if rospy.get_param('~demo_mode/random', True):
             mode |= DemonstrationMode.RANDOM
-        if rospy.get_param('~demo_mode/shadow', True):
+        if rospy.get_param('~demo_mode/shadow', False):
             mode |= DemonstrationMode.SHADOW
         if rospy.get_param('~demo_mode/classifier', True):
             mode |= DemonstrationMode.CLASSIFIER
@@ -62,7 +65,7 @@ class AMDPTrainer(object):
         # task envs, this should be more than just empty. Also the seeds should
         # be picked according to the experiment's configuration
         self.task_envs = [] # Format: seed, task folder
-        for i in range(20):
+        for i in range(50):
             self.task_envs.append((i, ""))
         self.demo_envs = [ # Format: env_name, amdp_ids
             ("task4", (0,2)),
@@ -189,11 +192,11 @@ class AMDPTrainer(object):
 
                 self.amdp_node.reinit_U()
 
-                print("Evaluating for 5 trials over all training environments...")
+                print("Evaluating for 2 trials over all training environments...")
                 success_rate = 0.0
                 for env in self.task_envs:
                     eval_seed = env[0]
-                    for i in range(5):
+                    for i in range(2):
                         if self.evaluate(eval_seed):
                             success_rate += 1
                             amdp_node_successes += 1
@@ -212,6 +215,9 @@ class AMDPTrainer(object):
                 for key, transition_learner in self.transition_learners.iteritems():
                     print('\t', key, transition_learner.action_executions, 'training action executions')
                 print("\n**********************************************************************************")
+                self.report.append((epoch, success_rate/(len(self.task_envs)*5), ex_count))
+                print("Cumulative results: ")
+                print(self.report)
 
             # If it is time to save
             if epoch % save_every == 0 and epoch > 0:
