@@ -138,7 +138,7 @@ class AMDPTrainer(object):
         while learner.epoch == epoch:
             learner.run()
 
-    def train(self, epochs=100000, test_every=10, save_every=100):
+    def train(self, epochs=100000, test_every=100, save_every=100):
         """Trains the transition function, the value function, etc.
         TODO: Maybe some of the options here should be part of the experiment
         config"""
@@ -244,7 +244,7 @@ class AMDPTrainer(object):
             status = simulator_api['query_status'](next_state.state).status.status_code
 
             num_steps += 1
-            # rospy.sleep(1)
+            # rospy.sleep(0.5)
 
         return status == Status.COMPLETED
 
