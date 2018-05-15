@@ -138,7 +138,7 @@ class AMDPTrainer(object):
         while learner.epoch == epoch:
             learner.run()
 
-    def train(self, epochs=2502, test_every=25, save_every=100):
+    def train(self, epochs=2502, test_every=10, save_every=100):
         """Trains the transition function, the value function, etc.
         TODO: Maybe some of the options here should be part of the experiment
         config"""
@@ -216,7 +216,7 @@ class AMDPTrainer(object):
                 for key, transition_learner in self.transition_learners.iteritems():
                     print('\t', key, transition_learner.action_executions, 'training action executions')
                 print("\n**********************************************************************************")
-                self.report.append((epoch, success_rate/(len(self.task_envs)*5), ex_count))
+                self.report.append((epoch, success_rate/(len(self.task_envs)*eval_trials), ex_count))
                 print("Cumulative results: ")
                 print(self.report)
 
@@ -246,6 +246,9 @@ class AMDPTrainer(object):
 
             num_steps += 1
             # rospy.sleep(0.5)
+
+
+        print('Status:', status)
 
         return status == Status.COMPLETED
 
