@@ -280,7 +280,7 @@ class AMDPNode:
             if debug > 0:
                 print '***** Action selected from decision tree. *****'
 
-            # random action
+            # # random action
             # action_list = []
             # for a in self.A[id]:
             #     action = deepcopy(a)

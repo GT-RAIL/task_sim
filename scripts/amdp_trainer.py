@@ -65,7 +65,7 @@ class AMDPTrainer(object):
         # task envs, this should be more than just empty. Also the seeds should
         # be picked according to the experiment's configuration
         self.task_envs = [] # Format: seed, task folder
-        for i in range(50):
+        for i in range(20):
             self.task_envs.append((i, ""))
         self.demo_envs = [ # Format: env_name, amdp_ids
             ("task4", (0,2)),
@@ -138,7 +138,7 @@ class AMDPTrainer(object):
         while learner.epoch == epoch:
             learner.run()
 
-    def train(self, epochs=100000, test_every=100, save_every=100):
+    def train(self, epochs=2502, test_every=25, save_every=100):
         """Trains the transition function, the value function, etc.
         TODO: Maybe some of the options here should be part of the experiment
         config"""
@@ -192,11 +192,12 @@ class AMDPTrainer(object):
 
                 self.amdp_node.reinit_U()
 
-                print("Evaluating for 2 trials over all training environments...")
+                eval_trials = 5
+                print("Evaluating for", eval_trials, "trials over all training environments...")
                 success_rate = 0.0
                 for env in self.task_envs:
                     eval_seed = env[0]
-                    for i in range(2):
+                    for i in range(eval_trials):
                         if self.evaluate(eval_seed):
                             success_rate += 1
                             amdp_node_successes += 1
@@ -210,7 +211,7 @@ class AMDPTrainer(object):
                 ex_count = 0
                 for key, transition_learner in self.transition_learners.iteritems():
                     ex_count += transition_learner.action_executions
-                print("Epoch:", epoch, "\tSuccess rate:", success_rate/(len(self.task_envs)*5),
+                print("Epoch:", epoch, "\tSuccess rate:", success_rate/(len(self.task_envs)*eval_trials),
                       "\tTotal training executions:", ex_count)
                 for key, transition_learner in self.transition_learners.iteritems():
                     print('\t', key, transition_learner.action_executions, 'training action executions')

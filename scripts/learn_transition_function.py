@@ -147,25 +147,28 @@ class LearnTransitionFunction:
             else:
                 a = self.A[randint(0, len(self.A) - 1)]
         else:
-            if self.demo_mode.classifier and random() > self.epsilon:
-                features = s.to_vector()
+            if self.demo_mode.classifier:
+                if self.demo_mode.random and random() <= self.epsilon:
+                    a = self.A[randint(0, len(self.A) - 1)]
+                else:
+                    features = s.to_vector()
 
-                # Classify action
-                probs = self.action_bias.predict_proba(np.asarray(features).reshape(1, -1)).flatten().tolist()
-                selection = random()
-                cprob = 0
-                action_label = '0:apple'
-                for i in range(0, len(probs)):
-                    cprob += probs[i]
-                    if cprob >= selection:
-                        action_label = self.action_bias.classes_[i]
-                        break
-                # Convert back to action
-                a = Action()
-                result = action_label.split(':')
-                a.action_type = int(result[0])
-                if len(result) > 1:
-                    a.object = result[1]
+                    # Classify action
+                    probs = self.action_bias.predict_proba(np.asarray(features).reshape(1, -1)).flatten().tolist()
+                    selection = random()
+                    cprob = 0
+                    action_label = '0:apple'
+                    for i in range(0, len(probs)):
+                        cprob += probs[i]
+                        if cprob >= selection:
+                            action_label = self.action_bias.classes_[i]
+                            break
+                    # Convert back to action
+                    a = Action()
+                    result = action_label.split(':')
+                    a.action_type = int(result[0])
+                    if len(result) > 1:
+                        a.object = result[1]
             else:
                 a = self.A[randint(0, len(self.A) - 1)]
 
