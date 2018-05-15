@@ -51,7 +51,7 @@ class AMDPTrainer(object):
             mode |= DemonstrationMode.RANDOM
         if rospy.get_param('~demo_mode/shadow', False):
             mode |= DemonstrationMode.SHADOW
-        if rospy.get_param('~demo_mode/classifier', True):
+        if rospy.get_param('~demo_mode/classifier', False):
             mode |= DemonstrationMode.CLASSIFIER
         if rospy.get_param('~demo_mode/plan_network', False):
             mode |= DemonstrationMode.PLAN_NETWORK
@@ -246,9 +246,6 @@ class AMDPTrainer(object):
 
             num_steps += 1
             # rospy.sleep(0.5)
-
-
-        print('Status:', status)
 
         return status == Status.COMPLETED
 

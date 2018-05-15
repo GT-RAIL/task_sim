@@ -257,40 +257,40 @@ class AMDPNode:
             action = action_list[i]
         else:  # we need to select an action a different way
             # TODO: adapt this for mode, currently just uses decision tree
-            features = s.to_vector()
-            probs = self.classifiers[t_id_map[id]].predict_proba(np.asarray(features).reshape(1, -1)).flatten().tolist()
-            selection = random()
-            cprob = 0
-            action_label = '0:apple'
-            for i in range(0, len(probs)):
-                cprob += probs[i]
-                if cprob >= selection:
-                    action_label = self.classifiers[t_id_map[id]].classes_[i]
-                    break
-            # Convert back to action
-            result = action_label.split(':')
-            action.action_type = int(result[0])
-            if len(result) > 1:
-                action.object = result[1]
-                if action.object == 'apple':
-                    if obj not in items:
-                        action.object = items[randint(0, len(items) - 1)]
-                    else:
-                        action.object = obj
-            if debug > 0:
-                print '***** Action selected from decision tree. *****'
-
-            # # random action
-            # action_list = []
-            # for a in self.A[id]:
-            #     action = deepcopy(a)
+            # features = s.to_vector()
+            # probs = self.classifiers[t_id_map[id]].predict_proba(np.asarray(features).reshape(1, -1)).flatten().tolist()
+            # selection = random()
+            # cprob = 0
+            # action_label = '0:apple'
+            # for i in range(0, len(probs)):
+            #     cprob += probs[i]
+            #     if cprob >= selection:
+            #         action_label = self.classifiers[t_id_map[id]].classes_[i]
+            #         break
+            # # Convert back to action
+            # result = action_label.split(':')
+            # action.action_type = int(result[0])
+            # if len(result) > 1:
+            #     action.object = result[1]
             #     if action.object == 'apple':
             #         if obj not in items:
             #             action.object = items[randint(0, len(items) - 1)]
             #         else:
             #             action.object = obj
-            #     action_list.append(a)
-            # action = action_list[randint(0, len(action_list) - 1)]
+            # if debug > 0:
+            #     print '***** Action selected from decision tree. *****'
+
+            # random action
+            action_list = []
+            for a in self.A[id]:
+                action = deepcopy(a)
+                if action.object == 'apple':
+                    if obj not in items:
+                        action.object = items[randint(0, len(items) - 1)]
+                    else:
+                        action.object = obj
+                action_list.append(a)
+            action = action_list[randint(0, len(action_list) - 1)]
 
         if debug > 0:
             print '\t\tLow level action selection: ' + str(action.action_type) + ', ' + str(action.object)
