@@ -251,7 +251,7 @@ class AMDPNode:
             if debug > 0:
                 print 'Action: ', a.action_type, ':', a.object, ', Utility: ', utilities[a]
 
-        if max_utility != 0:  # there is a successor state is in the utility table
+        if max_utility != 0 and max_utility > 0:  # there is a successor state is in the utility table
             i = randint(0, len(action_list) - 1)
             # i = 0
             action = action_list[i]
