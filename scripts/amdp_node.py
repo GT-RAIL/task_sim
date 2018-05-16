@@ -20,6 +20,7 @@ from task_sim.oomdp.oo_state import OOState
 from task_sim.str.amdp_state import AMDPState
 from task_sim.str.amdp_transitions_learned import AMDPTransitionsLearned
 from task_sim.str.amdp_reward import reward, is_terminal
+from task_sim.str.modes import DemonstrationMode
 
 
 t_id_map = {0:0, 1:0, 2:2, -1:2, 3:3, 4:4, 5:5, 6:6, 7:6, 8:8, 9:9, 10:10, 11:11, 12:12}
@@ -31,7 +32,8 @@ class AMDPNode:
         self,
         simulator_name='table_sim',
         transition_functions=None,
-        value_tables=None
+        value_tables=None,
+        demo_mode=None # DemonstrationMode object. If None, RANDOM+CLASSIFIER+SHADOW
     ):
 
         a_file_drawer = rospy.get_param('~actions_drawer', rospkg.RosPack().get_path('task_sim') + '/src/task_sim/str/A_drawer.pkl')
@@ -99,16 +101,34 @@ class AMDPNode:
             self.T[11] = AMDPTransitionsLearned(amdp_id=11)
             self.T[12] = AMDPTransitionsLearned(amdp_id=12)
 
-        # load decision trees
+        # demo config, loads modes, policies, and classifiers
+        self.demo_mode = demo_mode or DemonstrationMode(
+            DemonstrationMode.RANDOM | DemonstrationMode.CLASSIFIER | DemonstrationMode.SHADOW
+        )
+        self.demo_configs = {}
+        self.demo_configs[0] = self.demo_mode.configuration(
+            amdp_id=0,
+            container_env='task4'
+        )
+        self.demo_configs[2] = self.demo_mode.configuration(
+            amdp_id=2,
+            container_env='task4'
+        )
+        self.demo_configs[6] = self.demo_mode.configuration(
+            amdp_id=6,
+            container_env='task7'
+        )
+        self.demo_configs[8] = self.demo_mode.configuration(
+            amdp_id=8,
+            container_env='task7'
+        )
+
+        # load decision trees, shadow policies
         self.classifiers = {}
-        self.classifiers[0] = joblib.load(os.path.join(rospkg.RosPack().get_path('task_sim'), 'data', 'task4',
-                                                       'models', 'decision_tree_action_0.pkl'))
-        self.classifiers[2] = joblib.load(os.path.join(rospkg.RosPack().get_path('task_sim'), 'data', 'task4',
-                                                       'models', 'decision_tree_action_2.pkl'))
-        self.classifiers[6] = joblib.load(os.path.join(rospkg.RosPack().get_path('task_sim'), 'data', 'task7',
-                                                       'models', 'decision_tree_action_6.pkl'))
-        self.classifiers[8] = joblib.load(os.path.join(rospkg.RosPack().get_path('task_sim'), 'data', 'task7',
-                                                       'models', 'decision_tree_action_8.pkl'))
+        self.pis = {}
+        for i in [0, 2, 6, 8]:
+            self.pis[i] = self.demo_configs[i].get('demo_policy')
+            self.classifiers[i] = self.demo_configs[i].get('action_bias')
 
         self.service = rospy.Service(simulator_name + '/select_action', SelectAction, self.select_action)
         self.status_service = rospy.Service(simulator_name + '/query_status', QueryStatus, self.query_status)
@@ -256,41 +276,44 @@ class AMDPNode:
             # i = 0
             action = action_list[i]
         else:  # we need to select an action a different way
-            # TODO: adapt this for mode, currently just uses decision tree
-            # features = s.to_vector()
-            # probs = self.classifiers[t_id_map[id]].predict_proba(np.asarray(features).reshape(1, -1)).flatten().tolist()
-            # selection = random()
-            # cprob = 0
-            # action_label = '0:apple'
-            # for i in range(0, len(probs)):
-            #     cprob += probs[i]
-            #     if cprob >= selection:
-            #         action_label = self.classifiers[t_id_map[id]].classes_[i]
-            #         break
-            # # Convert back to action
-            # result = action_label.split(':')
-            # action.action_type = int(result[0])
-            # if len(result) > 1:
-            #     action.object = result[1]
-            #     if action.object == 'apple':
-            #         if obj not in items:
-            #             action.object = items[randint(0, len(items) - 1)]
-            #         else:
-            #             action.object = obj
-            # if debug > 0:
-            #     print '***** Action selected from decision tree. *****'
+
+            if self.demo_mode.classifier:
+                features = s.to_vector()
+                probs = self.classifiers[t_id_map[id]].predict_proba(np.asarray(features).reshape(1, -1)).flatten().tolist()
+                selection = random()
+                cprob = 0
+                action_label = '0:apple'
+                for i in range(0, len(probs)):
+                    cprob += probs[i]
+                    if cprob >= selection:
+                        action_label = self.classifiers[t_id_map[id]].classes_[i]
+                        break
+                # Convert back to action
+                result = action_label.split(':')
+                action.action_type = int(result[0])
+                if len(result) > 1:
+                    action.object = result[1]
+                    if action.object == 'apple':
+                        if obj not in items:
+                            action.object = items[randint(0, len(items) - 1)]
+                        else:
+                            action.object = obj
+                if debug > 0:
+                    print '***** Action selected from decision tree. *****'
 
             # random action
-            action_list = []
-            for a in self.A[id]:
-                action = deepcopy(a)
-                if action.object == 'apple':
-                    if obj not in items:
-                        action.object = items[randint(0, len(items) - 1)]
-                    else:
-                        action.object = obj
-                action_list.append(a)
-            action = action_list[randint(0, len(action_list) - 1)]
+            # if self.demo_mode.random:
+            else:
+                action_list = []
+                for a in self.A[id]:
+                    action = deepcopy(a)
+                    if action.object == 'apple':
+                        if obj not in items:
+                            action.object = items[randint(0, len(items) - 1)]
+                        else:
+                            action.object = obj
+                    action_list.append(a)
+                action = action_list[randint(0, len(action_list) - 1)]
 
         if debug > 0:
             print '\t\tLow level action selection: ' + str(action.action_type) + ', ' + str(action.object)

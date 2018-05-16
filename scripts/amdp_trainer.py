@@ -51,7 +51,7 @@ class AMDPTrainer(object):
             mode |= DemonstrationMode.RANDOM
         if rospy.get_param('~demo_mode/shadow', False):
             mode |= DemonstrationMode.SHADOW
-        if rospy.get_param('~demo_mode/classifier', False):
+        if rospy.get_param('~demo_mode/classifier', True):
             mode |= DemonstrationMode.CLASSIFIER
         if rospy.get_param('~demo_mode/plan_network', False):
             mode |= DemonstrationMode.PLAN_NETWORK
@@ -71,6 +71,7 @@ class AMDPTrainer(object):
             ("task4", (0,2)),
             ("task7", (6,8))
         ]
+        self.test_envs = range(20,120) # test environment seeds
 
         # Instantiate the transition functions and the utility functions
         self.Ts = {}
@@ -194,14 +195,24 @@ class AMDPTrainer(object):
 
                 eval_trials = 5
                 print("Evaluating for", eval_trials, "trials over all training environments...")
-                success_rate = 0.0
+                success_rate_demo = 0.0
+                success_rate_train = 0.0
                 for env in self.task_envs:
                     eval_seed = env[0]
                     for i in range(eval_trials):
                         if self.evaluate(eval_seed):
-                            success_rate += 1
+                            if eval_seed < 10:
+                                success_rate_demo += 1
+                            else:
+                                success_rate_train += 1
                             amdp_node_successes += 1
                         amdp_node_executions += 1
+                print("Evaluating over all", len(self.test_envs), "heldout test environments...")
+                success_rate_test = 0.0
+                for test_seed in self.test_envs:
+                    if self.evaluate(test_seed):
+                        success_rate_test += 1
+
                 print("**********************************************************************************")
                 print(
                     "\nTests:", amdp_node_executions,
@@ -211,12 +222,18 @@ class AMDPTrainer(object):
                 ex_count = 0
                 for key, transition_learner in self.transition_learners.iteritems():
                     ex_count += transition_learner.action_executions
-                print("Epoch:", epoch, "\tSuccess rate:", success_rate/(len(self.task_envs)*eval_trials),
-                      "\tTotal training executions:", ex_count)
+                rate_demo = success_rate_demo/(len(self.task_envs)*eval_trials)
+                rate_train = success_rate_train/(len(self.task_envs)*eval_trials)
+                rate_test = success_rate_test/(len(self.test_envs))
+                print("Epoch:", epoch,
+                      "\tSuccess (demo):", rate_demo,
+                      "\tSuccess (train):", rate_train,
+                      "\tSuccess (test):", rate_test,
+                      "\tAction executions:", ex_count)
                 for key, transition_learner in self.transition_learners.iteritems():
                     print('\t', key, transition_learner.action_executions, 'training action executions')
                 print("\n**********************************************************************************")
-                self.report.append((epoch, success_rate/(len(self.task_envs)*eval_trials), ex_count))
+                self.report.append((epoch, rate_demo, rate_train, rate_test, ex_count))
                 print("Cumulative results: ")
                 print(self.report)
 
