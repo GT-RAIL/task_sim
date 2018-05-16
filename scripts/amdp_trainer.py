@@ -133,7 +133,7 @@ class AMDPTrainer(object):
                     )
 
         # Instantiate the AMDP Node
-        self.amdp_node = AMDPNode(self.simulators[None], self.Ts, self.Us)
+        self.amdp_node = AMDPNode(self.simulators[None], self.Ts, self.Us, self.demo_mode)
 
     def _run_transition_learner(self, learner, epoch):
         while learner.epoch == epoch:
