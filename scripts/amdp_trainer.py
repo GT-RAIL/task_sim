@@ -222,8 +222,8 @@ class AMDPTrainer(object):
                 ex_count = 0
                 for key, transition_learner in self.transition_learners.iteritems():
                     ex_count += transition_learner.action_executions
-                rate_demo = success_rate_demo/(len(self.task_envs)*eval_trials)
-                rate_train = success_rate_train/(len(self.task_envs)*eval_trials)
+                rate_demo = success_rate_demo/(10*eval_trials)
+                rate_train = success_rate_train/((len(self.task_envs) - 10)*eval_trials)
                 rate_test = success_rate_test/(len(self.test_envs))
                 print("Epoch:", epoch,
                       "\tSuccess (demo):", rate_demo,
