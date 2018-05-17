@@ -23,7 +23,7 @@ from task_sim.amdp_plan_action import AMDPPlanAction
 
 class AMDPPlanNetwork:
 
-    def __init__(self, construct=False):
+    def __init__(self, construct=False, amdp_id=2):
         # data structures to store parsed information (used in graph construction)
         self.action_list = []
         self.edges = []
@@ -41,6 +41,8 @@ class AMDPPlanNetwork:
         # network
         self.plan_network = None
         self.node_labels = {}
+
+        self.amdp_id = amdp_id
 
         if construct:
             self.construct_network()
@@ -93,7 +95,7 @@ class AMDPPlanNetwork:
                         continue
 
                     # parse action
-                    act = AMDPPlanAction(s0, a, s1)
+                    act = AMDPPlanAction(s0, a, s1, self.amdp_id)
 
                     if act not in self.action_list:
                         self.action_list.append(act)
@@ -177,55 +179,26 @@ class AMDPPlanNetwork:
         return self.plan_network.has_node(node)
 
     def get_successor_actions(self, node, state):
-        action_list = []  # List of successor actions, each entry in form [node, object, target, probability]
+        action_list = []  # List of successor actions, each entry in form [node, probability]
         total_weight = 0
         for candidate in self.plan_network.successors(node):
             weight = self.plan_network.get_edge_data(node, candidate)['weight']
             temp_action_list = []
             pre_met_count = 0
-            # de-generalize objects and targets, iterate through all combinations:
-            objects = self.cluster_to_objects[candidate.object]
 
-            # object is fixed for certain actions... constrain object list for those cases
-            if candidate.action in [Action.PLACE, Action.OPEN_GRIPPER, Action.MOVE_ARM, Action.RAISE_ARM,
-                                    Action.LOWER_ARM, Action.RESET_ARM]:
-                if state.object_in_gripper.lower() in objects:
-                    objects = [state.object_in_gripper.lower()]
-                else:
-                    continue
-            if candidate.action == Action.CLOSE_GRIPPER:
-                test_obj = ''
-                for obj in state.objects:
-                    if obj.position == state.gripper_position:
-                        test_obj = obj.name.lower()
-                        break
-                if test_obj in objects:
-                    objects = [test_obj]
-                else:
-                    continue
+            if candidate.check_preconditions(state, self.amdp_id):
+                temp_action_list.append([candidate, weight])
+                pre_met_count += 1
 
-            targets = self.cluster_to_objects[candidate.target]
-            for obj in objects:
-                for target in targets:
-                    # print '\n******************'
-                    # print 'Testing preconditions for ' + str(candidate.action) + ', ' + str(obj) + ', ' + str(target)
-                    # print str(candidate)
-                    if candidate.check_preconditions(state, obj, target, self.object_to_cluster):
-                        # print 'Success'
-                        temp_action_list.append([candidate, obj, target, weight])
-                        pre_met_count += 1
-                    # else:
-                        # print 'Failure'
-                    # print '****************\n'
             if pre_met_count > 0:
                 for act in temp_action_list:
-                    act[3] /= float(pre_met_count)
+                    act[1] /= float(pre_met_count)
                 action_list.extend(temp_action_list)
                 total_weight += weight
         if len(action_list) > 0:
             # normalize by weight
             for act in action_list:
-                act[3] /= float(total_weight)
+                act[1] /= float(total_weight)
         return action_list
 
     def find_suitable_node(self, state):
@@ -241,26 +214,16 @@ class AMDPPlanNetwork:
             node = nodes[i]
             if node == 'start':
                 continue
-            objects = self.cluster_to_objects[node.object]
-            targets = self.cluster_to_objects[node.target]
-            parents_checked = False
-            for obj in objects:
-                for target in targets:
-                    if node.check_preconditions(state, obj, target, self.object_to_cluster):
-                        # check that any parent's effects match the state
-                        valid_nodes = []
-                        for parent in self.plan_network.predecessors(node):
-                            if parent == 'start':
-                                continue
-                            if parent.check_effects(state, self.object_to_cluster):
-                                valid_nodes.append(parent)
-                        if len(valid_nodes) > 0:
-                            return valid_nodes[randint(0, len(valid_nodes) - 1)]
-                        parents_checked = True
-                    if parents_checked:
-                        break
-                if parents_checked:
-                    break
+            if node.check_preconditions(state, self.amdp_id):
+                # check that any parent's effects match the state
+                valid_nodes = []
+                for parent in self.plan_network.predecessors(node):
+                    if parent == 'start':
+                        continue
+                    if parent.check_effects(state, self.amdp_id):
+                        valid_nodes.append(parent)
+                if len(valid_nodes) > 0:
+                    return valid_nodes[randint(0, len(valid_nodes) - 1)]
 
         # No valid nodes found if this point is reached...
         return None
@@ -274,57 +237,9 @@ class AMDPPlanNetwork:
         plt.show()
 
     def test_output(self):
-        print 'Objects: '
-        print str(self.object_to_index)
-
-        print '\nAction-Contexts:'
-        print str(self.action_context_to_index)
-
-        print '\nAction-Objects:'
-        print str(self.action_object_to_index)
-
-        print '\nObject frequencies:'
-        print str(self.object_frequency_count)
-
-        print '\n Object by Action-Context table:'
-        for i in range(len(self.object_by_action_context)):
-            out = 'Object ' + str(i)
-            for j in range(len(self.object_by_action_context[i])):
-                out += '\t' + str(self.object_by_action_context[i][j])
-            print out
-
-        print '\n Context by Action-Object table:'
-        for i in range(len(self.context_by_action_object)):
-            out = 'Context ' + str(i)
-            for j in range(len(self.context_by_action_object[i])):
-                out += '\t' + str(self.context_by_action_object[i][j])
-            print out
-
-        print '\nObject clusters: '
-        print str(self.cluster_to_objects)
-
-        print '\n Reverse lookup check: '
-        print str(self.object_to_cluster)
-
         self.show_graph()
 
 
-class TaskObject:
-
-    def __init__(self, name):
-        self.name = name
-        self.action_affordances = []
-        self.context_affordances = []
-
-    def add_action_affordance(self, pair):
-        if pair not in self.action_affordances:
-            self.action_affordances.append(pair)
-
-    def add_context_affordance(self, pair):
-        if pair not in self.context_affordances:
-            self.context_affordances.append(pair)
-
-
 if __name__ == '__main__':
-    rospy.init_node('plan_network')
-    plan_network = PlanNetwork(construct=True)
+    rospy.init_node('amdp_plan_network')
+    plan_network = AMDPPlanNetwork(construct=True)
