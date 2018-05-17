@@ -224,16 +224,18 @@ class AMDPTrainer(object):
                     ex_count += transition_learner.action_executions
                 rate_demo = success_rate_demo/(10*eval_trials)
                 rate_train = success_rate_train/((len(self.task_envs) - 10)*eval_trials)
+                rate_combined_train = (success_rate_demo + success_rate_train)/(len(self.task_envs)*eval_trials)
                 rate_test = success_rate_test/(len(self.test_envs))
                 print("Epoch:", epoch,
                       "\tSuccess (demo):", rate_demo,
                       "\tSuccess (train):", rate_train,
+                      "\tSuccess (combined):", rate_combined_train,
                       "\tSuccess (test):", rate_test,
                       "\tAction executions:", ex_count)
                 for key, transition_learner in self.transition_learners.iteritems():
                     print('\t', key, transition_learner.action_executions, 'training action executions')
                 print("\n**********************************************************************************")
-                self.report.append((epoch, rate_demo, rate_train, rate_test, ex_count))
+                self.report.append((epoch, rate_demo, rate_train, rate_combined_train, rate_test, ex_count))
                 print("Cumulative results: ")
                 print(self.report)
 

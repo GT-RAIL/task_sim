@@ -59,7 +59,8 @@ class AMDPDemoReader:
                         a.position = Point()
                     elif a.action_type == Action.MOVE_ARM:
                         a.object = DataUtils.get_task_frame(prev_state_msg, a.position)
-                        if a.object != 'stack' and a.object != 'drawer':
+                        if (self.amdp_id <= 2 and a.object != 'stack' and a.object != 'drawer') or \
+                                (self.amdp_id >= 6 and a.object != 'box' and a.object != 'lid'):
                             for o in prev_state_msg.objects:
                                 if o.name != 'apple':
                                     continue
