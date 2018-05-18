@@ -126,9 +126,15 @@ class AMDPNode:
         # load decision trees, shadow policies
         self.classifiers = {}
         self.pis = {}
+        self.action_sequences = {}
+
         for i in [0, 2, 6, 8]:
-            self.pis[i] = self.demo_configs[i].get('demo_policy')
-            self.classifiers[i] = self.demo_configs[i].get('action_bias')
+            if self.demo_mode.shadow:
+                self.pis[i] = self.demo_configs[i].get('demo_policy')
+            if self.demo_mode.classifier:
+                self.classifiers[i] = self.demo_configs[i].get('action_bias')
+            if self.demo_mode.plan_network:
+                self.action_sequences[i] = self.demo_configs[i].get('action_sequences')
 
         self.service = rospy.Service(simulator_name + '/select_action', SelectAction, self.select_action)
         self.status_service = rospy.Service(simulator_name + '/query_status', QueryStatus, self.query_status)
@@ -276,8 +282,39 @@ class AMDPNode:
             # i = 0
             action = action_list[i]
         else:  # we need to select an action a different way
+            if self.demo_mode.plan_network and not self.demo_mode.classifier:
+                action_list = []
+                current_node = self.action_sequences[t_id_map[id]].find_suitable_node(req.state)
+                if current_node is None:
+                    current_node = 'start'
+                action_list = self.action_sequences[t_id_map[id]].get_successor_actions(current_node, req.state)
 
-            if self.demo_mode.classifier:
+                # select action stochastically if we're in the network, select randomly otherwise
+                if len(action_list) == 0:
+                    # random
+                    action_list = []
+                    for a in self.A[id]:
+                        action = deepcopy(a)
+                        if action.object == 'apple':
+                            if obj not in items:
+                                action.object = items[randint(0, len(items) - 1)]
+                            else:
+                                action.object = obj
+                        action_list.append(a)
+                    action = action_list[randint(0, len(action_list) - 1)]
+                else:
+                    selection = random()
+                    count = 0
+                    selected_action = action_list[0]
+                    for i in range(len(action_list)):
+                        count += action_list[i][1]
+                        if count >= selection:
+                            selected_action = action_list[i]
+                            break
+                    action.action_type = selected_action[0].action_type
+                    action.object = selected_action[0].action_object
+
+            elif self.demo_mode.classifier:
                 features = s.to_vector()
                 probs = self.classifiers[t_id_map[id]].predict_proba(np.asarray(features).reshape(1, -1)).flatten().tolist()
                 selection = random()
