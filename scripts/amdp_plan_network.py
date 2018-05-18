@@ -23,7 +23,7 @@ from task_sim.amdp_plan_action import AMDPPlanAction
 
 class AMDPPlanNetwork:
 
-    def __init__(self, construct=False):
+    def __init__(self, construct=False, task='task4', amdp_id=2):
         # data structures to store parsed information (used in graph construction)
         self.action_list = []
         self.edges = []
@@ -38,8 +38,7 @@ class AMDPPlanNetwork:
         self.context_by_action_object = []  # probability table for how often each object acts as context under a certain action for another object
         self.object_frequency_count = []  # frequency table for
 
-        task = rospy.get_param('~task', 'task4')
-        self.amdp_id = rospy.get_param('~amdp_id', 2)
+        self.amdp_id = amdp_id
 
         # network
         self.plan_network = None
@@ -147,7 +146,7 @@ class AMDPPlanNetwork:
             if node == 'start':
                 self.node_labels[node] = 'start'
             else:
-                label = str(node.action.action_type) + ':' + str(node.action.object)
+                label = str(node.action_type) + ':' + str(node.action_object)
                 if len(node.effects) == 0:
                     label += '-f'
                 self.node_labels[node] = label
@@ -168,7 +167,7 @@ class AMDPPlanNetwork:
         path = rospkg.RosPack().get_path('task_sim') + '/data/' + task + '/models/'
         self.plan_network = nx.read_gpickle(path + 'plan_network' + suffix + '.pkl')
         self.node_labels = pickle.load(open(path + 'node_labels' + suffix + '.pkl'))
-        print 'Plan network loaded.'
+        print 'Plan network (' + str(task) + ', amdp_id ' + str(suffix) + ') loaded.'
 
     def has_node(self, node):
         return self.plan_network.has_node(node)
@@ -237,4 +236,4 @@ class AMDPPlanNetwork:
 
 if __name__ == '__main__':
     rospy.init_node('amdp_plan_network')
-    plan_network = AMDPPlanNetwork(construct=True)
+    plan_network = AMDPPlanNetwork(construct=True, amdp_id=8, task='task7')

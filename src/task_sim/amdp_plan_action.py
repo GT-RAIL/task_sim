@@ -21,22 +21,22 @@ class AMDPPlanAction:
     precondition_domain[8] = ['apple_in_box', 'gripper_holding_lid', 'gripper_holding_apple', 'lid_closing_box']
 
     def __init__(self, s0, a, s1=None, amdp_id=2):
-        self.action = copy.deepcopy(a)
+        self.action_type = a.action_type
+        self.action_object = a.object
         self.amdp_id = amdp_id
 
         # convert action into something that fits into the new action list
         if a.action_type == Action.PLACE:
-            self.action.object = DataUtils.get_task_frame(s0, a.position)
-            self.action.position = Point()
+            self.action_object = DataUtils.get_task_frame(s0, a.position)
         elif a.action_type == Action.MOVE_ARM:
-            self.action.object = DataUtils.get_task_frame(s0, a.position)
-            if (amdp_id <= 2 and self.action.object != 'stack' and self.action.object != 'drawer') or \
-                                (amdp_id >= 6 and self.action.object != 'box' and self.action.object != 'lid'):
+            self.action_object = DataUtils.get_task_frame(s0, a.position)
+            if (amdp_id <= 2 and self.action_object != 'stack' and self.action_object != 'drawer') or \
+                                (amdp_id >= 6 and self.action_object != 'box' and self.action_object != 'lid'):
                 for o in s0.objects:
                     if o.name != 'apple':
                         continue
                     if a.position == o.position:
-                        self.action.object = 'apple'
+                        self.action_object = 'apple'
                         break
                 if a.object != 'apple':
                     x = s0.gripper_position.x
@@ -44,27 +44,25 @@ class AMDPPlanAction:
                     px = a.position.x
                     py = a.position.y
                     if px == x and py > y:
-                        self.action.object = 'b'
+                        self.action_object = 'b'
                     elif px < x and py > y:
-                        self.action.object = 'bl'
+                        self.action_object = 'bl'
                     elif px < x and py == y:
-                        self.action.object = 'l'
+                        self.action_object = 'l'
                     elif px < x and py < y:
-                        self.action.object = 'fl'
+                        self.action_object = 'fl'
                     elif px == x and py < y:
-                        self.action.object = 'f'
+                        self.action_object = 'f'
                     elif px > x and py < y:
-                        self.action.object = 'fr'
+                        self.action_object = 'fr'
                     elif px > x and py == y:
-                        self.action.object = 'r'
+                        self.action_object = 'r'
                     else:
-                        self.action.object = 'br'
-            self.action.position = Point()
+                        self.action_object = 'br'
         elif a.action_type == Action.GRASP:
-            self.action.position = Point()
+            pass
         else:
-            self.action.position = Point()
-            self.action.object = ''
+            self.action_object = ''
 
         # compute amdp state representation
         s0_prime = AMDPState(amdp_id=self.amdp_id, state=OOState(state=s0))
@@ -122,8 +120,8 @@ class AMDPPlanAction:
         return True
 
     def __str__(self):
-        return 'amdp_id:' + str(self.amdp_id) + 'action:' + str(self.action.action_type) + ':' \
-               + str(self.action.object) + '\npreconditions:' + str(self.preconditions) \
+        return 'amdp_id:' + str(self.amdp_id) + 'action:' + str(self.action_type) + ':' \
+               + str(self.action_object) + '\npreconditions:' + str(self.preconditions) \
                + '\neffects:' + str(self.effects)
 
     def __repr__(self):
@@ -131,7 +129,7 @@ class AMDPPlanAction:
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):
-            return self.action.action_type == other.action.action_type and self.action.object == other.action.object \
+            return self.action_type == other.action_type and self.action_object == other.action_object \
                    and self.preconditions == other.preconditions and self.effects == other.effects \
                    and self.amdp_id == other.amdp_id
         return False
@@ -140,5 +138,5 @@ class AMDPPlanAction:
         return not self == other
 
     def __hash__(self):
-        return hash((self.amdp_id, self.action.action_type, self.action.object, tuple(self.preconditions.items()),
+        return hash((self.amdp_id, self.action_type, self.action_object, tuple(self.preconditions.items()),
                      tuple(self.effects.items())))

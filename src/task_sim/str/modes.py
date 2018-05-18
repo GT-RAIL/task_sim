@@ -19,6 +19,7 @@ from task_sim import data_utils as DataUtils
 from task_sim.oomdp.oo_state import OOState
 from task_sim.str.amdp_state import AMDPState
 from task_sim.str.stochastic_state_action import StochasticAction
+from amdp_plan_network import AMDPPlanNetwork
 
 class DemonstrationMode(object):
     """Enum definitions of the demo modes"""
@@ -175,6 +176,13 @@ class DemonstrationMode(object):
             )
             print("Loading classifier at", classifier_path)
             demo_config['action_bias'] = joblib.load(classifier_path)
+
+        # Check if there's a plan network that we need to return
+        if self.plan_network:
+            container_env = task_config['container_env']
+            amdp_id = task_config['amdp_id']
+            demo_config['action_sequences'] = AMDPPlanNetwork(task=container_env, amdp_id=amdp_id)
+            demo_config['action_sequences'].read_graph(task=container_env, suffix='_'+str(amdp_id))
 
         # All configs are loaded. Return them
         return demo_config
