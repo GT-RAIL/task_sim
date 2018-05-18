@@ -23,7 +23,7 @@ from task_sim.amdp_plan_action import AMDPPlanAction
 
 class AMDPPlanNetwork:
 
-    def __init__(self, construct=False, amdp_id=2):
+    def __init__(self, construct=False):
         # data structures to store parsed information (used in graph construction)
         self.action_list = []
         self.edges = []
@@ -38,14 +38,15 @@ class AMDPPlanNetwork:
         self.context_by_action_object = []  # probability table for how often each object acts as context under a certain action for another object
         self.object_frequency_count = []  # frequency table for
 
+        task = rospy.get_param('~task', 'task4')
+        self.amdp_id = rospy.get_param('~amdp_id', 2)
+
         # network
         self.plan_network = None
         self.node_labels = {}
 
-        self.amdp_id = amdp_id
-
         if construct:
-            self.construct_network()
+            self.construct_network(task=task, output_suffix="_"+str(self.amdp_id))
             self.test_output()
 
     def construct_network(self, task='task1', affordance_threshold=0.5, output_suffix=None):
@@ -108,25 +109,25 @@ class AMDPPlanNetwork:
                         self.edge_weights[edge] += 1
 
                     # update counts for interaction probabilities
-                    obj = act.object
-                    target = act.target
-                    act_type = act.action
-                    if obj is not None and object != '':
-                        if obj not in objects_used:
-                            objects_used.append(obj)
-                        pair = (act_type, target)
-                        if obj not in action_context_pairs:
-                            action_context_pairs[obj] = [pair]
-                        elif pair not in action_context_pairs[obj]:
-                            action_context_pairs[obj].append(pair)
-                    if target is not None and target != '':
-                        if target not in objects_used:
-                            objects_used.append(target)
-                        pair = (act_type, obj)
-                        if target not in action_object_pairs:
-                            action_object_pairs[target] = [pair]
-                        elif pair not in action_object_pairs[target]:
-                            action_object_pairs[target].append(pair)
+                    # obj = act.object
+                    # target = act.target
+                    # act_type = act.action
+                    # if obj is not None and object != '':
+                    #     if obj not in objects_used:
+                    #         objects_used.append(obj)
+                    #     pair = (act_type, target)
+                    #     if obj not in action_context_pairs:
+                    #         action_context_pairs[obj] = [pair]
+                    #     elif pair not in action_context_pairs[obj]:
+                    #         action_context_pairs[obj].append(pair)
+                    # if target is not None and target != '':
+                    #     if target not in objects_used:
+                    #         objects_used.append(target)
+                    #     pair = (act_type, obj)
+                    #     if target not in action_object_pairs:
+                    #         action_object_pairs[target] = [pair]
+                    #     elif pair not in action_object_pairs[target]:
+                    #         action_object_pairs[target].append(pair)
 
                     prev_act = act
 
@@ -146,7 +147,7 @@ class AMDPPlanNetwork:
             if node == 'start':
                 self.node_labels[node] = 'start'
             else:
-                label = str(node.action) + '-' + str(node.object) + '-' + str(node.target)
+                label = str(node.action.action_type) + ':' + str(node.action.object)
                 if len(node.effects) == 0:
                     label += '-f'
                 self.node_labels[node] = label
@@ -162,17 +163,11 @@ class AMDPPlanNetwork:
         print 'Plan network saved to model directory.'
         pickle.dump(self.node_labels, open(path + 'node_labels' + output_suffix + '.pkl', 'w'))
         print 'Node labels saved.'
-        pickle.dump(self.cluster_to_objects, open(path + 'clusters' + output_suffix + '.pkl', 'w'))
-        print 'Cluster list saved.'
-        pickle.dump(self.object_to_cluster, open(path + 'clusters_reverse' + output_suffix + '.pkl', 'w'))
-        print 'Cluster reverse lookup list saved.\n'
 
     def read_graph(self, task, suffix):
         path = rospkg.RosPack().get_path('task_sim') + '/data/' + task + '/models/'
         self.plan_network = nx.read_gpickle(path + 'plan_network' + suffix + '.pkl')
         self.node_labels = pickle.load(open(path + 'node_labels' + suffix + '.pkl'))
-        self.cluster_to_objects = pickle.load(open(path + 'clusters' + suffix + '.pkl'))
-        self.object_to_cluster = pickle.load(open(path + 'clusters_reverse' + suffix + '.pkl'))
         print 'Plan network loaded.'
 
     def has_node(self, node):
@@ -186,7 +181,7 @@ class AMDPPlanNetwork:
             temp_action_list = []
             pre_met_count = 0
 
-            if candidate.check_preconditions(state, self.amdp_id):
+            if candidate.check_preconditions(state):
                 temp_action_list.append([candidate, weight])
                 pre_met_count += 1
 
@@ -214,13 +209,13 @@ class AMDPPlanNetwork:
             node = nodes[i]
             if node == 'start':
                 continue
-            if node.check_preconditions(state, self.amdp_id):
+            if node.check_preconditions(state):
                 # check that any parent's effects match the state
                 valid_nodes = []
                 for parent in self.plan_network.predecessors(node):
                     if parent == 'start':
                         continue
-                    if parent.check_effects(state, self.amdp_id):
+                    if parent.check_effects(state):
                         valid_nodes.append(parent)
                 if len(valid_nodes) > 0:
                     return valid_nodes[randint(0, len(valid_nodes) - 1)]
