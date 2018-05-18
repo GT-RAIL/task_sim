@@ -38,7 +38,7 @@ class AMDPPlanAction:
                     if a.position == o.position:
                         self.action_object = 'apple'
                         break
-                if a.object != 'apple':
+                if self.action_object != 'apple':
                     x = s0.gripper_position.x
                     y = s0.gripper_position.y
                     px = a.position.x
@@ -105,7 +105,7 @@ class AMDPPlanAction:
     def check_preconditions(self, state):
         s = AMDPState(amdp_id=self.amdp_id, state=OOState(state=state))
         ps = self.state_to_preconditions(s)
-        for key, value in self.preconditions:
+        for key, value in self.preconditions.iteritems():
             if not (key in ps and ps[key] == value):
                 return False
         return True
@@ -113,7 +113,7 @@ class AMDPPlanAction:
     def check_effects(self, state):
         s = AMDPState(amdp_id=self.amdp_id, state=OOState(state=state))
         ps = self.state_to_preconditions(s)
-        for key, value in self.effects:
+        for key, value in self.effects.iteritems():
             if not (key in ps and ps[key] == value):
                 return False
 
