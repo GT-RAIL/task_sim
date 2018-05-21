@@ -153,6 +153,66 @@ class AMDPTrainer(object):
         while epoch < epochs:
             current_seed = self.task_envs[(epoch%num_envs)][0]
 
+
+            # # TEMP: Testing code
+            # for amdp_id, value_iterator in self.Us.iteritems():
+            #     # Don't run value iteration for the top-level AMDPs
+            #     if amdp_id in [4,11,12]:
+            #         continue
+            #
+            #     print("Solving:", amdp_id)
+            #     value_iterator.init_utilities()
+            #     #value_iterator.solve()
+            #
+            # self.amdp_node.reinit_U()
+            #
+            # eval_trials = 5
+            # print("Evaluating for", eval_trials, "trials over all training environments...")
+            # success_rate_demo = 0.0
+            # success_rate_train = 0.0
+            # for env in self.task_envs:
+            #     eval_seed = env[0]
+            #     for i in range(eval_trials):
+            #         if self.evaluate(eval_seed):
+            #             if eval_seed < 10:
+            #                 success_rate_demo += 1
+            #             else:
+            #                 success_rate_train += 1
+            #             amdp_node_successes += 1
+            #         amdp_node_executions += 1
+            #
+            # print("Evaluating over all", len(self.test_envs), "heldout test environments...")
+            # success_rate_test = 0.0
+            # for test_seed in self.test_envs:
+            #     if self.evaluate(test_seed):
+            #         success_rate_test += 1
+            #
+            # print("Demo success rate!!!!!!!!! ", success_rate_demo)
+            # print("Train success rate!!!!!!!!! ", success_rate_train)
+            # print("Test success rate!!!!!!!!! ", success_rate_test)
+            #
+            # print("**********************************************************************************")
+            # print(
+            #     "\nTests:", amdp_node_executions,
+            #     "Successes:", amdp_node_successes
+            # )
+            # # TODO: training execution count
+            # ex_count = 0
+            # for key, transition_learner in self.transition_learners.iteritems():
+            #     ex_count += transition_learner.action_executions
+            # rate_demo = success_rate_demo/(10*eval_trials)
+            # rate_train = success_rate_train/((len(self.task_envs) - 10)*eval_trials)
+            # rate_combined_train = (success_rate_demo + success_rate_train)/(len(self.task_envs)*eval_trials)
+            # rate_test = success_rate_test/(len(self.test_envs))
+            # print("Epoch:", epoch,
+            #       "\tSuccess (demo):", rate_demo,
+            #       "\tSuccess (train):", rate_train,
+            #       "\tSuccess (combined):", rate_combined_train,
+            #       "\tSuccess (test):", rate_test,
+            #       "\tAction executions:", ex_count)
+            # # TEMP: END Testing code
+
+
             learn_workers = []
             for key, transition_learner in self.transition_learners.iteritems():
                 # print("Training:", key, end=' ')
