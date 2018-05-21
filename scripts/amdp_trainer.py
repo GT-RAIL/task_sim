@@ -51,7 +51,7 @@ class AMDPTrainer(object):
             mode |= DemonstrationMode.RANDOM
         if rospy.get_param('~demo_mode/shadow', False):
             mode |= DemonstrationMode.SHADOW
-        if rospy.get_param('~demo_mode/classifier', False):
+        if rospy.get_param('~demo_mode/classifier', True):
             mode |= DemonstrationMode.CLASSIFIER
         if rospy.get_param('~demo_mode/plan_network', True):
             mode |= DemonstrationMode.PLAN_NETWORK

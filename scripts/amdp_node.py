@@ -284,7 +284,6 @@ class AMDPNode:
         else:  # we need to select an action a different way
 
             if self.demo_mode.plan_network and not self.demo_mode.classifier:
-                action_list = []
                 current_node = self.action_sequences[t_id_map[id]].find_suitable_node(req.state, ground_items=[obj])
                 if current_node is None:
                     current_node = 'start'
@@ -316,6 +315,59 @@ class AMDPNode:
                             action.object = items[randint(0, len(items) - 1)]
                         else:
                             action.object = obj
+            elif self.demo_mode.plan_network and self.demo_mode.classifier:
+                # 50/50 tradeoff between plan network and classifier
+                use_plan_network = random() < 0.5
+                use_classifier = not use_plan_network
+
+                if use_plan_network:
+                    current_node = self.action_sequences[t_id_map[id]].find_suitable_node(req.state, ground_items=[obj])
+                    if current_node is None:
+                        current_node = 'start'
+                    action_list = self.action_sequences[t_id_map[id]].get_successor_actions(current_node, req.state,
+                                                                                            ground_items=[obj])
+
+                    # select action stochastically if we're in the network, select with classifier otherwise
+                    if len(action_list) == 0:
+                        use_classifier = True
+                    else:
+                        selection = random()
+                        count = 0
+                        selected_action = action_list[0]
+                        for i in range(len(action_list)):
+                            count += action_list[i][1]
+                            if count >= selection:
+                                selected_action = action_list[i]
+                                break
+                        action.action_type = selected_action[0].action_type
+                        action.object = selected_action[0].action_object
+                        if action.object == 'apple':
+                            if obj not in items:
+                                action.object = items[randint(0, len(items) - 1)]
+                            else:
+                                action.object = obj
+
+                if use_classifier:
+                    features = s.to_vector()
+                    probs = self.classifiers[t_id_map[id]].predict_proba(np.asarray(features).reshape(1, -1)).flatten().tolist()
+                    selection = random()
+                    cprob = 0
+                    action_label = '0:apple'
+                    for i in range(0, len(probs)):
+                        cprob += probs[i]
+                        if cprob >= selection:
+                            action_label = self.classifiers[t_id_map[id]].classes_[i]
+                            break
+                    # Convert back to action
+                    result = action_label.split(':')
+                    action.action_type = int(result[0])
+                    if len(result) > 1:
+                        action.object = result[1]
+                        if action.object == 'apple':
+                            if obj not in items:
+                                action.object = items[randint(0, len(items) - 1)]
+                            else:
+                                action.object = obj
 
             elif self.demo_mode.classifier:
                 features = s.to_vector()

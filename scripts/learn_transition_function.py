@@ -49,7 +49,7 @@ class LearnTransitionFunction:
         # sa_pairs = pickle.load(file(data_file))
 
         # parameters for controlling exploration. # TODO: fetch through the demo mode
-        self.alpha = 0.8  # directly following demonstrations vs. random exploration
+        self.alpha = 0.5  # directly following demonstrations vs. random exploration
         self.epsilon = 0.5  # random exploration vs. general policy guided exploration
 
         self.epoch = 0
@@ -166,7 +166,54 @@ class LearnTransitionFunction:
             # select action
             a = Action()
             if self.demo_mode.classifier:
-                pass  # tradeoff between using general rules, following action sequences, and random exploration
+                if random() < self.alpha:
+                    action_list = []
+                    if self.action_sequences.has_node(self.current_node):
+                        action_list = self.action_sequences.get_successor_actions(self.current_node, state_msg)
+                    else:
+                        self.current_node = self.action_sequences.find_suitable_node(state_msg)
+                        if self.current_node is not None:
+                            action_list = self.action_sequences.get_successor_actions(self.current_node, state_msg)
+
+                    # select action stochastically if we're in the network, select randomly otherwise
+                    if len(action_list) == 0:
+                        a = self.A[randint(0, len(self.A) - 1)]
+                    else:
+                        selection = random()
+                        count = 0
+                        selected_action = action_list[0]
+                        for i in range(len(action_list)):
+                            count += action_list[i][1]
+                            if count >= selection:
+                                selected_action = action_list[i]
+                                break
+                        a.action_type = selected_action[0].action_type
+                        a.object = selected_action[0].action_object
+                else:
+                    if self.demo_mode.classifier:
+                        if self.demo_mode.random and random() <= self.epsilon:
+                            a = self.A[randint(0, len(self.A) - 1)]
+                        else:
+                            features = s.to_vector()
+
+                            # Classify action
+                            probs = self.action_bias.predict_proba(np.asarray(features).reshape(1, -1)).flatten().tolist()
+                            selection = random()
+                            cprob = 0
+                            action_label = '0:apple'
+                            for i in range(0, len(probs)):
+                                cprob += probs[i]
+                                if cprob >= selection:
+                                    action_label = self.action_bias.classes_[i]
+                                    break
+                            # Convert back to action
+                            a = Action()
+                            result = action_label.split(':')
+                            a.action_type = int(result[0])
+                            if len(result) > 1:
+                                a.object = result[1]
+                    else:
+                        a = self.A[randint(0, len(self.A) - 1)]
             else:
                 # select from the plan network, with a chance of random exploration, and use random exploration when
                 # off of the network
