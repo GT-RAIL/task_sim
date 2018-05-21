@@ -172,7 +172,7 @@ class AMDPPlanNetwork:
     def has_node(self, node):
         return self.plan_network.has_node(node)
 
-    def get_successor_actions(self, node, state):
+    def get_successor_actions(self, node, state, ground_items=None):
         action_list = []  # List of successor actions, each entry in form [node, probability]
         total_weight = 0
         for candidate in self.plan_network.successors(node):
@@ -180,7 +180,7 @@ class AMDPPlanNetwork:
             temp_action_list = []
             pre_met_count = 0
 
-            if candidate.check_preconditions(state):
+            if candidate.check_preconditions(state, ground_items):
                 temp_action_list.append([candidate, weight])
                 pre_met_count += 1
 
@@ -195,7 +195,7 @@ class AMDPPlanNetwork:
                 act[1] /= float(total_weight)
         return action_list
 
-    def find_suitable_node(self, state):
+    def find_suitable_node(self, state, ground_items=None):
         nodes = list(self.plan_network.nodes)
         # shuffle(nodes)
         indices = range(len(nodes))
@@ -208,13 +208,13 @@ class AMDPPlanNetwork:
             node = nodes[i]
             if node == 'start':
                 continue
-            if node.check_preconditions(state):
+            if node.check_preconditions(state, ground_items):
                 # check that any parent's effects match the state
                 valid_nodes = []
                 for parent in self.plan_network.predecessors(node):
                     if parent == 'start':
-                        continue
-                    if parent.check_effects(state):
+                        valid_nodes.append(parent)  # assumes 'start' is always valid, useful for AMDPs
+                    elif parent.check_effects(state, ground_items):
                         valid_nodes.append(parent)
                 if len(valid_nodes) > 0:
                     return valid_nodes[randint(0, len(valid_nodes) - 1)]

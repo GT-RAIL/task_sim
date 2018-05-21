@@ -102,16 +102,16 @@ class AMDPPlanAction:
                     preconditions[p] = s.relations[p]
         return preconditions
 
-    def check_preconditions(self, state):
-        s = AMDPState(amdp_id=self.amdp_id, state=OOState(state=state))
+    def check_preconditions(self, state, ground_items=None):
+        s = AMDPState(amdp_id=self.amdp_id, state=OOState(state=state), ground_items=ground_items)
         ps = self.state_to_preconditions(s)
         for key, value in self.preconditions.iteritems():
             if not (key in ps and ps[key] == value):
                 return False
         return True
 
-    def check_effects(self, state):
-        s = AMDPState(amdp_id=self.amdp_id, state=OOState(state=state))
+    def check_effects(self, state, ground_items=None):
+        s = AMDPState(amdp_id=self.amdp_id, state=OOState(state=state), ground_items=ground_items)
         ps = self.state_to_preconditions(s)
         for key, value in self.effects.iteritems():
             if not (key in ps and ps[key] == value):

@@ -153,7 +153,6 @@ class AMDPTrainer(object):
         while epoch < epochs:
             current_seed = self.task_envs[(epoch%num_envs)][0]
 
-
             # # TEMP: Testing code
             # for amdp_id, value_iterator in self.Us.iteritems():
             #     # Don't run value iteration for the top-level AMDPs
@@ -196,7 +195,7 @@ class AMDPTrainer(object):
             #     "\nTests:", amdp_node_executions,
             #     "Successes:", amdp_node_successes
             # )
-            # # TODO: training execution count
+            #
             # ex_count = 0
             # for key, transition_learner in self.transition_learners.iteritems():
             #     ex_count += transition_learner.action_executions
@@ -278,7 +277,7 @@ class AMDPTrainer(object):
                     "\nTests:", amdp_node_executions,
                     "Successes:", amdp_node_successes
                 )
-                # TODO: training execution count
+
                 ex_count = 0
                 for key, transition_learner in self.transition_learners.iteritems():
                     ex_count += transition_learner.action_executions

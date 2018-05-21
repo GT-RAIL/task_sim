@@ -274,7 +274,7 @@ class AMDPNode:
                     else:
                         action.object = obj
                 action_list.append(deepcopy(action))
-            if debug > 0:
+            if debug > 1:
                 print 'Action: ', a.action_type, ':', a.object, ', Utility: ', utilities[a]
 
         if max_utility != 0 and max_utility > 0:  # there is a successor state is in the utility table
@@ -282,26 +282,24 @@ class AMDPNode:
             # i = 0
             action = action_list[i]
         else:  # we need to select an action a different way
+
             if self.demo_mode.plan_network and not self.demo_mode.classifier:
                 action_list = []
-                current_node = self.action_sequences[t_id_map[id]].find_suitable_node(req.state)
+                current_node = self.action_sequences[t_id_map[id]].find_suitable_node(req.state, ground_items=[obj])
                 if current_node is None:
                     current_node = 'start'
-                action_list = self.action_sequences[t_id_map[id]].get_successor_actions(current_node, req.state)
+                action_list = self.action_sequences[t_id_map[id]].get_successor_actions(current_node, req.state,
+                                                                                        ground_items=[obj])
 
                 # select action stochastically if we're in the network, select randomly otherwise
                 if len(action_list) == 0:
                     # random
-                    action_list = []
-                    for a in self.A[id]:
-                        action = deepcopy(a)
-                        if action.object == 'apple':
-                            if obj not in items:
-                                action.object = items[randint(0, len(items) - 1)]
-                            else:
-                                action.object = obj
-                        action_list.append(a)
-                    action = action_list[randint(0, len(action_list) - 1)]
+                    action = self.A[id][randint(0, len(self.A[id]) - 1)]
+                    if action.object == 'apple':
+                        if obj not in items:
+                            action.object = items[randint(0, len(items) - 1)]
+                        else:
+                            action.object = obj
                 else:
                     selection = random()
                     count = 0
@@ -313,6 +311,11 @@ class AMDPNode:
                             break
                     action.action_type = selected_action[0].action_type
                     action.object = selected_action[0].action_object
+                    if action.object == 'apple':
+                        if obj not in items:
+                            action.object = items[randint(0, len(items) - 1)]
+                        else:
+                            action.object = obj
 
             elif self.demo_mode.classifier:
                 features = s.to_vector()
@@ -341,16 +344,12 @@ class AMDPNode:
             # random action
             # if self.demo_mode.random:
             else:
-                action_list = []
-                for a in self.A[id]:
-                    action = deepcopy(a)
-                    if action.object == 'apple':
-                        if obj not in items:
-                            action.object = items[randint(0, len(items) - 1)]
-                        else:
-                            action.object = obj
-                    action_list.append(a)
-                action = action_list[randint(0, len(action_list) - 1)]
+                action = self.A[id][randint(0, len(self.A[id]) - 1)]
+                if action.object == 'apple':
+                    if obj not in items:
+                        action.object = items[randint(0, len(items) - 1)]
+                    else:
+                        action.object = obj
 
         if debug > 0:
             print '\t\tLow level action selection: ' + str(action.action_type) + ', ' + str(action.object)
