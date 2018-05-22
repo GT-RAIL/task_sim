@@ -125,6 +125,7 @@ class AMDPNode:
 
         # load decision trees, shadow policies
         self.classifiers = {}
+        self.classifiers_alternate = {}
         self.pis = {}
         self.action_sequences = {}
 
@@ -133,6 +134,7 @@ class AMDPNode:
                 self.pis[i] = self.demo_configs[i].get('demo_policy')
             if self.demo_mode.classifier:
                 self.classifiers[i] = self.demo_configs[i].get('action_bias')
+                self.classifiers_alternate[i] = self.demo_configs[i].get('action_bias_alternate')
             if self.demo_mode.plan_network:
                 self.action_sequences[i] = self.demo_configs[i].get('action_sequences')
 
@@ -371,15 +373,28 @@ class AMDPNode:
 
             elif self.demo_mode.classifier:
                 features = s.to_vector()
-                probs = self.classifiers[t_id_map[id]].predict_proba(np.asarray(features).reshape(1, -1)).flatten().tolist()
-                selection = random()
-                cprob = 0
-                action_label = '0:apple'
-                for i in range(0, len(probs)):
-                    cprob += probs[i]
-                    if cprob >= selection:
-                        action_label = self.classifiers[t_id_map[id]].classes_[i]
-                        break
+
+                if random() < 0.5:
+                    probs = self.classifiers_alternate[t_id_map[id]].predict_proba(np.asarray(features).reshape(1, -1)).flatten().tolist()
+                    selection = random()
+                    cprob = 0
+                    action_label = '0:apple'
+                    for i in range(0, len(probs)):
+                        cprob += probs[i]
+                        if cprob >= selection:
+                            action_label = self.classifiers_alternate[t_id_map[id]].classes_[i]
+                            break
+                else:
+                    probs = self.classifiers[t_id_map[id]].predict_proba(np.asarray(features).reshape(1, -1)).flatten().tolist()
+                    selection = random()
+                    cprob = 0
+                    action_label = '0:apple'
+                    for i in range(0, len(probs)):
+                        cprob += probs[i]
+                        if cprob >= selection:
+                            action_label = self.classifiers[t_id_map[id]].classes_[i]
+                            break
+
                 # Convert back to action
                 result = action_label.split(':')
                 action.action_type = int(result[0])

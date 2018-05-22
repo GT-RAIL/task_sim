@@ -116,6 +116,7 @@ class LearnTransitionFunction:
         # load weak classifier to bias random exploration (if demo_mode calls for it)
         if self.demo_mode.classifier:
             self.action_bias = self.demo_config.get('action_bias')
+            self.action_bias_alternate = self.demo_config.get('action_bias_alternate')
 
         # load plan network to bias random exploration (if demo_mode calls for it)
         if self.demo_mode.plan_network:
@@ -254,27 +255,50 @@ class LearnTransitionFunction:
                     a = self.A[randint(0, len(self.A) - 1)]
             else:
                 if self.demo_mode.classifier:
-                    if self.demo_mode.random and random() <= self.epsilon:
-                        a = self.A[randint(0, len(self.A) - 1)]
-                    else:
-                        features = s.to_vector()
+                    if random() < self.alpha:
+                        if self.demo_mode.random and random() <= self.epsilon:
+                            a = self.A[randint(0, len(self.A) - 1)]
+                        else:
+                            features = s.to_vector()
 
-                        # Classify action
-                        probs = self.action_bias.predict_proba(np.asarray(features).reshape(1, -1)).flatten().tolist()
-                        selection = random()
-                        cprob = 0
-                        action_label = '0:apple'
-                        for i in range(0, len(probs)):
-                            cprob += probs[i]
-                            if cprob >= selection:
-                                action_label = self.action_bias.classes_[i]
-                                break
-                        # Convert back to action
-                        a = Action()
-                        result = action_label.split(':')
-                        a.action_type = int(result[0])
-                        if len(result) > 1:
-                            a.object = result[1]
+                            # Classify action
+                            probs = self.action_bias_alternate.predict_proba(np.asarray(features).reshape(1, -1)).flatten().tolist()
+                            selection = random()
+                            cprob = 0
+                            action_label = '0:apple'
+                            for i in range(0, len(probs)):
+                                cprob += probs[i]
+                                if cprob >= selection:
+                                    action_label = self.action_bias_alternate.classes_[i]
+                                    break
+                            # Convert back to action
+                            a = Action()
+                            result = action_label.split(':')
+                            a.action_type = int(result[0])
+                            if len(result) > 1:
+                                a.object = result[1]
+                    else:
+                        if self.demo_mode.random and random() <= self.epsilon:
+                            a = self.A[randint(0, len(self.A) - 1)]
+                        else:
+                            features = s.to_vector()
+
+                            # Classify action
+                            probs = self.action_bias.predict_proba(np.asarray(features).reshape(1, -1)).flatten().tolist()
+                            selection = random()
+                            cprob = 0
+                            action_label = '0:apple'
+                            for i in range(0, len(probs)):
+                                cprob += probs[i]
+                                if cprob >= selection:
+                                    action_label = self.action_bias.classes_[i]
+                                    break
+                            # Convert back to action
+                            a = Action()
+                            result = action_label.split(':')
+                            a.action_type = int(result[0])
+                            if len(result) > 1:
+                                a.object = result[1]
                 else:
                     a = self.A[randint(0, len(self.A) - 1)]
 
