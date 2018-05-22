@@ -6,14 +6,14 @@
     <!-- Table sim environments -->
     <node name="eval" pkg="task_sim" type="table_sim.py">
         <param name="terminal_input" value="false" />
-        <param name="quiet_mode" value="false" />
+        <param name="quiet_mode" value="true" />
         <param name="seed" value="0" />
         <param name="complexity" value="1" />
     </node>
 
     <node name="drawer1" pkg="task_sim" type="table_sim.py">
         <param name="terminal_input" value="false" />
-        <param name="quiet_mode" value="false" />
+        <param name="quiet_mode" value="true" />
         <param name="env_type" value="0" />
         <param name="seed" value="0" />
         <param name="complexity" value="0" />
@@ -21,7 +21,7 @@
 
     <node name="drawer2" pkg="task_sim" type="table_sim.py">
         <param name="terminal_input" value="false" />
-        <param name="quiet_mode" value="false" />
+        <param name="quiet_mode" value="true" />
         <param name="env_type" value="0" />
         <param name="seed" value="0" />
         <param name="complexity" value="0" />
@@ -29,7 +29,7 @@
 
     <node name="box1" pkg="task_sim" type="table_sim.py">
         <param name="terminal_input" value="false" />
-        <param name="quiet_mode" value="false" />
+        <param name="quiet_mode" value="true" />
         <param name="env_type" value="1" />
         <param name="seed" value="0" />
         <param name="complexity" value="0" />
@@ -37,7 +37,7 @@
 
     <node name="box2" pkg="task_sim" type="table_sim.py">
         <param name="terminal_input" value="false" />
-        <param name="quiet_mode" value="false" />
+        <param name="quiet_mode" value="true" />
         <param name="env_type" value="1" />
         <param name="seed" value="0" />
         <param name="complexity" value="0" />
