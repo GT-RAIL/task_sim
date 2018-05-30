@@ -197,7 +197,7 @@ def prepare_classifier(classifier_type):
     elif classifier_type == 'knn':
         return KNeighborsClassifier(weights='distance')
     elif classifier_type == 'svm':
-        return SVC(kernel='linear', C=1, probability=True)  # Kernels: linear, poly seem to work well
+        return SVC(kernel='linear', C=1, probability=True)  # Kernels: linear, rbf seem to work well
     elif classifier_type == 'logistic_regression':
         return LogisticRegression()
 

@@ -47,7 +47,7 @@ class AMDPTrainer(object):
         # First set the demonstration mode. TODO: This should be in an
         # experiment config object
         mode = 0
-        if rospy.get_param('~demo_mode/random', False):
+        if rospy.get_param('~demo_mode/random', True):
             mode |= DemonstrationMode.RANDOM
         if rospy.get_param('~demo_mode/shadow', False):
             mode |= DemonstrationMode.SHADOW
