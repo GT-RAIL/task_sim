@@ -33,8 +33,10 @@ class AMDPNode:
         simulator_name='table_sim',
         transition_functions=None,
         value_tables=None,
-        demo_mode=None # DemonstrationMode object. If None, RANDOM+CLASSIFIER+SHADOW
+        demo_mode=None, # DemonstrationMode object. If None, RANDOM+CLASSIFIER+SHADOW
+        baseline_mode=False
     ):
+        self.baseline_mode = baseline_mode  # flag for running without utilities at leaf action selection
 
         a_file_drawer = rospy.get_param('~actions_drawer', rospkg.RosPack().get_path('task_sim') + '/src/task_sim/str/A_drawer.pkl')
         a_file_box = rospy.get_param('~actions_box', rospkg.RosPack().get_path('task_sim') + '/src/task_sim/str/A_box.pkl')
@@ -148,7 +150,7 @@ class AMDPNode:
         )
 
     def select_action(self, req, debug=0):
-        action = None
+        action = Action()
 
         action_list = []
 
@@ -237,61 +239,34 @@ class AMDPNode:
         action_list = []
         s = AMDPState(amdp_id=id, state=oo_state, ground_items=[obj])
 
-        utilities = {}
-        for a in self.A[id]:
-            successors = self.T[t_id_map[id]].transition_function(s, a)
-            u = 0
-            for i in range(len(successors)):
-                p = successors[i][0]
-                s_prime = successors[i][1]
-                if s_prime in self.U[id]:
-                    u += p*self.U[id][s_prime]
-                elif is_terminal(s_prime, amdp_id=id):
-                    u += p*reward(s_prime, amdp_id=id)
-            utilities[a] = u
-
-        # print '\n---'
-        # for key in utilities:
-        #     print str(key)
-        #     print 'utility: ' + str(utilities[key])
-
-        # pick top action deterministically
-        max_utility = -999999
-        for a in utilities.keys():
-            if utilities[a] > max_utility:
-                max_utility = utilities[a]
-                action_list = []
-                action = deepcopy(a)
-                if action.object == 'apple':
-                    if obj not in items:
-                        action.object = items[randint(0, len(items) - 1)]
-                    else:
-                        action.object = obj
-                action_list.append(deepcopy(action))
-            elif utilities[a] == max_utility:
-                action = deepcopy(a)
-                if action.object == 'apple':
-                    if obj not in items:
-                        action.object = items[randint(0, len(items) - 1)]
-                    else:
-                        action.object = obj
-                action_list.append(deepcopy(action))
-            if debug > 1:
-                print 'Action: ', a.action_type, ':', a.object, ', Utility: ', utilities[a]
-
-        if max_utility != 0 and max_utility > 0:  # there is a successor state is in the utility table
-            i = randint(0, len(action_list) - 1)
-            # i = 0
-            action = action_list[i]
-        else:  # we need to select an action a different way
-
-            if self.demo_mode.plan_network and not self.demo_mode.classifier:
+        if self.baseline_mode:
+            if self.demo_mode.classifier:
+                features = s.to_vector()
+                probs = self.classifiers_alternate[t_id_map[id]].predict_proba(np.asarray(features).reshape(1, -1)).flatten().tolist()
+                selection = random()
+                cprob = 0
+                action_label = '0:apple'
+                for i in range(0, len(probs)):
+                    cprob += probs[i]
+                    if cprob >= selection:
+                        action_label = self.classifiers_alternate[t_id_map[id]].classes_[i]
+                        break
+                # Convert back to action
+                result = action_label.split(':')
+                action.action_type = int(result[0])
+                if len(result) > 1:
+                    action.object = result[1]
+                    if action.object == 'apple':
+                        if obj not in items:
+                            action.object = items[randint(0, len(items) - 1)]
+                        else:
+                            action.object = obj
+            elif self.demo_mode.plan_network:
                 current_node = self.action_sequences[t_id_map[id]].find_suitable_node(req.state, ground_items=[obj])
                 if current_node is None:
                     current_node = 'start'
                 action_list = self.action_sequences[t_id_map[id]].get_successor_actions(current_node, req.state,
                                                                                         ground_items=[obj])
-
                 # select action stochastically if we're in the network, select randomly otherwise
                 if len(action_list) == 0:
                     # random
@@ -317,21 +292,79 @@ class AMDPNode:
                             action.object = items[randint(0, len(items) - 1)]
                         else:
                             action.object = obj
-            elif self.demo_mode.plan_network and self.demo_mode.classifier:
-                # 50/50 tradeoff between plan network and classifier
-                use_plan_network = random() < 0.5
-                use_classifier = not use_plan_network
+            else:
+                action = self.A[id][randint(0, len(self.A[id]) - 1)]
+                if action.object == 'apple':
+                    if obj not in items:
+                        action.object = items[randint(0, len(items) - 1)]
+                    else:
+                        action.object = obj
 
-                if use_plan_network:
+        else:
+            utilities = {}
+            for a in self.A[id]:
+                successors = self.T[t_id_map[id]].transition_function(s, a)
+                u = 0
+                for i in range(len(successors)):
+                    p = successors[i][0]
+                    s_prime = successors[i][1]
+                    if s_prime in self.U[id]:
+                        u += p*self.U[id][s_prime]
+                    elif is_terminal(s_prime, amdp_id=id):
+                        u += p*reward(s_prime, amdp_id=id)
+                utilities[a] = u
+
+            # print '\n---'
+            # for key in utilities:
+            #     print str(key)
+            #     print 'utility: ' + str(utilities[key])
+
+            # pick top action deterministically
+            max_utility = -999999
+            for a in utilities.keys():
+                if utilities[a] > max_utility:
+                    max_utility = utilities[a]
+                    action_list = []
+                    action = deepcopy(a)
+                    if action.object == 'apple':
+                        if obj not in items:
+                            action.object = items[randint(0, len(items) - 1)]
+                        else:
+                            action.object = obj
+                    action_list.append(deepcopy(action))
+                elif utilities[a] == max_utility:
+                    action = deepcopy(a)
+                    if action.object == 'apple':
+                        if obj not in items:
+                            action.object = items[randint(0, len(items) - 1)]
+                        else:
+                            action.object = obj
+                    action_list.append(deepcopy(action))
+                if debug > 1:
+                    print 'Action: ', a.action_type, ':', a.object, ', Utility: ', utilities[a]
+
+            if max_utility != 0 and max_utility > 0:  # there is a successor state is in the utility table
+                i = randint(0, len(action_list) - 1)
+                # i = 0
+                action = action_list[i]
+            else:  # we need to select an action a different way
+
+                if self.demo_mode.plan_network and not self.demo_mode.classifier:
                     current_node = self.action_sequences[t_id_map[id]].find_suitable_node(req.state, ground_items=[obj])
                     if current_node is None:
                         current_node = 'start'
                     action_list = self.action_sequences[t_id_map[id]].get_successor_actions(current_node, req.state,
                                                                                             ground_items=[obj])
 
-                    # select action stochastically if we're in the network, select with classifier otherwise
+                    # select action stochastically if we're in the network, select randomly otherwise
                     if len(action_list) == 0:
-                        use_classifier = True
+                        # random
+                        action = self.A[id][randint(0, len(self.A[id]) - 1)]
+                        if action.object == 'apple':
+                            if obj not in items:
+                                action.object = items[randint(0, len(items) - 1)]
+                            else:
+                                action.object = obj
                     else:
                         selection = random()
                         count = 0
@@ -348,9 +381,64 @@ class AMDPNode:
                                 action.object = items[randint(0, len(items) - 1)]
                             else:
                                 action.object = obj
+                elif self.demo_mode.plan_network and self.demo_mode.classifier:
+                    # 50/50 tradeoff between plan network and classifier
+                    use_plan_network = random() < 0.5
+                    use_classifier = not use_plan_network
 
-                if use_classifier:
+                    if use_plan_network:
+                        current_node = self.action_sequences[t_id_map[id]].find_suitable_node(req.state, ground_items=[obj])
+                        if current_node is None:
+                            current_node = 'start'
+                        action_list = self.action_sequences[t_id_map[id]].get_successor_actions(current_node, req.state,
+                                                                                                ground_items=[obj])
+
+                        # select action stochastically if we're in the network, select with classifier otherwise
+                        if len(action_list) == 0:
+                            use_classifier = True
+                        else:
+                            selection = random()
+                            count = 0
+                            selected_action = action_list[0]
+                            for i in range(len(action_list)):
+                                count += action_list[i][1]
+                                if count >= selection:
+                                    selected_action = action_list[i]
+                                    break
+                            action.action_type = selected_action[0].action_type
+                            action.object = selected_action[0].action_object
+                            if action.object == 'apple':
+                                if obj not in items:
+                                    action.object = items[randint(0, len(items) - 1)]
+                                else:
+                                    action.object = obj
+
+                    if use_classifier:
+                        features = s.to_vector()
+                        probs = self.classifiers_alternate[t_id_map[id]].predict_proba(np.asarray(features).reshape(1, -1)).flatten().tolist()
+                        selection = random()
+                        cprob = 0
+                        action_label = '0:apple'
+                        for i in range(0, len(probs)):
+                            cprob += probs[i]
+                            if cprob >= selection:
+                                action_label = self.classifiers_alternate[t_id_map[id]].classes_[i]
+                                break
+                        # Convert back to action
+                        result = action_label.split(':')
+                        action.action_type = int(result[0])
+                        if len(result) > 1:
+                            action.object = result[1]
+                            if action.object == 'apple':
+                                if obj not in items:
+                                    action.object = items[randint(0, len(items) - 1)]
+                                else:
+                                    action.object = obj
+
+                elif self.demo_mode.classifier:
                     features = s.to_vector()
+
+                    # if random() < 0.5:
                     probs = self.classifiers_alternate[t_id_map[id]].predict_proba(np.asarray(features).reshape(1, -1)).flatten().tolist()
                     selection = random()
                     cprob = 0
@@ -360,6 +448,17 @@ class AMDPNode:
                         if cprob >= selection:
                             action_label = self.classifiers_alternate[t_id_map[id]].classes_[i]
                             break
+                    # else:
+                    #     probs = self.classifiers[t_id_map[id]].predict_proba(np.asarray(features).reshape(1, -1)).flatten().tolist()
+                    #     selection = random()
+                    #     cprob = 0
+                    #     action_label = '0:apple'
+                    #     for i in range(0, len(probs)):
+                    #         cprob += probs[i]
+                    #         if cprob >= selection:
+                    #             action_label = self.classifiers[t_id_map[id]].classes_[i]
+                    #             break
+
                     # Convert back to action
                     result = action_label.split(':')
                     action.action_type = int(result[0])
@@ -370,53 +469,18 @@ class AMDPNode:
                                 action.object = items[randint(0, len(items) - 1)]
                             else:
                                 action.object = obj
+                    if debug > 0:
+                        print '***** Action selected from decision tree. *****'
 
-            elif self.demo_mode.classifier:
-                features = s.to_vector()
-
-                # if random() < 0.5:
-                probs = self.classifiers_alternate[t_id_map[id]].predict_proba(np.asarray(features).reshape(1, -1)).flatten().tolist()
-                selection = random()
-                cprob = 0
-                action_label = '0:apple'
-                for i in range(0, len(probs)):
-                    cprob += probs[i]
-                    if cprob >= selection:
-                        action_label = self.classifiers_alternate[t_id_map[id]].classes_[i]
-                        break
-                # else:
-                #     probs = self.classifiers[t_id_map[id]].predict_proba(np.asarray(features).reshape(1, -1)).flatten().tolist()
-                #     selection = random()
-                #     cprob = 0
-                #     action_label = '0:apple'
-                #     for i in range(0, len(probs)):
-                #         cprob += probs[i]
-                #         if cprob >= selection:
-                #             action_label = self.classifiers[t_id_map[id]].classes_[i]
-                #             break
-
-                # Convert back to action
-                result = action_label.split(':')
-                action.action_type = int(result[0])
-                if len(result) > 1:
-                    action.object = result[1]
+                # random action
+                # if self.demo_mode.random:
+                else:
+                    action = self.A[id][randint(0, len(self.A[id]) - 1)]
                     if action.object == 'apple':
                         if obj not in items:
                             action.object = items[randint(0, len(items) - 1)]
                         else:
                             action.object = obj
-                if debug > 0:
-                    print '***** Action selected from decision tree. *****'
-
-            # random action
-            # if self.demo_mode.random:
-            else:
-                action = self.A[id][randint(0, len(self.A[id]) - 1)]
-                if action.object == 'apple':
-                    if obj not in items:
-                        action.object = items[randint(0, len(items) - 1)]
-                    else:
-                        action.object = obj
 
         if debug > 0:
             print '\t\tLow level action selection: ' + str(action.action_type) + ', ' + str(action.object)

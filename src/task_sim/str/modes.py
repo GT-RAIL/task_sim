@@ -177,7 +177,10 @@ class DemonstrationMode(object):
             print("Loading classifier at", classifier_path)
             demo_config['action_bias'] = joblib.load(classifier_path)
 
-            classifier2_name = 'logistic_regression_action_{}.pkl'.format(amdp_id)
+            # knn: .20 .16 .18 .17
+            # svm: .20 .18 .19 .15
+            #
+            classifier2_name = 'svm_action_{}.pkl'.format(amdp_id)
              #TODO: Perhaps use an experiment folder
             classifier2_path = os.path.join(
                 rospkg.RosPack().get_path('task_sim'),
