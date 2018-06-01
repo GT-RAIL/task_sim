@@ -34,9 +34,12 @@ class AMDPNode:
         transition_functions=None,
         value_tables=None,
         demo_mode=None, # DemonstrationMode object. If None, RANDOM+CLASSIFIER+SHADOW
-        baseline_mode=False
+        baseline_mode=False,
+        q_learning_mode=False,
+        q_tables=None
     ):
         self.baseline_mode = baseline_mode  # flag for running without utilities at leaf action selection
+        self.q_learning_mode = q_learning_mode  # use Q tables for leaf amdp action selection
 
         a_file_drawer = rospy.get_param('~actions_drawer', rospkg.RosPack().get_path('task_sim') + '/src/task_sim/str/A_drawer.pkl')
         a_file_box = rospy.get_param('~actions_box', rospkg.RosPack().get_path('task_sim') + '/src/task_sim/str/A_box.pkl')
@@ -45,6 +48,8 @@ class AMDPNode:
         self.U = {}
         self.U_t = value_tables
         self.T = transition_functions or {}
+        if self.q_learning_mode:
+            self.Q = q_tables or {}
 
         self.A[0] = pickle.load(file(a_file_drawer))
         self.A[1] = self.A[0]
@@ -239,7 +244,14 @@ class AMDPNode:
         action_list = []
         s = AMDPState(amdp_id=id, state=oo_state, ground_items=[obj])
 
-        if self.baseline_mode:
+        if self.q_learning_mode:
+            action = self.Q[id].select_action(s, action_list=self.A[id])
+            if action.object == 'apple':
+                if obj not in items:
+                    action.object = items[randint(0, len(items) - 1)]
+                else:
+                    action.object = obj
+        elif self.baseline_mode:
             if self.demo_mode.classifier:
                 features = s.to_vector()
                 probs = self.classifiers_alternate[t_id_map[id]].predict_proba(np.asarray(features).reshape(1, -1)).flatten().tolist()

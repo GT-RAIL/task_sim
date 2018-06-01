@@ -85,9 +85,9 @@ def reward(s, amdp_id=0):
 
 def is_terminal(s, amdp_id=0):
     if amdp_id == 0:
-        return not s.relations['drawer_closing_stack'] and s.relations['gripper_holding_drawer']
+        return not s.relations['drawer_closing_stack']
     elif amdp_id == 1:
-        return s.relations['drawer_closing_stack'] and s.relations['gripper_holding_drawer']
+        return s.relations['drawer_closing_stack'] and not s.relations['gripper_holding_drawer']
     elif amdp_id == 2:
         return not (s.relations['apple_left_of_drawer'] or s.relations['apple_right_of_drawer']
                  or s.relations['apple_in_front_of_drawer'] or s.relations['apple_behind_drawer']

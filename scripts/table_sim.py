@@ -38,7 +38,8 @@ class TableSim:
 
         self.complexity = rospy.get_param('~complexity', 0)  # complexity of environment for AMDP training
         self.env_type = rospy.get_param('~env_type', 0)  # optional param telling level 0 environments
-                                                         # whether to use only the drawer (0) or box (1)
+                                                         # whether to use only the drawer (0) or box (1) closed, or
+                                                         # only the drawer (2) or box (3) open
 
         self.quiet_mode = rospy.get_param('~quiet_mode', False)
         self.terminal_input = rospy.get_param('~terminal_input', True)
@@ -251,11 +252,20 @@ class TableSim:
 
         if self.complexity == 0:
             # remove unused containers according to self.env_type
-            if self.env_type == 0:
+            if self.env_type == 0 or self.env_type == 2:
                 self.state_.box_position.x = 50
                 self.state_.lid_position.x = 50
+                if self.env_type == 2:
+                    self.state_.drawer_opening = randint(2, self.drawerDepth)
             else:
                 self.state_.drawer_position.x = 50
+                if self.env_type == 3:
+                    lid_set = False
+                    while not lid_set:
+                        self.state_.lid_position.x = randint(1, self.tableWidth - 1)
+                        self.state_.lid_position.y = randint(1, self.tableDepth - 1)
+                        self.state_.lid_position.z = 4
+                        lid_set = self.reachable(self.state_.lid_position)
 
         if self.complexity >= 2:
             obj2 = Object()
