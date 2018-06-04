@@ -14,8 +14,13 @@ from task_sim.str.amdp_reward import reward, is_terminal
 
 class AMDPQsLearned:
 
-    def __init__(self, amdp_id=0, filename=None, reinit=True):
+    def __init__(self, amdp_id=0, filename=None, reinit=True, mode=0):
         self.amdp_id = amdp_id
+
+        # flag to run as either:
+        #   0: standard q-learning mode (exploit from q-values or select actions randomly based on epsilon)
+        #   1: guided q-learning mode (exploit from q-values or perform action selection from an outside source)
+        self.mode = mode
 
         # If there is an HDF5 file to save, then populate this function with the
         # learners' code
@@ -94,14 +99,22 @@ class AMDPQsLearned:
 
             Q_sa[0] += alpha*(self.r + 0.8*Q_sa_prime - Q_sa[0])
 
-        if a_prime is None or random() < self.epsilon:
-            a_prime = action_list[randint(0, len(action_list) - 1)]
-
         self.s = deepcopy(s_prime)
-        self.a = deepcopy(a_prime)
         self.r = deepcopy(r_prime)
 
+        if a_prime is None or random() < self.epsilon:
+            if self.mode == 0:
+                a_prime = action_list[randint(0, len(action_list) - 1)]
+            else:
+                return None
+
+        self.a = deepcopy(a_prime)
+
         return a_prime
+
+    def set_action(self, a):
+        '''Sets last action, required when actions are chosen outside of q-learning'''
+        self.a = deepcopy(a)
 
     def select_action(self, s_prime, action_list=None):
         a_prime = None

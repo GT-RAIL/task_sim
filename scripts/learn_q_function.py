@@ -147,13 +147,16 @@ class LearnQFunction:
         alpha = 0.1  # test a fixed learning rate first
         # alpha = 1.0/(self.epoch + 1)
         a = self.q_function.learn_q(s, alpha, action_list=self.A)
+        if a is None:
+            pass  # TODO: select an action based on demo_mode
+            self.q_function.set_action(a)
 
         goal_reached = is_terminal(s, amdp_id=self.amdp_id)
         if self.timeout > self.max_episode_length or goal_reached:
             self.timeout = 0
             # self.reset_sim()
             self.epoch += 1
-            self.q_function.init_q_agent()
+            self.q_function.init_q_agent(self.epsilon)
             if goal_reached:
                 self.successes += 1
             if self.demo_mode.plan_network:
