@@ -51,7 +51,7 @@ class AMDPTrainer(object):
             mode |= DemonstrationMode.RANDOM
         if rospy.get_param('~demo_mode/shadow', False):
             mode |= DemonstrationMode.SHADOW
-        if rospy.get_param('~demo_mode/classifier', True):
+        if rospy.get_param('~demo_mode/classifier', False):
             mode |= DemonstrationMode.CLASSIFIER
         if rospy.get_param('~demo_mode/plan_network', True):
             mode |= DemonstrationMode.PLAN_NETWORK
@@ -245,6 +245,8 @@ class AMDPTrainer(object):
                 print("Evaluating for", eval_trials, "trials over all training environments...")
                 success_rate_demo = 0.0
                 success_rate_train = 0.0
+                self.actions_from_learned_policy = 0
+                self.total_actions = 0
                 for env in self.task_envs:
                     eval_seed = env[0]
                     for i in range(eval_trials):
@@ -255,11 +257,16 @@ class AMDPTrainer(object):
                                 success_rate_train += 1
                             amdp_node_successes += 1
                         amdp_node_executions += 1
+                rate_action_from_utility = float(self.actions_from_learned_policy)/self.total_actions
+                self.actions_from_learned_policy = 0
+                self.total_actions = 0
+
                 print("Evaluating over all", len(self.test_envs), "heldout test environments...")
                 success_rate_test = 0.0
                 for test_seed in self.test_envs:
                     if self.evaluate(test_seed):
                         success_rate_test += 1
+                rate_action_from_utility_test = float(self.actions_from_learned_policy)/self.total_actions
 
                 print("**********************************************************************************")
                 print(
@@ -274,16 +281,20 @@ class AMDPTrainer(object):
                 rate_train = success_rate_train/((len(self.task_envs) - 10)*eval_trials)
                 rate_combined_train = (success_rate_demo + success_rate_train)/(len(self.task_envs)*eval_trials)
                 rate_test = success_rate_test/(len(self.test_envs))
+
                 print("Epoch:", epoch,
                       "\tSuccess (demo):", rate_demo,
                       "\tSuccess (train):", rate_train,
                       "\tSuccess (combined):", rate_combined_train,
                       "\tSuccess (test):", rate_test,
-                      "\tAction executions:", ex_count)
+                      "\tAction executions:", ex_count,
+                      "\tLearned action selection rate (train combined):", rate_action_from_utility,
+                      "\tLearned action selection rate (test combined):", rate_action_from_utility_test)
                 for key, transition_learner in self.transition_learners.iteritems():
                     print('\t', key, transition_learner.action_executions, 'training action executions')
                 print("\n**********************************************************************************")
-                self.report.append((epoch, rate_demo, rate_train, rate_combined_train, rate_test, ex_count))
+                self.report.append((epoch, rate_demo, rate_train, rate_combined_train, rate_test, ex_count,
+                                    rate_action_from_utility, rate_action_from_utility_test))
                 print("Cumulative results: ")
                 print(self.report)
 
@@ -307,9 +318,14 @@ class AMDPTrainer(object):
                 break
 
             state = simulator_api['query_state']().state
-            action = simulator_api['select_action'](state, Action()).action
+            selected_action = simulator_api['select_action'](state, Action())
+            action = selected_action.action
             next_state = simulator_api['execute'](action)
             status = simulator_api['query_status'](next_state.state).status.status_code
+
+            self.total_actions += 1
+            if selected_action.action_source == 1:
+                self.actions_from_learned_policy += 1
 
             num_steps += 1
             # rospy.sleep(0.5)

@@ -263,9 +263,12 @@ class AMDPNode:
         action_list = []
         s = AMDPState(amdp_id=id, state=oo_state, ground_items=[obj])
 
+        selected_from_utility = 1
+
         if self.q_learning_mode:
             action = self.Q[id].select_action(s, action_list=self.A[id])
             if action is None:
+                selected_from_utility = 0
                 if self.demo_mode.classifier:
                     action = Action()
                     features = s.to_vector()
@@ -291,6 +294,7 @@ class AMDPNode:
                 else:
                     action.object = obj
         elif self.baseline_mode:
+            selected_from_utility = 0
             if self.demo_mode.classifier:
                 features = s.to_vector()
                 probs = self.classifiers_alternate[t_id_map[id]].predict_proba(np.asarray(features).reshape(1, -1)).flatten().tolist()
@@ -399,7 +403,7 @@ class AMDPNode:
                 # i = 0
                 action = action_list[i]
             else:  # we need to select an action a different way
-
+                selected_from_utility = 0
                 if self.demo_mode.plan_network and not self.demo_mode.classifier:
                     current_node = self.action_sequences[t_id_map[id]].find_suitable_node(req.state, ground_items=[obj])
                     if current_node is None:
@@ -573,7 +577,7 @@ class AMDPNode:
         # print 'Selected action: '
         # print str(action)
 
-        return action
+        return action, selected_from_utility
 
     def query_status(self, req):
         # Check termination criteria

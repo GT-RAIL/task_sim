@@ -2,3 +2,4 @@ task_sim/State state
 task_sim/Action prev_action  # action executed to get to the state (needed for plan network interventions)
 ---
 task_sim/Action action
+uint8 action_source
