@@ -50,8 +50,9 @@ class LearnQFunction:
         # sa_pairs = pickle.load(file(data_file))
 
         # parameters for controlling exploration. # TODO: fetch through the demo mode
-        self.alpha = 0.5  # directly following demonstrations vs. random exploration
-        self.epsilon = 0.5  # random exploration vs. general policy guided exploration
+        self.alpha = 0.5  # action- vs state-centric action selection
+        self.beta = 0.5  # following demonstrations vs. random exploration
+        self.epsilon = 0.5  # epsilon greedy q-learning
 
         self.epoch = 0
         self.successes = 0
@@ -148,7 +149,57 @@ class LearnQFunction:
         # alpha = 1.0/(self.epoch + 1)
         a = self.q_function.learn_q(s, alpha, action_list=self.A)
         if a is None:
-            pass  # TODO: select an action based on demo_mode
+            a = Action()
+            # currently only implemented DT+PN+R
+            if self.demo_mode.plan_network and self.demo_mode.classifier and self.demo_mode.random:
+                if random() < self.alpha:
+                    action_list = []
+                    if self.action_sequences.has_node(self.current_node):
+                        action_list = self.action_sequences.get_successor_actions(self.current_node, state_msg)
+                    else:
+                        self.current_node = self.action_sequences.find_suitable_node(state_msg)
+                        if self.current_node is not None:
+                            action_list = self.action_sequences.get_successor_actions(self.current_node, state_msg)
+
+                    # select action stochastically if we're in the network, select randomly otherwise
+                    if len(action_list) == 0:
+                        a = self.A[randint(0, len(self.A) - 1)]
+                    else:
+                        selection = random()
+                        count = 0
+                        selected_action = action_list[0]
+                        for i in range(len(action_list)):
+                            count += action_list[i][1]
+                            if count >= selection:
+                                selected_action = action_list[i]
+                                break
+                        a.action_type = selected_action[0].action_type
+                        a.object = selected_action[0].action_object
+                else:
+                    if self.demo_mode.random and random() <= self.beta:
+                        a = self.A[randint(0, len(self.A) - 1)]
+                    else:
+                        features = s.to_vector()
+
+                        # Classify action
+                        probs = self.action_bias.predict_proba(np.asarray(features).reshape(1, -1)).flatten().tolist()
+                        selection = random()
+                        cprob = 0
+                        action_label = '0:apple'
+                        for i in range(0, len(probs)):
+                            cprob += probs[i]
+                            if cprob >= selection:
+                                action_label = self.action_bias.classes_[i]
+                                break
+                        # Convert back to action
+                        a = Action()
+                        result = action_label.split(':')
+                        a.action_type = int(result[0])
+                        if len(result) > 1:
+                            a.object = result[1]
+            else:
+                a = self.A[randint(0, len(self.A) - 1)]
+
             self.q_function.set_action(a)
 
         goal_reached = is_terminal(s, amdp_id=self.amdp_id)
@@ -157,6 +208,9 @@ class LearnQFunction:
             # self.reset_sim()
             self.epoch += 1
             self.q_function.init_q_agent(self.epsilon)
+            self.epsilon = 0.999*self.epsilon
+            if self.epsilon < 0.1:
+                self.epsilon = 0.1
             if goal_reached:
                 self.successes += 1
             if self.demo_mode.plan_network:

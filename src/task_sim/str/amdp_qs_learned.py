@@ -136,6 +136,9 @@ class AMDPQsLearned:
             elif q == Q_sa_prime:
                 actions.append(act)
 
+        if self.mode == 1 and Q_sa_prime <= 0.0:
+            return None  # select an action from another source
+
         if len(actions) > 1:
             a_prime = actions[randint(0, len(actions) - 1)]
         else:

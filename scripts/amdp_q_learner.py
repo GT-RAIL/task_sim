@@ -52,9 +52,9 @@ class AMDPQLearner(object):
             mode |= DemonstrationMode.RANDOM
         if rospy.get_param('~demo_mode/shadow', False):
             mode |= DemonstrationMode.SHADOW
-        if rospy.get_param('~demo_mode/classifier', False):
+        if rospy.get_param('~demo_mode/classifier', True):
             mode |= DemonstrationMode.CLASSIFIER
-        if rospy.get_param('~demo_mode/plan_network', False):
+        if rospy.get_param('~demo_mode/plan_network', True):
             mode |= DemonstrationMode.PLAN_NETWORK
 
         self.demo_mode = DemonstrationMode(mode)
@@ -85,7 +85,7 @@ class AMDPQLearner(object):
             if amdp_id in (4, 11, 12):
                 self.Ts[amdp_id] = AMDPTransitionsLearned(amdp_id, None)
             else:
-                self.Qs[amdp_id] = AMDPQsLearned(amdp_id, "Q{}.hdf5".format(amdp_id))
+                self.Qs[amdp_id] = AMDPQsLearned(amdp_id, "Q{}.hdf5".format(amdp_id), mode=1)
 
             # # Initialize the value functions (for higher level amdps)
             if amdp_id in (4,11,12,): # Pre-calculated high-level value functions

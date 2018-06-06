@@ -265,6 +265,26 @@ class AMDPNode:
 
         if self.q_learning_mode:
             action = self.Q[id].select_action(s, action_list=self.A[id])
+            if action is None:
+                if self.demo_mode.classifier:
+                    action = Action()
+                    features = s.to_vector()
+                    probs = self.classifiers[t_id_map[id]].predict_proba(np.asarray(features).reshape(1, -1)).flatten().tolist()
+                    selection = random()
+                    cprob = 0
+                    action_label = '0:apple'
+                    for i in range(0, len(probs)):
+                        cprob += probs[i]
+                        if cprob >= selection:
+                            action_label = self.classifiers[t_id_map[id]].classes_[i]
+                            break
+                    # Convert back to action
+                    result = action_label.split(':')
+                    action.action_type = int(result[0])
+                    if len(result) > 1:
+                        action.object = result[1]
+                else:
+                    action = self.A[id][randint(0, len(self.A[id]) - 1)]
             if action.object == 'apple':
                 if obj not in items:
                     action.object = items[randint(0, len(items) - 1)]

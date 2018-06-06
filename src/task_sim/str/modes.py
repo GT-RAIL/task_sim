@@ -165,7 +165,13 @@ class DemonstrationMode(object):
             amdp_id = task_config['amdp_id']
             assert (amdp_id in [0,1,2,6,7,8]), "Unknown AMDP ID: {}".format(amdp_id)
 
-            classifier_name = 'decision_tree_action_{}.pkl'.format(amdp_id)
+            if amdp_id == 1:
+                classifier_id = 0
+            elif amdp_id == 7:
+                classifier_id = 6
+            else:
+                classifier_id = amdp_id
+            classifier_name = 'decision_tree_action_{}.pkl'.format(classifier_id)
              #TODO: Perhaps use an experiment folder
             classifier_path = os.path.join(
                 rospkg.RosPack().get_path('task_sim'),
@@ -180,7 +186,7 @@ class DemonstrationMode(object):
             # knn: .20 .16 .18 .17
             # svm: .20 .18 .19 .15
             #
-            classifier2_name = 'svm_action_{}.pkl'.format(amdp_id)
+            classifier2_name = 'svm_action_{}.pkl'.format(classifier_id)
              #TODO: Perhaps use an experiment folder
             classifier2_path = os.path.join(
                 rospkg.RosPack().get_path('task_sim'),
@@ -196,8 +202,14 @@ class DemonstrationMode(object):
         if self.plan_network:
             container_env = task_config['container_env']
             amdp_id = task_config['amdp_id']
-            demo_config['action_sequences'] = AMDPPlanNetwork(task=container_env, amdp_id=amdp_id)
-            demo_config['action_sequences'].read_graph(task=container_env, suffix='_'+str(amdp_id))
+            if amdp_id == 1:
+                pn_id = 0
+            elif amdp_id == 7:
+                pn_id = 6
+            else:
+                pn_id = amdp_id
+            demo_config['action_sequences'] = AMDPPlanNetwork(task=container_env, amdp_id=pn_id)
+            demo_config['action_sequences'].read_graph(task=container_env, suffix='_'+str(pn_id))
 
         # All configs are loaded. Return them
         return demo_config
