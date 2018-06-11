@@ -51,7 +51,7 @@ class AMDPTrainer(object):
             mode |= DemonstrationMode.RANDOM
         if rospy.get_param('~demo_mode/shadow', False):
             mode |= DemonstrationMode.SHADOW
-        if rospy.get_param('~demo_mode/classifier', False):
+        if rospy.get_param('~demo_mode/classifier', True):
             mode |= DemonstrationMode.CLASSIFIER
         if rospy.get_param('~demo_mode/plan_network', True):
             mode |= DemonstrationMode.PLAN_NETWORK
@@ -59,6 +59,8 @@ class AMDPTrainer(object):
         self.demo_mode = DemonstrationMode(mode)
 
         self.baseline_mode = rospy.get_param('~baseline_mode', False)
+
+        self.exploit_policy = rospy.get_param('~exploit_policy', False)
 
         # Create the different amdp_ids
         self.amdp_ids = (0,1,2,6,7,8,4,11,12,) # definition in amdp_node.py
@@ -131,15 +133,30 @@ class AMDPTrainer(object):
                         self.simulators[amdp_id],
                         self.Ts[amdp_id],
                         self.demo_mode, self.demo_configs[(container, amdp_id,)],
-                        self.max_episode_length
+                        self.max_episode_length,
+                        self.exploit_policy
                     )
 
         # Instantiate the AMDP Node
         self.amdp_node = AMDPNode(self.simulators[None], self.Ts, self.Us, self.demo_mode, self.baseline_mode)
+        if self.exploit_policy:
+            self.amdp_training_nodes = {}
+            self.amdp_training_nodes[0] = AMDPNode(self.simulators[0], self.Ts, self.Us, self.demo_mode,
+                                                   self.baseline_mode, complexity=0, env_type=0)
+            self.amdp_training_nodes[2] = AMDPNode(self.simulators[2], self.Ts, self.Us, self.demo_mode,
+                                                   self.baseline_mode, complexity=0, env_type=0)
+            self.amdp_training_nodes[6] = AMDPNode(self.simulators[6], self.Ts, self.Us, self.demo_mode,
+                                                   self.baseline_mode, complexity=0, env_type=1)
+            self.amdp_training_nodes[8] = AMDPNode(self.simulators[8], self.Ts, self.Us, self.demo_mode,
+                                                   self.baseline_mode, complexity=0, env_type=1)
 
     def _run_transition_learner(self, learner, epoch):
         while learner.epoch == epoch:
             learner.run()
+        if self.exploit_policy:
+            learner.exploit_epsilon *= 0.999
+            if learner.exploit_epsilon < 0.05:
+                learner.exploit_epsilon = 0.05
 
     def train(self, epochs=2502, test_every=10, save_every=100):
         """Trains the transition function, the value function, etc.
@@ -224,12 +241,7 @@ class AMDPTrainer(object):
                     "\tAction executions:", transition_learner.action_executions
                 )
 
-            # rospy.sleep(1)
-
-            # If it is time to test
-            if epoch % test_every == 0 and epoch > 0:
-                # TODO: Need better state management for speedup with
-                # multiprocessing here
+            if self.exploit_policy:
                 for amdp_id, value_iterator in self.Us.iteritems():
                     # Don't run value iteration for the top-level AMDPs
                     if amdp_id in [4,11,12]:
@@ -240,6 +252,25 @@ class AMDPTrainer(object):
                     value_iterator.solve()
 
                 self.amdp_node.reinit_U()
+                for id, amdp_training_node in self.amdp_training_nodes.iteritems():
+                    amdp_training_node.reinit_U()
+            # rospy.sleep(1)
+
+            # If it is time to test
+            if epoch % test_every == 0 and epoch > 0:
+                # TODO: Need better state management for speedup with
+                # multiprocessing here
+                if not self.exploit_policy:
+                    for amdp_id, value_iterator in self.Us.iteritems():
+                        # Don't run value iteration for the top-level AMDPs
+                        if amdp_id in [4,11,12]:
+                            continue
+
+                        print("Solving:", amdp_id)
+                        value_iterator.init_utilities()
+                        value_iterator.solve()
+
+                    self.amdp_node.reinit_U()
 
                 eval_trials = 5
                 print("Evaluating for", eval_trials, "trials over all training environments...")

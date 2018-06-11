@@ -18,7 +18,7 @@ from geometry_msgs.msg import Point
 from std_srvs.srv import Empty
 from task_sim import data_utils as DataUtils
 from task_sim.msg import Action
-from task_sim.srv import QueryState, Execute
+from task_sim.srv import QueryState, Execute, QueryStatus, SelectAction
 
 from task_sim.oomdp.oo_state import OOState
 from task_sim.str.modes import DemonstrationMode
@@ -39,7 +39,8 @@ class LearnTransitionFunction:
         transition_function=None, # If the transitions are init elsewhere
         demo_mode=None, # DemonstrationMode object. If None, RANDOM+CLASSIFIER+SHADOW
         demo_config=None, # Config from demonstrations. If None, use the default mode
-        max_episode_length=100 # Max. length of an episode
+        max_episode_length=100, # Max. length of an episode
+        exploit_policy=False # Exploit learned policy using AMDP node to tradeoff with exploration
     ):
         self.demo_mode = demo_mode or DemonstrationMode(
             DemonstrationMode.RANDOM | DemonstrationMode.CLASSIFIER | DemonstrationMode.SHADOW
@@ -51,6 +52,7 @@ class LearnTransitionFunction:
         # parameters for controlling exploration. # TODO: fetch through the demo mode
         self.alpha = 0.5  # directly following demonstrations vs. random exploration
         self.epsilon = 0.5  # random exploration vs. general policy guided exploration
+        self.exploit_epsilon = 1.0
 
         self.epoch = 0
         self.successes = 0
@@ -137,6 +139,11 @@ class LearnTransitionFunction:
             self.prev_state_msg = None
             self.prev_action = None
 
+        self.exploit_policy = exploit_policy
+        if self.exploit_policy:
+            self.query_status = rospy.ServiceProxy(simulator_node + '/query_status', QueryStatus),
+            self.select_action = rospy.ServiceProxy(simulator_node + '/select_action', SelectAction)
+
     def run(self):
         state_msg = self.query_state().state
         s = AMDPState(amdp_id=self.amdp_id, state=OOState(state=state_msg))
@@ -156,42 +163,111 @@ class LearnTransitionFunction:
                 self.prev_action = None
             return
 
-        # plan network exploration, behavior implemented individually to stop conditionals from getting crazy
-        if self.demo_mode.plan_network:
-            # determine the current node in the plan network
-            if self.prev_state_msg is None or self.prev_action is None:
-                self.current_node = 'start'
-            else:
-                self.current_node = AMDPPlanAction(self.prev_state_msg, self.prev_action, state_msg, self.amdp_id)
+        exploit_check = random()
+        if self.exploit_policy and exploit_check > self.exploit_epsilon:
+            print 'exploit epsilon:', self.exploit_epsilon, '; check:', exploit_check
+            a = self.select_action(state_msg, Action()).action
+        else:
+            # plan network exploration, behavior implemented individually to stop conditionals from getting crazy
+            if self.demo_mode.plan_network:
+                # determine the current node in the plan network
+                if self.prev_state_msg is None or self.prev_action is None:
+                    self.current_node = 'start'
+                else:
+                    self.current_node = AMDPPlanAction(self.prev_state_msg, self.prev_action, state_msg, self.amdp_id)
 
-            # select action
-            a = Action()
-            if self.demo_mode.classifier:
-                if random() < self.alpha:
-                    action_list = []
-                    if self.action_sequences.has_node(self.current_node):
-                        action_list = self.action_sequences.get_successor_actions(self.current_node, state_msg)
-                    else:
-                        self.current_node = self.action_sequences.find_suitable_node(state_msg)
-                        if self.current_node is not None:
+                # select action
+                a = Action()
+                if self.demo_mode.classifier:
+                    if random() < self.alpha:
+                        action_list = []
+                        if self.action_sequences.has_node(self.current_node):
                             action_list = self.action_sequences.get_successor_actions(self.current_node, state_msg)
+                        else:
+                            self.current_node = self.action_sequences.find_suitable_node(state_msg)
+                            if self.current_node is not None:
+                                action_list = self.action_sequences.get_successor_actions(self.current_node, state_msg)
 
-                    # select action stochastically if we're in the network, select randomly otherwise
-                    if len(action_list) == 0:
-                        a = self.A[randint(0, len(self.A) - 1)]
+                        # select action stochastically if we're in the network, select randomly otherwise
+                        if len(action_list) == 0:
+                            a = self.A[randint(0, len(self.A) - 1)]
+                        else:
+                            selection = random()
+                            count = 0
+                            selected_action = action_list[0]
+                            for i in range(len(action_list)):
+                                count += action_list[i][1]
+                                if count >= selection:
+                                    selected_action = action_list[i]
+                                    break
+                            a.action_type = selected_action[0].action_type
+                            a.object = selected_action[0].action_object
                     else:
-                        selection = random()
-                        count = 0
-                        selected_action = action_list[0]
-                        for i in range(len(action_list)):
-                            count += action_list[i][1]
-                            if count >= selection:
-                                selected_action = action_list[i]
-                                break
-                        a.action_type = selected_action[0].action_type
-                        a.object = selected_action[0].action_object
+                        if self.demo_mode.classifier:
+                            if self.demo_mode.random and random() <= self.epsilon:
+                                a = self.A[randint(0, len(self.A) - 1)]
+                            else:
+                                features = s.to_vector()
+
+                                # Classify action
+                                probs = self.action_bias_alternate.predict_proba(np.asarray(features).reshape(1, -1)).flatten().tolist()
+                                selection = random()
+                                cprob = 0
+                                action_label = '0:apple'
+                                for i in range(0, len(probs)):
+                                    cprob += probs[i]
+                                    if cprob >= selection:
+                                        action_label = self.action_bias_alternate.classes_[i]
+                                        break
+                                # Convert back to action
+                                a = Action()
+                                result = action_label.split(':')
+                                a.action_type = int(result[0])
+                                if len(result) > 1:
+                                    a.object = result[1]
+                        else:
+                            a = self.A[randint(0, len(self.A) - 1)]
+                else:
+                    # select from the plan network, with a chance of random exploration, and use random exploration when
+                    # off of the network
+                    if random() < self.alpha:
+                        action_list = []
+                        if self.action_sequences.has_node(self.current_node):
+                            action_list = self.action_sequences.get_successor_actions(self.current_node, state_msg)
+                        else:
+                            self.current_node = self.action_sequences.find_suitable_node(state_msg)
+                            if self.current_node is not None:
+                                action_list = self.action_sequences.get_successor_actions(self.current_node, state_msg)
+
+                        # select action stochastically if we're in the network, select randomly otherwise
+                        if len(action_list) == 0:
+                            a = self.A[randint(0, len(self.A) - 1)]
+                        else:
+                            selection = random()
+                            count = 0
+                            selected_action = action_list[0]
+                            for i in range(len(action_list)):
+                                count += action_list[i][1]
+                                if count >= selection:
+                                    selected_action = action_list[i]
+                                    break
+                            a.action_type = selected_action[0].action_type
+                            a.object = selected_action[0].action_object
+                    else:
+                        a = self.A[randint(0, len(self.A) - 1)]
+
+                self.prev_state_msg = state_msg  # store state for the next iteration
+                self.prev_action = action_to_sim(deepcopy(a), state_msg)
+
+            else:
+                if self.demo_mode.shadow and s in self.pi:
+                    if random() < self.alpha:
+                        a = self.pi[s].select_action()
+                    else:
+                        a = self.A[randint(0, len(self.A) - 1)]
                 else:
                     if self.demo_mode.classifier:
+                        # if random() < self.alpha:
                         if self.demo_mode.random and random() <= self.epsilon:
                             a = self.A[randint(0, len(self.A) - 1)]
                         else:
@@ -213,94 +289,30 @@ class LearnTransitionFunction:
                             a.action_type = int(result[0])
                             if len(result) > 1:
                                 a.object = result[1]
+                        # else:
+                        #     if self.demo_mode.random and random() <= self.epsilon:
+                        #         a = self.A[randint(0, len(self.A) - 1)]
+                        #     else:
+                        #         features = s.to_vector()
+                        #
+                        #         # Classify action
+                        #         probs = self.action_bias.predict_proba(np.asarray(features).reshape(1, -1)).flatten().tolist()
+                        #         selection = random()
+                        #         cprob = 0
+                        #         action_label = '0:apple'
+                        #         for i in range(0, len(probs)):
+                        #             cprob += probs[i]
+                        #             if cprob >= selection:
+                        #                 action_label = self.action_bias.classes_[i]
+                        #                 break
+                        #         # Convert back to action
+                        #         a = Action()
+                        #         result = action_label.split(':')
+                        #         a.action_type = int(result[0])
+                        #         if len(result) > 1:
+                        #             a.object = result[1]
                     else:
                         a = self.A[randint(0, len(self.A) - 1)]
-            else:
-                # select from the plan network, with a chance of random exploration, and use random exploration when
-                # off of the network
-                if random() < self.alpha:
-                    action_list = []
-                    if self.action_sequences.has_node(self.current_node):
-                        action_list = self.action_sequences.get_successor_actions(self.current_node, state_msg)
-                    else:
-                        self.current_node = self.action_sequences.find_suitable_node(state_msg)
-                        if self.current_node is not None:
-                            action_list = self.action_sequences.get_successor_actions(self.current_node, state_msg)
-
-                    # select action stochastically if we're in the network, select randomly otherwise
-                    if len(action_list) == 0:
-                        a = self.A[randint(0, len(self.A) - 1)]
-                    else:
-                        selection = random()
-                        count = 0
-                        selected_action = action_list[0]
-                        for i in range(len(action_list)):
-                            count += action_list[i][1]
-                            if count >= selection:
-                                selected_action = action_list[i]
-                                break
-                        a.action_type = selected_action[0].action_type
-                        a.object = selected_action[0].action_object
-                else:
-                    a = self.A[randint(0, len(self.A) - 1)]
-
-            self.prev_state_msg = state_msg  # store state for the next iteration
-            self.prev_action = action_to_sim(deepcopy(a), state_msg)
-
-        else:
-            if self.demo_mode.shadow and s in self.pi:
-                if random() < self.alpha:
-                    a = self.pi[s].select_action()
-                else:
-                    a = self.A[randint(0, len(self.A) - 1)]
-            else:
-                if self.demo_mode.classifier:
-                    # if random() < self.alpha:
-                    if self.demo_mode.random and random() <= self.epsilon:
-                        a = self.A[randint(0, len(self.A) - 1)]
-                    else:
-                        features = s.to_vector()
-
-                        # Classify action
-                        probs = self.action_bias_alternate.predict_proba(np.asarray(features).reshape(1, -1)).flatten().tolist()
-                        selection = random()
-                        cprob = 0
-                        action_label = '0:apple'
-                        for i in range(0, len(probs)):
-                            cprob += probs[i]
-                            if cprob >= selection:
-                                action_label = self.action_bias_alternate.classes_[i]
-                                break
-                        # Convert back to action
-                        a = Action()
-                        result = action_label.split(':')
-                        a.action_type = int(result[0])
-                        if len(result) > 1:
-                            a.object = result[1]
-                    # else:
-                    #     if self.demo_mode.random and random() <= self.epsilon:
-                    #         a = self.A[randint(0, len(self.A) - 1)]
-                    #     else:
-                    #         features = s.to_vector()
-                    #
-                    #         # Classify action
-                    #         probs = self.action_bias.predict_proba(np.asarray(features).reshape(1, -1)).flatten().tolist()
-                    #         selection = random()
-                    #         cprob = 0
-                    #         action_label = '0:apple'
-                    #         for i in range(0, len(probs)):
-                    #             cprob += probs[i]
-                    #             if cprob >= selection:
-                    #                 action_label = self.action_bias.classes_[i]
-                    #                 break
-                    #         # Convert back to action
-                    #         a = Action()
-                    #         result = action_label.split(':')
-                    #         a.action_type = int(result[0])
-                    #         if len(result) > 1:
-                    #             a.object = result[1]
-                else:
-                    a = self.A[randint(0, len(self.A) - 1)]
 
         self.execute_action(action_to_sim(deepcopy(a), state_msg))
         s_prime = AMDPState(amdp_id=self.amdp_id, state=OOState(state=self.query_state().state))

@@ -52,7 +52,7 @@ class LearnQFunction:
         # parameters for controlling exploration. # TODO: fetch through the demo mode
         self.alpha = 0.5  # action- vs state-centric action selection
         self.beta = 0.5  # following demonstrations vs. random exploration
-        self.epsilon = 0.5  # epsilon greedy q-learning
+        self.epsilon = 1.0  # epsilon greedy q-learning
 
         self.epoch = 0
         self.successes = 0
