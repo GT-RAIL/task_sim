@@ -163,9 +163,7 @@ class LearnTransitionFunction:
                 self.prev_action = None
             return
 
-        exploit_check = random()
-        if self.exploit_policy and exploit_check > self.exploit_epsilon:
-            print 'exploit epsilon:', self.exploit_epsilon, '; check:', exploit_check
+        if self.exploit_policy and random() > self.exploit_epsilon:
             a = self.select_action(state_msg, Action()).action
         else:
             # plan network exploration, behavior implemented individually to stop conditionals from getting crazy
