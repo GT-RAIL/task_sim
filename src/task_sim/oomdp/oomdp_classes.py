@@ -20,7 +20,7 @@ Edges?
 
 class Item:
 
-    def __init__(self, x=0, y=0, z=0, name='', unique_name='', msg=None):
+    def __init__(self, x=0, y=0, z=0, name='', unique_name='', msg=None, continuous=False):
         if msg is not None:
             self.from_ros(msg)
         else:
@@ -32,6 +32,9 @@ class Item:
             # immutable
             self.name = name
             self.unique_name = unique_name
+
+            # flag for real robot (continuous) vs simulator (not continuous)
+            self.continuous = continuous
 
     def to_ros(self):
         msg = ItemMsg()
@@ -56,23 +59,34 @@ class Item:
         Valid classes: Stack, Lid
         """
         if obj.__class__ == Stack:
-            w = (obj.width - 1)/2
-            d = (obj.depth - 1)/2
+            if self.continuous:
+                w = obj.width/2.0
+                d = obj.depth/2.0
+                z_min = 0.254
+                z_max = 0.4064
+            else:
+                w = (obj.width - 1)/2
+                d = (obj.depth - 1)/2
+                z_min = 3
+                z_max = 3
             x_min = obj.x - w
             x_max = obj.x + w
             y_min = obj.y - d
             y_max = obj.y + d
-            z = 3
+
         elif obj.__class__ == Lid:
+            # TODO: continuous
             x_min = obj.x - obj.radius
             x_max = obj.x + obj.radius
             y_min = obj.y - obj.radius
             y_max = obj.y + obj.radius
-            z = obj.z
+            z_min = obj.z
+            z_max = obj.z
         else:
             return False
 
-        return x_min <= self.x <= x_max and y_min <= self.y <= y_max and self.z == z
+        return x_min <= self.x <= x_max and y_min <= self.y <= y_max and z_min <= self.z <= z_max
+
 
     def inside(self, obj):
         """True if an object is contained within another object
@@ -80,6 +94,7 @@ class Item:
         Valid classes: Box, Container, Drawer
         """
         if obj.__class__ == Box:
+            # TODO: continuous
             x_min = obj.x - obj.radius
             x_max = obj.x + obj.radius
             y_min = obj.y - obj.radius
@@ -94,14 +109,20 @@ class Item:
             z_min = obj.z
             z_max = obj.z
         elif obj.__class__ == Drawer:
-            w = (obj.width - 1)/2
-            d = (obj.depth - 1)/2
+            if self.continuous:
+                w = obj.width/2.0
+                d = obj.depth/2.0
+                z_min = 0.1524
+                z_max = 0.254
+            else:
+                w = (obj.width - 1)/2
+                d = (obj.depth - 1)/2
+                z_min = 2
+                z_max = 2
             x_min = obj.x - w
             x_max = obj.x + w
             y_min = obj.y - d
             y_max = obj.y + d
-            z_min = 2
-            z_max = 2
         else:
             return False
 
@@ -112,6 +133,7 @@ class Item:
 
         Valid classes: All"""
         if obj.__class__ == Box:
+            # TODO: continuous
             x_min = obj.x - obj.radius
             x_max = obj.x + obj.radius
             y_min = obj.y - obj.radius
@@ -126,15 +148,22 @@ class Item:
             z_min = obj.z
             z_max = obj.z
         elif obj.__class__ == Drawer:
-            w = (obj.width - 1)/2
-            d = (obj.depth - 1)/2
+            if self.continuous:
+                w = obj.width/2.0
+                d = obj.depth/2.0
+                z_min = 0.1524
+                z_max = 0.254
+            else:
+                w = (obj.width - 1)/2
+                d = (obj.depth - 1)/2
+                z_min = 1
+                z_max = 2
             x_min = obj.x - w
             x_max = obj.x + w
             y_min = obj.y - d
             y_max = obj.y + d
-            z_min = 1
-            z_max = 2
         elif obj.__class__ == Lid:
+            # TODO: continuous
             x_min = obj.x - obj.radius
             x_max = obj.x + obj.radius
             y_min = obj.y - obj.radius
@@ -142,26 +171,42 @@ class Item:
             z_min = obj.z
             z_max = obj.z
         elif obj.__class__ == Stack:
-            w = (obj.width - 1)/2
-            d = (obj.depth - 1)/2
+            if self.continuous:
+                w = obj.width/2.0
+                d = obj.depth/2.0
+                z_min = 0.0
+                z_max = 0.254
+            else:
+                w = (obj.width - 1)/2
+                d = (obj.depth - 1)/2
+                z_min = 0
+                z_max = 2
             x_min = obj.x - w
             x_max = obj.x + w
             y_min = obj.y - d
             y_max = obj.y + d
-            z_min = 0
-            z_max = 2
         else:
             x_min = obj.x
             x_max = obj.x
             y_min = obj.y
             y_max = obj.y
-            z_min = obj.z
-            z_max = obj.z
+            if self.continuous:
+                z_min = obj.z - 0.05
+                z_max = obj.z + 0.05
+            else:
+                z_min = obj.z
+                z_max = obj.z
 
-        for i in range(-1, 2):
-            for j in range(-1, 2):
-                if x_min <= self.x + i <= x_max and y_min <= self.y + j <= y_max and z_min <= self.z <= z_max:
-                    return True
+        if self.continuous:
+            if z_min <= self.z <= z_max:
+                dx = max(min_x - self.x, 0, self.x - max_x)
+                dy = max(min_y - self.y, 0, self.y - max_y)
+                return sqrt(pow(dx, 2) + pow(dy, 2)) < .1
+        else:
+            for i in range(-1, 2):
+                for j in range(-1, 2):
+                    if x_min <= self.x + i <= x_max and y_min <= self.y + j <= y_max and z_min <= self.z <= z_max:
+                        return True
         return False
 
 
@@ -171,11 +216,18 @@ class Item:
         Valid classes: All
         """
         if obj.__class__ == Box or obj.__class__ == Lid:
+            # TODO: continuous
             check_x = obj.x - obj.radius
         elif obj.__class__ == Drawer or obj.__class__ == Stack:
-            check_x = obj.x - (obj.width - 1)/2
+            if self.continuous:
+                check_x = obj.x - obj.width/2.0
+            else:
+                check_x = obj.x - (obj.width - 1)/2
         else:
-            check_x = obj.x
+            if self.continuous:
+                check_x = obj.x - 0.1
+            else:
+                check_x = obj.x
 
         return self.x < check_x
 
@@ -185,13 +237,20 @@ class Item:
         Valid classes: All
         """
         if obj.__class__ == Box or obj.__class__ == Lid:
+            # TODO: continuous
             check_x = obj.x + obj.radius
         elif obj.__class__ == Container:
             check_x = obj.x + obj.width - 1
         elif obj.__class__ == Drawer or obj.__class__ == Stack:
-            check_x = obj.x + (obj.width - 1)/2
+            if self.continuous:
+                check_x = obj.x + obj.width/2.0
+            else:
+                check_x = obj.x + (obj.width - 1)/2
         else:
-            check_x = obj.x
+            if self.continuous:
+                check_x = obj.x + 0.1
+            else:
+                check_x = obj.x
 
         return self.x > check_x
 
@@ -201,13 +260,20 @@ class Item:
         Valid classes: All
         """
         if obj.__class__ == Box or obj.__class__ == Lid:
+            # TODO: continuous
             check_y = obj.y + obj.radius
         elif obj.__class__ == Container:
             check_y = obj.y + obj.depth - 1
         elif obj.__class__ == Drawer:
-            check_y = obj.y + (obj.depth - 1)/2
+            if self.continuous:
+                check_y = obj.y + obj.depth/2.0
+            else:
+                check_y = obj.y + (obj.depth - 1)/2
         else:
-            check_y = obj.y
+            if self.continuous:
+                check_y = obj.y + 0.1
+            else:
+                check_y = obj.y
 
         return self.y > check_y
 
@@ -217,11 +283,18 @@ class Item:
         Valid classes: All
         """
         if obj.__class__ == Box or obj.__class__ == Lid:
+            # TODO: continuous
             check_y = obj.y - obj.radius
         elif obj.__class__ == Drawer or obj.__class__ == Stack:
-            check_y = obj.y - (obj.depth - 1)/2
+            if self.continuous:
+                check_y = obj.y - obj.depth/2.0
+            else:
+                check_y = obj.y - (obj.depth - 1)/2
         else:
-            check_y = obj.y
+            if self.continuous:
+                check_y = obj.y - 0.1
+            else:
+                check_y = obj.y
 
         return self.y < check_y
 
@@ -238,11 +311,18 @@ class Item:
         Valid classes: All
         """
         if obj.__class__ == Box:
+            # TODO: continuous
             check_z = 1
         elif obj.__class__ == Drawer or obj.__class__ == Stack:
-            check_z = 2
+            if self.continuous:
+                check_z = .254
+            else:
+                check_z = 2
         else:
-            check_z = obj.z
+            if self.continuous:
+                check_z = obj.z + 0.1
+            else:
+                check_z = obj.z
 
         return self.z > check_z
 
@@ -254,9 +334,15 @@ class Item:
         if obj.__class__ == Box or obj.__class__ == Stack:
             check_z = 0
         elif obj.__class__ == Drawer:
-            check_z = 1
+            if self.continuous:
+                check_z = 0.1524
+            else:
+                check_z = 1
         else:
-            check_z = obj.z
+            if self.continuous:
+                check_z = obj.z - 0.1
+            else:
+                check_z = obj.z
 
         return self.z < check_z
 
@@ -550,7 +636,7 @@ class Container:
 
 class Gripper:
 
-    def __init__(self, x=0, y=0, z=0, closed=False, holding='', name='', unique_name='', msg=None):
+    def __init__(self, x=0, y=0, z=0, closed=False, holding='', name='', unique_name='', msg=None, continuous=False):
         if msg is not None:
             self.from_ros(msg)
         else:
@@ -564,6 +650,9 @@ class Gripper:
             # immutable
             self.name = name
             self.unique_name = unique_name
+
+            # flag for real robot (continuous) vs simulator (not continuous)
+            self.continuous = continuous
 
     def to_ros(self):
         msg = GripperMsg()
@@ -592,6 +681,7 @@ class Gripper:
         Valid classes: Box, Container, Drawer
         """
         if obj.__class__ == Box:
+            # TODO: continuous
             x_min = obj.x - obj.radius
             x_max = obj.x + obj.radius
             y_min = obj.y - obj.radius
@@ -606,14 +696,20 @@ class Gripper:
             z_min = obj.z
             z_max = obj.z
         elif obj.__class__ == Drawer:
-            w = (obj.width - 1)/2
-            d = (obj.depth - 1)/2
+            if self.continuous:
+                w = obj.width/2.0
+                d = obj.depth/2.0
+                z_min = 0.1524
+                z_max = 0.254
+            else:
+                w = (obj.width - 1)/2
+                d = (obj.depth - 1)/2
+                z_min = 2
+                z_max = 2
             x_min = obj.x - w
             x_max = obj.x + w
             y_min = obj.y - d
             y_max = obj.y + d
-            z_min = 2
-            z_max = 2
         else:
             return False
 
@@ -638,15 +734,22 @@ class Gripper:
             z_min = obj.z
             z_max = obj.z
         elif obj.__class__ == Drawer:
-            w = (obj.width - 1)/2
-            d = (obj.depth - 1)/2
+            if self.continuous:
+                w = obj.width/2.0
+                d = obj.depth/2.0
+                z_min = 0.1524
+                z_max = 0.254
+            else:
+                w = (obj.width - 1)/2
+                d = (obj.depth - 1)/2
+                z_min = 1
+                z_max = 2
             x_min = obj.x - w
             x_max = obj.x + w
             y_min = obj.y - d
             y_max = obj.y + d
-            z_min = 1
-            z_max = 2
         elif obj.__class__ == Lid:
+            # TODO: continuous
             x_min = obj.x - obj.radius
             x_max = obj.x + obj.radius
             y_min = obj.y - obj.radius
@@ -654,26 +757,42 @@ class Gripper:
             z_min = obj.z
             z_max = obj.z
         elif obj.__class__ == Stack:
-            w = (obj.width - 1)/2
-            d = (obj.depth - 1)/2
+            if self.continuous:
+                w = obj.width/2.0
+                d = obj.depth/2.0
+                z_min = 0.0
+                z_max = 0.254
+            else:
+                w = (obj.width - 1)/2
+                d = (obj.depth - 1)/2
+                z_min = 0
+                z_max = 2
             x_min = obj.x - w
             x_max = obj.x + w
             y_min = obj.y - d
             y_max = obj.y + d
-            z_min = 0
-            z_max = 2
         else:
             x_min = obj.x
             x_max = obj.x
             y_min = obj.y
             y_max = obj.y
-            z_min = obj.z
-            z_max = obj.z
+            if self.continuous:
+                z_min = obj.z - 0.05
+                z_max = obj.z + 0.05
+            else:
+                z_min = obj.z
+                z_max = obj.z
 
-        for i in range(-2, 3):
-            for j in range(-2, 3):
-                if x_min <= self.x + i <= x_max and y_min <= self.y + j <= y_max and z_min <= self.z <= z_max:
-                    return True
+        if self.continuous:
+            if z_min <= self.z <= z_max:
+                dx = max(min_x - self.x, 0, self.x - max_x)
+                dy = max(min_y - self.y, 0, self.y - max_y)
+                return sqrt(pow(dx, 2) + pow(dy, 2)) < .1
+        else:
+            for i in range(-1, 2):
+                for j in range(-1, 2):
+                    if x_min <= self.x + i <= x_max and y_min <= self.y + j <= y_max and z_min <= self.z <= z_max:
+                        return True
         return False
 
     def left_of(self, obj):
@@ -682,11 +801,18 @@ class Gripper:
         Valid classes: All
         """
         if obj.__class__ == Box or obj.__class__ == Lid:
+            # TODO: continuous
             check_x = obj.x - obj.radius
         elif obj.__class__ == Drawer or obj.__class__ == Stack:
-            check_x = obj.x - (obj.width - 1)/2
+            if self.continuous:
+                check_x = obj.x - obj.width/2.0
+            else:
+                check_x = obj.x - (obj.width - 1)/2
         else:
-            check_x = obj.x
+            if self.continuous:
+                check_x = obj.x - 0.1
+            else:
+                check_x = obj.x
 
         return self.x < check_x
 
@@ -696,13 +822,20 @@ class Gripper:
         Valid classes: All
         """
         if obj.__class__ == Box or obj.__class__ == Lid:
+            # TODO: continuous
             check_x = obj.x + obj.radius
         elif obj.__class__ == Container:
             check_x = obj.x + obj.width - 1
         elif obj.__class__ == Drawer or obj.__class__ == Stack:
-            check_x = obj.x + (obj.width - 1)/2
+            if self.continuous:
+                check_x = obj.x + obj.width/2.0
+            else:
+                check_x = obj.x + (obj.width - 1)/2
         else:
-            check_x = obj.x
+            if self.continuous:
+                check_x = obj.x + 0.1
+            else:
+                check_x = obj.x
 
         return self.x > check_x
 
@@ -712,13 +845,20 @@ class Gripper:
         Valid classes: All
         """
         if obj.__class__ == Box or obj.__class__ == Lid:
+            # TODO: continuous
             check_y = obj.y + obj.radius
         elif obj.__class__ == Container:
             check_y = obj.y + obj.depth - 1
-        elif obj.__class__ == Drawer or obj.__class__ == Stack:
-            check_y = obj.y + (obj.depth - 1)/2
+        elif obj.__class__ == Drawer:
+            if self.continuous:
+                check_y = obj.y + obj.depth/2.0
+            else:
+                check_y = obj.y + (obj.depth - 1)/2
         else:
-            check_y = obj.y
+            if self.continuous:
+                check_y = obj.y + 0.1
+            else:
+                check_y = obj.y
 
         return self.y > check_y
 
@@ -728,11 +868,18 @@ class Gripper:
         Valid classes: All
         """
         if obj.__class__ == Box or obj.__class__ == Lid:
+            # TODO: continuous
             check_y = obj.y - obj.radius
         elif obj.__class__ == Drawer or obj.__class__ == Stack:
-            check_y = obj.y - (obj.depth - 1)/2
+            if self.continuous:
+                check_y = obj.y - obj.depth/2.0
+            else:
+                check_y = obj.y - (obj.depth - 1)/2
         else:
-            check_y = obj.y
+            if self.continuous:
+                check_y = obj.y - 0.1
+            else:
+                check_y = obj.y
 
         return self.y < check_y
 
@@ -749,11 +896,18 @@ class Gripper:
         Valid classes: All
         """
         if obj.__class__ == Box:
+            # TODO: continuous
             check_z = 1
         elif obj.__class__ == Drawer or obj.__class__ == Stack:
-            check_z = 2
+            if self.continuous:
+                check_z = .254
+            else:
+                check_z = 2
         else:
-            check_z = obj.z
+            if self.continuous:
+                check_z = obj.z + 0.1
+            else:
+                check_z = obj.z
 
         return self.z > check_z
 
@@ -765,9 +919,15 @@ class Gripper:
         if obj.__class__ == Box or obj.__class__ == Stack:
             check_z = 0
         elif obj.__class__ == Drawer:
-            check_z = 1
+            if self.continuous:
+                check_z = 0.1524
+            else:
+                check_z = 1
         else:
-            check_z = obj.z
+            if self.continuous:
+                check_z = obj.z - 0.1
+            else:
+                check_z = obj.z
 
         return self.z < check_z
 
@@ -781,7 +941,7 @@ class Gripper:
 
 class Drawer:
 
-    def __init__(self, x=0, y=0, width=7, depth=5, name='', unique_name='', msg=None):
+    def __init__(self, x=0, y=0, width=7, depth=5, name='', unique_name='', msg=None, continuous=False):
         if msg is not None:
             self.from_ros(msg)
         else:
@@ -794,6 +954,9 @@ class Drawer:
             self.depth = depth
             self.name = name
             self.unique_name = unique_name
+
+            # flag for real robot (continuous) vs simulator (not continuous)
+            self.continuous = continuous
 
     def to_ros(self):
         msg = DrawerMsg()
@@ -819,13 +982,17 @@ class Drawer:
 
         Valid classes: Stack
         """
-        return abs(self.x - obj.x) <= 1 and abs(self.y - obj.y) <= 1
+        if self.continuous:
+            return abs(self.x - obj.x) <= 0.05
+        else:
+            return abs(self.x - obj.x) <= 1 and abs(self.y - obj.y) <= 1
 
     def touching(self, obj):
         """True if an object is touching (x-y plane, 'atop' covers z) another object
 
         Valid classes: All"""
         if obj.__class__ == Box:
+            # TODO: continuous
             x_min = obj.x - obj.radius
             x_max = obj.x + obj.radius
             y_min = obj.y - obj.radius
@@ -840,15 +1007,22 @@ class Drawer:
             z_min = obj.z
             z_max = obj.z
         elif obj.__class__ == Drawer:
-            w = (obj.width - 1)/2
-            d = (obj.depth - 1)/2
+            if self.continuous:
+                w = obj.width/2.0
+                d = obj.depth/2.0
+                z_min = 0.1524
+                z_max = 0.254
+            else:
+                w = (obj.width - 1)/2
+                d = (obj.depth - 1)/2
+                z_min = 1
+                z_max = 2
             x_min = obj.x - w
             x_max = obj.x + w
             y_min = obj.y - d
             y_max = obj.y + d
-            z_min = 1
-            z_max = 2
         elif obj.__class__ == Lid:
+            # TODO: continuous
             x_min = obj.x - obj.radius
             x_max = obj.x + obj.radius
             y_min = obj.y - obj.radius
@@ -856,40 +1030,57 @@ class Drawer:
             z_min = obj.z
             z_max = obj.z
         elif obj.__class__ == Stack:
-            w = (obj.width - 1)/2
-            d = (obj.depth - 1)/2
+            if self.continuous:
+                w = obj.width/2.0
+                d = obj.depth/2.0
+                z_min = 0.1524
+                z_max = 0.254
+            else:
+                w = (obj.width - 1)/2
+                d = (obj.depth - 1)/2
+                z_min = 0
+                z_max = 2
             x_min = obj.x - w
             x_max = obj.x + w
             y_min = obj.y - d
             y_max = obj.y + d
-            z_min = 0
-            z_max = 2
         else:
             x_min = obj.x
             x_max = obj.x
             y_min = obj.y
             y_max = obj.y
-            z_min = obj.z
-            z_max = obj.z
+            if self.continuous:
+                z_min = obj.z - 0.05
+                z_max = obj.z + 0.05
+            else:
+                z_min = obj.z
+                z_max = obj.z
 
-        w = (self.width - 1)/2
-        d = (self.width - 1)/2
-        for x in range(int(self.x - w - 1), int(self.x + w + 2)):
-            for y in [self.y - d - 1, self.y + d + 1]:
-                for z in [1, 2]:
-                    if x_min <= x <= x_max and y_min <= y <= y_max and z_min <= z <= z_max:
-                        return True
-        for y in range(int(self.y - d), int(self.y + d + 1)):
-            for x in [self.x - w - 1, self.x + w + 1]:
-                for z in [1, 2]:
-                    if x_min <= x <= x_max and y_min <= y <= y_max and z_min <= z <= z_max:
-                        return True
+        if self.continuous:
+            # quick hack to check distance from Drawer center...
+            if z_min <= self.z <= z_max:
+                dx = max(min_x - self.x, 0, self.x - max_x)
+                dy = max(min_y - self.y, 0, self.y - max_y)
+                return sqrt(pow(dx, 2) + pow(dy, 2)) < 0.2159
+        else:
+            w = (self.width - 1)/2
+            d = (self.width - 1)/2
+            for x in range(int(self.x - w - 1), int(self.x + w + 2)):
+                for y in [self.y - d - 1, self.y + d + 1]:
+                    for z in [1, 2]:
+                        if x_min <= x <= x_max and y_min <= y <= y_max and z_min <= z <= z_max:
+                            return True
+            for y in range(int(self.y - d), int(self.y + d + 1)):
+                for x in [self.x - w - 1, self.x + w + 1]:
+                    for z in [1, 2]:
+                        if x_min <= x <= x_max and y_min <= y <= y_max and z_min <= z <= z_max:
+                            return True
         return False
 
 
 class Stack:
 
-    def __init__(self, x=0, y=0, width=7, depth=5, name='', unique_name='', msg=None):
+    def __init__(self, x=0, y=0, width=7, depth=5, name='', unique_name='', msg=None, continuous=False):
         if msg is not None:
             self.from_ros(msg)
         else:
@@ -902,6 +1093,9 @@ class Stack:
             self.depth = depth
             self.name = name
             self.unique_name = unique_name
+
+            # flag for real robot (continuous) vs simulator (not continuous)
+            self.continuous = continuous
 
     def to_ros(self):
         msg = StackMsg()
@@ -924,7 +1118,7 @@ class Stack:
 
 class Box:
 
-    def __init__(self, x=0, y=0, radius=2, name='', unique_name='', msg=None):
+    def __init__(self, x=0, y=0, radius=2, name='', unique_name='', msg=None, continuous=False):
         if msg is not None:
             self.from_ros(msg)
         else:
@@ -936,6 +1130,9 @@ class Box:
             self.radius = radius
             self.name = name
             self.unique_name = unique_name
+
+            # flag for real robot (continuous) vs simulator (not continuous)
+            self.continuous = continuous
 
     def to_ros(self):
         msg = BoxMsg()
@@ -955,8 +1152,9 @@ class Box:
 
 
 class Lid:
+    # TODO: continuous relations
 
-    def __init__(self, x=0, y=0, z=0, radius=2, name='', unique_name='', msg=None):
+    def __init__(self, x=0, y=0, z=0, radius=2, name='', unique_name='', msg=None, continuous=False):
         if msg is not None:
             self.from_ros(msg)
         else:
@@ -969,6 +1167,9 @@ class Lid:
             self.radius = radius
             self.name = name
             self.unique_name = unique_name
+
+            # flag for real robot (continuous) vs simulator (not continuous)
+            self.continuous = continuous
 
     def to_ros(self):
         msg = LidMsg()

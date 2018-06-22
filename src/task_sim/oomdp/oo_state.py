@@ -17,10 +17,10 @@ reverse_relation = {
 
 class OOState:
 
-    def __init__(self, state=None):
+    def __init__(self, state=None, continuous=False):
         self.clear_state()
         if state is not None:
-            self.init_from_state(state)
+            self.init_from_state(state, continuous)
 
     def clear_state(self):
         self.boxes = {}
@@ -32,33 +32,42 @@ class OOState:
         self.stacks = {}
         self.relations = []
 
-    def init_from_state(self, state):
+    def init_from_state(self, state, continuous=False):
         self.clear_state()
 
         for o in state.objects:
-            item = Item(o.position.x, o.position.y, o.position.z, o.name, o.unique_name)
+            item = Item(o.position.x, o.position.y, o.position.z, o.name, o.unique_name, continuous=continuous)
             self.items[item.unique_name] = item
 
         for c in state.containers:
             container = Container(c.position.x, c.position.y, c.position.z, c.width, c.height, c.name, c.unique_name)
             self.containers[c.unique_name] = container
 
-        box = Box(state.box_position.x, state.box_position.y, name='box', unique_name='box')
+        box = Box(state.box_position.x, state.box_position.y, name='box', unique_name='box', continuous=continuous)
         self.boxes[box.unique_name] = box
 
-        drawer = Drawer(state.drawer_position.x + state.drawer_opening, state.drawer_position.y, name='drawer',
-                        unique_name='drawer')
+        if continuous:
+            drawer = Drawer(state.drawer_position.x + state.drawer_opening, state.drawer_position.y, name='drawer',
+                            unique_name='drawer', width=0.2286, depth=0.3302, continuous=True)
+        else:
+            drawer = Drawer(state.drawer_position.x + state.drawer_opening, state.drawer_position.y, name='drawer',
+                            unique_name='drawer')
         self.drawers[drawer.unique_name] = drawer
 
         holding = state.object_in_gripper.translate(None, digits)
         gripper = Gripper(state.gripper_position.x, state.gripper_position.y, state.gripper_position.z,
-                          not state.gripper_open, holding, 'gripper', 'gripper')
+                          not state.gripper_open, holding, 'gripper', 'gripper', continuous=continuous)
         self.grippers[gripper.unique_name] = gripper
 
-        lid = Lid(state.lid_position.x, state.lid_position.y, state.lid_position.z, name="lid", unique_name="lid")
+        lid = Lid(state.lid_position.x, state.lid_position.y, state.lid_position.z, name="lid", unique_name="lid",
+                  continuous=continuous)
         self.lids[lid.unique_name] = lid
 
-        stack = Stack(state.drawer_position.x, state.drawer_position.y, name='stack', unique_name='stack')
+        if continuous:
+            stack = Stack(state.drawer_position.x, state.drawer_position.y, name='stack', unique_name='stack',
+                          width=0.2486, depth=0.3302, continuous=True)
+        else:
+            stack = Stack(state.drawer_position.x, state.drawer_position.y, name='stack', unique_name='stack')
         self.stacks[stack.unique_name] = stack
 
         self.calculate_relations()
