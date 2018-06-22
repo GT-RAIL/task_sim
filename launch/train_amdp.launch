@@ -4,6 +4,7 @@
     <arg name="max_episode_length" default="100" />
     <arg name="baseline_mode" default="false" />
     <arg name="exploit_policy" default="false" />
+    <arg name="save_transitions" default="false" />
 
     <!-- Table sim environments -->
     <node name="eval" pkg="task_sim" type="table_sim.py">
@@ -50,5 +51,6 @@
         <param name="max_episode_length" type="int" value="$(arg max_episode_length)" />
         <param name="baseline_mode" type="bool" value="$(arg baseline_mode)" />
         <param name="exploit_policy" type="bool" value="$(arg exploit_policy)" />
+        <param name="save_transitions" type="bool" value="$(arg save_transitions)" />
     </node>
 </launch>

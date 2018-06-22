@@ -77,6 +77,11 @@ class AMDPTrainer(object):
         ]
         self.test_envs = range(20,120) # test environment seeds
 
+        self.save_Ts= rospy.get_param('~save_transitions', False)  # flag to save best transition function
+        if self.save_Ts:
+            self.best_test_performance = -1
+            self.suffix = '_best_' + str(datetime.datetime.now())[:-7].replace(' ', '_').replace(':', '-')
+
         # Instantiate the transition functions and the utility functions
         self.Ts = {}
         self.Us = {}
@@ -213,6 +218,7 @@ class AMDPTrainer(object):
                   "\tSuccess (combined):", rate_combined_train,
                   "\tSuccess (test):", rate_test,
                   "\tAction executions:", ex_count)
+
             return
 
         while epoch < epochs:
@@ -248,7 +254,7 @@ class AMDPTrainer(object):
                         continue
 
                     print("Solving:", amdp_id)
-                    value_iterator.init_utilities()
+                    value_iterator.init_updated_utilities()
                     value_iterator.solve()
 
                 self.amdp_node.reinit_U()
@@ -267,7 +273,7 @@ class AMDPTrainer(object):
                             continue
 
                         print("Solving:", amdp_id)
-                        value_iterator.init_utilities()
+                        value_iterator.init_updated_utilities()
                         value_iterator.solve()
 
                     self.amdp_node.reinit_U()
@@ -323,6 +329,15 @@ class AMDPTrainer(object):
                       "\tLearned action selection rate (test combined):", rate_action_from_utility_test)
                 for key, transition_learner in self.transition_learners.iteritems():
                     print('\t', key, transition_learner.action_executions, 'training action executions')
+
+                if self.save_Ts and rate_test > self.best_test_performance:
+                    print('Achieved new best test success rate, saving a copy of the transition functions...')
+                    self.best_test_performance = rate_test
+                    for amdp_id in self.amdp_ids:
+                        if amdp_id not in (1,7,4,11,12):  # Don't repeat transition functions, don't save non-learned
+                            self.Ts[amdp_id].save_copy(self.suffix)
+                    print('Transition functions saved.')
+
                 print("\n**********************************************************************************")
                 self.report.append((epoch, rate_demo, rate_train, rate_combined_train, rate_test, ex_count,
                                     rate_action_from_utility, rate_action_from_utility_test))
