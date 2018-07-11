@@ -76,6 +76,8 @@ class Item:
 
         elif obj.__class__ == Lid:
             # TODO: continuous
+            if self.continuous:
+                return False
             x_min = obj.x - obj.radius
             x_max = obj.x + obj.radius
             y_min = obj.y - obj.radius
@@ -95,6 +97,8 @@ class Item:
         """
         if obj.__class__ == Box:
             # TODO: continuous
+            if self.continuous:
+                return False
             x_min = obj.x - obj.radius
             x_max = obj.x + obj.radius
             y_min = obj.y - obj.radius
@@ -134,6 +138,8 @@ class Item:
         Valid classes: All"""
         if obj.__class__ == Box:
             # TODO: continuous
+            if self.continuous:
+                return False
             x_min = obj.x - obj.radius
             x_max = obj.x + obj.radius
             y_min = obj.y - obj.radius
@@ -164,6 +170,8 @@ class Item:
             y_max = obj.y + d
         elif obj.__class__ == Lid:
             # TODO: continuous
+            if self.continuous:
+                return False
             x_min = obj.x - obj.radius
             x_max = obj.x + obj.radius
             y_min = obj.y - obj.radius
@@ -217,6 +225,8 @@ class Item:
         """
         if obj.__class__ == Box or obj.__class__ == Lid:
             # TODO: continuous
+            if self.continuous:
+                return True
             check_x = obj.x - obj.radius
         elif obj.__class__ == Drawer or obj.__class__ == Stack:
             if self.continuous:
@@ -238,6 +248,8 @@ class Item:
         """
         if obj.__class__ == Box or obj.__class__ == Lid:
             # TODO: continuous
+            if self.continuous:
+                return False
             check_x = obj.x + obj.radius
         elif obj.__class__ == Container:
             check_x = obj.x + obj.width - 1
@@ -261,6 +273,8 @@ class Item:
         """
         if obj.__class__ == Box or obj.__class__ == Lid:
             # TODO: continuous
+            if self.continuous:
+                return True
             check_y = obj.y + obj.radius
         elif obj.__class__ == Container:
             check_y = obj.y + obj.depth - 1
@@ -284,6 +298,8 @@ class Item:
         """
         if obj.__class__ == Box or obj.__class__ == Lid:
             # TODO: continuous
+            if self.continuous:
+                return False
             check_y = obj.y - obj.radius
         elif obj.__class__ == Drawer or obj.__class__ == Stack:
             if self.continuous:
@@ -312,6 +328,8 @@ class Item:
         """
         if obj.__class__ == Box:
             # TODO: continuous
+            if self.continuous:
+                return False
             check_z = 1
         elif obj.__class__ == Drawer or obj.__class__ == Stack:
             if self.continuous:
@@ -682,6 +700,8 @@ class Gripper:
         """
         if obj.__class__ == Box:
             # TODO: continuous
+            if self.continuous:
+                return False
             x_min = obj.x - obj.radius
             x_max = obj.x + obj.radius
             y_min = obj.y - obj.radius
@@ -750,6 +770,8 @@ class Gripper:
             y_max = obj.y + d
         elif obj.__class__ == Lid:
             # TODO: continuous
+            if self.continuous:
+                return False
             x_min = obj.x - obj.radius
             x_max = obj.x + obj.radius
             y_min = obj.y - obj.radius
@@ -802,6 +824,8 @@ class Gripper:
         """
         if obj.__class__ == Box or obj.__class__ == Lid:
             # TODO: continuous
+            if self.continuous:
+                return True
             check_x = obj.x - obj.radius
         elif obj.__class__ == Drawer or obj.__class__ == Stack:
             if self.continuous:
@@ -823,6 +847,8 @@ class Gripper:
         """
         if obj.__class__ == Box or obj.__class__ == Lid:
             # TODO: continuous
+            if self.continuous:
+                return False
             check_x = obj.x + obj.radius
         elif obj.__class__ == Container:
             check_x = obj.x + obj.width - 1
@@ -846,6 +872,8 @@ class Gripper:
         """
         if obj.__class__ == Box or obj.__class__ == Lid:
             # TODO: continuous
+            if self.continuous:
+                return True
             check_y = obj.y + obj.radius
         elif obj.__class__ == Container:
             check_y = obj.y + obj.depth - 1
@@ -869,6 +897,8 @@ class Gripper:
         """
         if obj.__class__ == Box or obj.__class__ == Lid:
             # TODO: continuous
+            if self.continuous:
+                return False
             check_y = obj.y - obj.radius
         elif obj.__class__ == Drawer or obj.__class__ == Stack:
             if self.continuous:
@@ -897,6 +927,8 @@ class Gripper:
         """
         if obj.__class__ == Box:
             # TODO: continuous
+            if self.continuous:
+                return False
             check_z = 1
         elif obj.__class__ == Drawer or obj.__class__ == Stack:
             if self.continuous:
@@ -993,6 +1025,8 @@ class Drawer:
         Valid classes: All"""
         if obj.__class__ == Box:
             # TODO: continuous
+            if self.continuous:
+                return False
             x_min = obj.x - obj.radius
             x_max = obj.x + obj.radius
             y_min = obj.y - obj.radius
@@ -1023,6 +1057,8 @@ class Drawer:
             y_max = obj.y + d
         elif obj.__class__ == Lid:
             # TODO: continuous
+            if self.continuous:
+                return False
             x_min = obj.x - obj.radius
             x_max = obj.x + obj.radius
             y_min = obj.y - obj.radius
@@ -1195,6 +1231,9 @@ class Lid:
 
         Valid classes: Box
         """
+        #TODO: continuous
+        if self.continuous:
+            return True
         return self.x == obj.x and self.y == obj.y and self.z == 1
 
     def atop(self, obj):
@@ -1209,6 +1248,9 @@ class Lid:
             y_max = obj.y + obj.depth
             z = obj.z + 1
         elif obj.__class__ == Drawer or obj.__class__ == Stack:
+            #TODO: continuous
+            if self.continuous:
+                return False
             w = (obj.width - 1)/2
             d = (obj.depth - 1)/2
             x_min = obj.x - w
@@ -1217,12 +1259,18 @@ class Lid:
             y_max = obj.y + d
             z = 3
         elif obj.__class__ == Item:
+            #TODO: continuous
+            if self.continuous:
+                return False
             x_min = obj.x
             x_max = obj.x
             y_min = obj.y
             y_max = obj.y
             z = obj.z
         elif obj.__class__ == Lid:
+            #TODO: continuous
+            if self.continuous:
+                return False
             x_min = obj.x - obj.radius
             x_max = obj.x + obj.radius
             y_min = obj.y - obj.radius
@@ -1243,6 +1291,9 @@ class Lid:
 
         Valid classes: All"""
         if obj.__class__ == Box:
+            #TODO: continuous
+            if self.continuous:
+                return False
             x_min = obj.x - obj.radius
             x_max = obj.x + obj.radius
             y_min = obj.y - obj.radius
@@ -1250,6 +1301,9 @@ class Lid:
             z_min = 0
             z_max = 1
         elif obj.__class__ == Container:
+            #TODO: continuous
+            if self.continuous:
+                return False
             x_min = obj.x
             x_max = obj.x + obj.width - 1
             y_min = obj.y
@@ -1257,6 +1311,9 @@ class Lid:
             z_min = obj.z
             z_max = obj.z
         elif obj.__class__ == Drawer:
+            #TODO: continuous
+            if self.continuous:
+                return False
             w = (obj.width - 1)/2
             d = (obj.depth - 1)/2
             x_min = obj.x - w
@@ -1266,6 +1323,9 @@ class Lid:
             z_min = 1
             z_max = 2
         elif obj.__class__ == Lid:
+            #TODO: continuous
+            if self.continuous:
+                return False
             x_min = obj.x - obj.radius
             x_max = obj.x + obj.radius
             y_min = obj.y - obj.radius
@@ -1273,6 +1333,9 @@ class Lid:
             z_min = obj.z
             z_max = obj.z
         elif obj.__class__ == Stack:
+            #TODO: continuous
+            if self.continuous:
+                return False
             w = (obj.width - 1)/2
             d = (obj.depth - 1)/2
             x_min = obj.x - w
@@ -1282,6 +1345,9 @@ class Lid:
             z_min = 0
             z_max = 2
         else:
+            #TODO: continuous
+            if self.continuous:
+                return False
             x_min = obj.x
             x_max = obj.x
             y_min = obj.y
@@ -1305,10 +1371,19 @@ class Lid:
         Valid classes: All
         """
         if obj.__class__ == Box or obj.__class__ == Lid:
+            #TODO: continuous
+            if self.continuous:
+                return False
             check_x = obj.x - obj.radius
         elif obj.__class__ == Drawer or obj.__class__ == Stack:
+            #TODO: continuous
+            if self.continuous:
+                return False
             check_x = obj.x - (obj.width - 1)/2
         else:
+            #TODO: continuous
+            if self.continuous:
+                return False
             check_x = obj.x
 
         return self.x + self.radius < check_x

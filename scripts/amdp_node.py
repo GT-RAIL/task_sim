@@ -33,13 +33,16 @@ class AMDPNode:
         simulator_name='table_sim',
         transition_functions=None,
         value_tables=None,
-        demo_mode=None, # DemonstrationMode object. If None, RANDOM+CLASSIFIER+SHADOW
+        demo_mode=None, # DemonstrationMode object. If None, RANDOM+CLASSIFIER
         baseline_mode=False,
         q_learning_mode=False,
         q_tables=None,
         complexity=1,  # complexity 0 represents 1I-1C environments, used for exploitation during training
-        env_type=0  # Used to specify box or drawer environments when complexity=0, ignored otherwise
+        env_type=0,  # Used to specify box or drawer environments when complexity=0, ignored otherwise
+        continuous=False  # flag to specify continuous mode (i.e. running on a physical platform such as Nimbus)
     ):
+        self.continuous = continuous
+
         self.baseline_mode = baseline_mode  # flag for running without utilities at leaf action selection
         self.q_learning_mode = q_learning_mode  # use Q tables for leaf amdp action selection
 
@@ -115,7 +118,7 @@ class AMDPNode:
 
         # demo config, loads modes, policies, and classifiers
         self.demo_mode = demo_mode or DemonstrationMode(
-            DemonstrationMode.RANDOM | DemonstrationMode.CLASSIFIER | DemonstrationMode.SHADOW
+            DemonstrationMode.RANDOM | DemonstrationMode.CLASSIFIER
         )
         self.demo_configs = {}
         self.demo_configs[0] = self.demo_mode.configuration(
@@ -164,49 +167,51 @@ class AMDPNode:
 
         action_list = []
 
-        oo_state = OOState(state=req.state)
+        oo_state = OOState(state=req.state, continuous=self.continuous)
 
         if self.complexity > 0:
-            # start at the top level
-            s = AMDPState(amdp_id=12, state=oo_state)
-            utilities = {}
-            for a in self.A[12]:
-                successors = self.T[t_id_map[12]].transition_function(s, a)
-                u = 0
-                for i in range(len(successors)):
-                    p = successors[i][0]
-                    s_prime = successors[i][1]
-                    if s_prime in self.U[12]:
-                        u += p*self.U[12][s_prime]
-                    elif is_terminal(s_prime, amdp_id=12):
-                        u += p*reward(s_prime, amdp_id=12)
-                utilities[a] = u
-
-            # print '\n---'
-            # for key in utilities:
-            #     print str(key)
-            #     print 'utility: ' + str(utilities[key])
-
-            # pick top action deterministically
-            max_utility = -999999
-            for a in utilities.keys():
-                if utilities[a] > max_utility:
-                    max_utility = utilities[a]
-                    action_list = []
-                    action_list.append(deepcopy(a))
-                elif utilities[a] == max_utility:
-                    action_list.append(deepcopy(a))
-
-            # select action
-            # i = randint(0, len(action_list) - 1)
-            i = 0
-            id = action_list[i].action_type
-            #obj = action_list[i].object
-
-            if debug > 0:
-                print 'Top level action selection: ' + str(id)
-
-            s = AMDPState(amdp_id=id, state=oo_state)
+            # TODO: this is commented out for drawer-only testing!
+            # # start at the top level
+            # s = AMDPState(amdp_id=12, state=oo_state)
+            # utilities = {}
+            # for a in self.A[12]:
+            #     successors = self.T[t_id_map[12]].transition_function(s, a)
+            #     u = 0
+            #     for i in range(len(successors)):
+            #         p = successors[i][0]
+            #         s_prime = successors[i][1]
+            #         if s_prime in self.U[12]:
+            #             u += p*self.U[12][s_prime]
+            #         elif is_terminal(s_prime, amdp_id=12):
+            #             u += p*reward(s_prime, amdp_id=12)
+            #     utilities[a] = u
+            #
+            # # print '\n---'
+            # # for key in utilities:
+            # #     print str(key)
+            # #     print 'utility: ' + str(utilities[key])
+            #
+            # # pick top action deterministically
+            # max_utility = -999999
+            # for a in utilities.keys():
+            #     if utilities[a] > max_utility:
+            #         max_utility = utilities[a]
+            #         action_list = []
+            #         action_list.append(deepcopy(a))
+            #     elif utilities[a] == max_utility:
+            #         action_list.append(deepcopy(a))
+            #
+            # # select action
+            # # i = randint(0, len(action_list) - 1)
+            # i = 0
+            # id = action_list[i].action_type
+            # #obj = action_list[i].object
+            #
+            # if debug > 0:
+            #     print 'Top level action selection: ' + str(id)
+            #
+            # s = AMDPState(amdp_id=id, state=oo_state)
+            s = AMDPState(amdp_id=4, state=oo_state)  # TODO: temporary, for drawer-only testing
 
         else:
             if self.env_type%2 == 0:
@@ -215,6 +220,12 @@ class AMDPNode:
                 id = 11
 
             s = AMDPState(amdp_id=id, state=oo_state, ground_items=['apple', 'apple', 'apple', 'apple'])
+
+        # TODO: debugging state
+        print '\n\n-------------------------------------------------------------'
+        print 'Mid-level AMDP state:'
+        print str(s)
+        print '-------------------------------------------------------------\n\n'
 
         utilities = {}
         for a in self.A[id]:
@@ -262,6 +273,12 @@ class AMDPNode:
         # solve lower level mdp for executable action
         action_list = []
         s = AMDPState(amdp_id=id, state=oo_state, ground_items=[obj])
+
+        # TODO: debugging state
+        print '\n\n-------------------------------------------------------------'
+        print 'Low-level AMDP state:'
+        print str(s)
+        print '-------------------------------------------------------------\n\n'
 
         selected_from_utility = 1
 
@@ -606,7 +623,7 @@ class AMDPNode:
         if req.state.lid_position.x != req.state.box_position.x or req.state.lid_position.y != req.state.box_position.y:
             completed = False
 
-        oo_state = OOState(state=req.state)
+        oo_state = OOState(state=req.state, continuous=self.continuous)
         amdp_id = 12
         s = AMDPState(amdp_id=amdp_id, state=oo_state)
         if is_terminal(s, amdp_id=amdp_id):
