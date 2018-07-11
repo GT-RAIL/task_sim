@@ -5,6 +5,7 @@ import ast
 import pickle
 import h5py
 import numpy as np
+from shutil import copyfile
 
 from task_sim.str.amdp_state import AMDPState
 from task_sim.msg import Action
@@ -216,6 +217,14 @@ class AMDPTransitionsLearned:
 
     def save(self, suffix=''):
         self.transition.flush()
+
+    def save_copy(self, suffix='_best'):
+        self.save()
+        name = self.filename.replace('.hdf5', '')
+        name += suffix + '.hdf5'
+        copyfile(self.filename, name)
+        # save_file = h5py.File(self.filename, 'w')
+        # self.transition.copy()
 
 
 if __name__ == '__main__':

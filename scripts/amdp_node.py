@@ -314,14 +314,14 @@ class AMDPNode:
             selected_from_utility = 0
             if self.demo_mode.classifier:
                 features = s.to_vector()
-                probs = self.classifiers_alternate[t_id_map[id]].predict_proba(np.asarray(features).reshape(1, -1)).flatten().tolist()
+                probs = self.classifiers[t_id_map[id]].predict_proba(np.asarray(features).reshape(1, -1)).flatten().tolist()
                 selection = random()
                 cprob = 0
                 action_label = '0:apple'
                 for i in range(0, len(probs)):
                     cprob += probs[i]
                     if cprob >= selection:
-                        action_label = self.classifiers_alternate[t_id_map[id]].classes_[i]
+                        action_label = self.classifiers[t_id_map[id]].classes_[i]
                         break
                 # Convert back to action
                 result = action_label.split(':')
@@ -487,14 +487,14 @@ class AMDPNode:
 
                     if use_classifier:
                         features = s.to_vector()
-                        probs = self.classifiers_alternate[t_id_map[id]].predict_proba(np.asarray(features).reshape(1, -1)).flatten().tolist()
+                        probs = self.classifiers[t_id_map[id]].predict_proba(np.asarray(features).reshape(1, -1)).flatten().tolist()
                         selection = random()
                         cprob = 0
                         action_label = '0:apple'
                         for i in range(0, len(probs)):
                             cprob += probs[i]
                             if cprob >= selection:
-                                action_label = self.classifiers_alternate[t_id_map[id]].classes_[i]
+                                action_label = self.classifiers[t_id_map[id]].classes_[i]
                                 break
                         # Convert back to action
                         result = action_label.split(':')
@@ -511,14 +511,14 @@ class AMDPNode:
                     features = s.to_vector()
 
                     # if random() < 0.5:
-                    probs = self.classifiers_alternate[t_id_map[id]].predict_proba(np.asarray(features).reshape(1, -1)).flatten().tolist()
+                    probs = self.classifiers[t_id_map[id]].predict_proba(np.asarray(features).reshape(1, -1)).flatten().tolist()
                     selection = random()
                     cprob = 0
                     action_label = '0:apple'
                     for i in range(0, len(probs)):
                         cprob += probs[i]
                         if cprob >= selection:
-                            action_label = self.classifiers_alternate[t_id_map[id]].classes_[i]
+                            action_label = self.classifiers[t_id_map[id]].classes_[i]
                             break
                     # else:
                     #     probs = self.classifiers[t_id_map[id]].predict_proba(np.asarray(features).reshape(1, -1)).flatten().tolist()

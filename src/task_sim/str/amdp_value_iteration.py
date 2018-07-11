@@ -212,6 +212,18 @@ class AMDPValueIteration:
             if debug > 0:
                 print 'Utilities initialized.'
 
+    def init_updated_utilities(self):
+        if self.amdp_id not in self.abstract_amdps:
+            states = self.T.get_states()
+            for s in states:
+                if s not in self.U:
+                    self.U[deepcopy(s)] = 0.0
+        else:
+            # probably not the best way to handle this, but shouldn't matter as these utilities should have been loaded
+            # from a file instead of solved for at runtime...
+            s = AMDPState(amdp_id=self.amdp_id)
+            self.enumerate_relations(s)
+
     def enumerate_relations(self, s, i=0):
         '''recursively set all attributes in an amdp state to cover all possible state assignments, store them in U'''
         if i == len(s.relations.keys()) - 1:

@@ -163,7 +163,8 @@ class LearnTransitionFunction:
                 self.prev_action = None
             return
 
-        if self.exploit_policy and random() > self.exploit_epsilon:
+        exploit_check = random()
+        if self.exploit_policy and exploit_check > self.exploit_epsilon:
             a = self.select_action(state_msg, Action()).action
         else:
             # plan network exploration, behavior implemented individually to stop conditionals from getting crazy
@@ -208,14 +209,14 @@ class LearnTransitionFunction:
                                 features = s.to_vector()
 
                                 # Classify action
-                                probs = self.action_bias_alternate.predict_proba(np.asarray(features).reshape(1, -1)).flatten().tolist()
+                                probs = self.action_bias.predict_proba(np.asarray(features).reshape(1, -1)).flatten().tolist()
                                 selection = random()
                                 cprob = 0
                                 action_label = '0:apple'
                                 for i in range(0, len(probs)):
                                     cprob += probs[i]
                                     if cprob >= selection:
-                                        action_label = self.action_bias_alternate.classes_[i]
+                                        action_label = self.action_bias.classes_[i]
                                         break
                                 # Convert back to action
                                 a = Action()
@@ -272,14 +273,14 @@ class LearnTransitionFunction:
                             features = s.to_vector()
 
                             # Classify action
-                            probs = self.action_bias_alternate.predict_proba(np.asarray(features).reshape(1, -1)).flatten().tolist()
+                            probs = self.action_bias.predict_proba(np.asarray(features).reshape(1, -1)).flatten().tolist()
                             selection = random()
                             cprob = 0
                             action_label = '0:apple'
                             for i in range(0, len(probs)):
                                 cprob += probs[i]
                                 if cprob >= selection:
-                                    action_label = self.action_bias_alternate.classes_[i]
+                                    action_label = self.action_bias.classes_[i]
                                     break
                             # Convert back to action
                             a = Action()
