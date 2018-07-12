@@ -43,7 +43,11 @@ class OOState:
             container = Container(c.position.x, c.position.y, c.position.z, c.width, c.height, c.name, c.unique_name)
             self.containers[c.unique_name] = container
 
-        box = Box(state.box_position.x, state.box_position.y, name='box', unique_name='box', continuous=continuous)
+        if continuous:
+            box = Box(state.box_position.x, state.box_position.y, name='box', unique_name='box', continuous=continuous,
+                      radius=0.095)
+        else:
+            box = Box(state.box_position.x, state.box_position.y, name='box', unique_name='box', continuous=continuous)
         self.boxes[box.unique_name] = box
 
         if continuous:
@@ -59,8 +63,12 @@ class OOState:
                           not state.gripper_open, holding, 'gripper', 'gripper', continuous=continuous)
         self.grippers[gripper.unique_name] = gripper
 
-        lid = Lid(state.lid_position.x, state.lid_position.y, state.lid_position.z, name="lid", unique_name="lid",
-                  continuous=continuous)
+        if continuous:
+            lid = Lid(state.lid_position.x, state.lid_position.y, state.lid_position.z, name="lid", unique_name="lid",
+                      continuous=continuous, radius=0.095)
+        else:
+            lid = Lid(state.lid_position.x, state.lid_position.y, state.lid_position.z, name="lid", unique_name="lid",
+                      continuous=continuous)
         self.lids[lid.unique_name] = lid
 
         if continuous:

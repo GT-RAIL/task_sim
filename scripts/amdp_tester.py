@@ -57,7 +57,7 @@ class AMDPTester(object):
         for amdp_id in self.amdp_ids:
             if amdp_id not in (1,7,): # Don't repeat transition functions
                 transition_filename = None if amdp_id in (4,11,12,) else "T{}.hdf5".format(amdp_id)
-                self.Ts[amdp_id] = AMDPTransitionsLearned(amdp_id, transition_filename)
+                self.Ts[amdp_id] = AMDPTransitionsLearned(amdp_id, transition_filename, reinit=False)
             else:
                 self.Ts[amdp_id] = self.Ts[amdp_id-1]
 
