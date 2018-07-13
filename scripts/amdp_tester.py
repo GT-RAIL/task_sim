@@ -63,12 +63,17 @@ class AMDPTester(object):
 
             # Initialize the value functions
             self.Us[amdp_id] = AMDPValueIteration(amdp_id, self.Ts[amdp_id])
-            if amdp_id in (4,11,12,): # Pre-calculated high-level value functions
-                with open(
-                    os.path.join(root_path, 'src/task_sim/str/U{}.pkl'.format(amdp_id)),
-                    'rb'
-                ) as fd:
-                    self.Us[amdp_id].U = pickle.load(fd)
+            # if amdp_id in (4,11,12,): # Pre-calculated high-level value functions
+            #     with open(
+            #         os.path.join(root_path, 'src/task_sim/str/U{}.pkl'.format(amdp_id)),
+            #         'rb'
+            #     ) as fd:
+            #         self.Us[amdp_id].U = pickle.load(fd)
+            with open(
+                os.path.join(root_path, 'src/task_sim/str/U{}.pkl'.format(amdp_id)),
+                'rb'
+            ) as fd:
+                self.Us[amdp_id].U = pickle.load(fd)
 
         # Instantiate the AMDP Node
         self.amdp_node = AMDPNode('amdp', self.Ts, self.Us, self.demo_mode, continuous=True)
@@ -85,9 +90,12 @@ class AMDPTester(object):
             if amdp_id in [4,11,12]:
                 continue
 
-            print("Solving:", amdp_id)
-            value_iterator.init_utilities()
-            value_iterator.solve()
+            # print("Solving:", amdp_id)
+            # value_iterator.init_utilities()
+            # value_iterator.solve()
+
+            # print("Saving:", amdp_id)
+            # value_iterator.save()
 
         self.amdp_node.reinit_U()
 

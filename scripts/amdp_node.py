@@ -162,7 +162,7 @@ class AMDPNode:
             if self.U_t is not None else self.U
         )
 
-    def select_action(self, req, debug=0):
+    def select_action(self, req, debug=1):
         action = Action()
 
         action_list = []
@@ -171,47 +171,47 @@ class AMDPNode:
 
         if self.complexity > 0:
             # TODO: this is commented out for drawer-only testing!
-            # # start at the top level
-            # s = AMDPState(amdp_id=12, state=oo_state)
-            # utilities = {}
-            # for a in self.A[12]:
-            #     successors = self.T[t_id_map[12]].transition_function(s, a)
-            #     u = 0
-            #     for i in range(len(successors)):
-            #         p = successors[i][0]
-            #         s_prime = successors[i][1]
-            #         if s_prime in self.U[12]:
-            #             u += p*self.U[12][s_prime]
-            #         elif is_terminal(s_prime, amdp_id=12):
-            #             u += p*reward(s_prime, amdp_id=12)
-            #     utilities[a] = u
-            #
-            # # print '\n---'
-            # # for key in utilities:
-            # #     print str(key)
-            # #     print 'utility: ' + str(utilities[key])
-            #
-            # # pick top action deterministically
-            # max_utility = -999999
-            # for a in utilities.keys():
-            #     if utilities[a] > max_utility:
-            #         max_utility = utilities[a]
-            #         action_list = []
-            #         action_list.append(deepcopy(a))
-            #     elif utilities[a] == max_utility:
-            #         action_list.append(deepcopy(a))
-            #
-            # # select action
-            # # i = randint(0, len(action_list) - 1)
-            # i = 0
-            # id = action_list[i].action_type
-            # #obj = action_list[i].object
-            #
-            # if debug > 0:
-            #     print 'Top level action selection: ' + str(id)
-            #
-            # s = AMDPState(amdp_id=id, state=oo_state)
-            s = AMDPState(amdp_id=4, state=oo_state)  # TODO: temporary, for drawer-only testing
+            # start at the top level
+            s = AMDPState(amdp_id=12, state=oo_state)
+            utilities = {}
+            for a in self.A[12]:
+                successors = self.T[t_id_map[12]].transition_function(s, a)
+                u = 0
+                for i in range(len(successors)):
+                    p = successors[i][0]
+                    s_prime = successors[i][1]
+                    if s_prime in self.U[12]:
+                        u += p*self.U[12][s_prime]
+                    elif is_terminal(s_prime, amdp_id=12):
+                        u += p*reward(s_prime, amdp_id=12)
+                utilities[a] = u
+
+            # print '\n---'
+            # for key in utilities:
+            #     print str(key)
+            #     print 'utility: ' + str(utilities[key])
+
+            # pick top action deterministically
+            max_utility = -999999
+            for a in utilities.keys():
+                if utilities[a] > max_utility:
+                    max_utility = utilities[a]
+                    action_list = []
+                    action_list.append(deepcopy(a))
+                elif utilities[a] == max_utility:
+                    action_list.append(deepcopy(a))
+
+            # select action
+            # i = randint(0, len(action_list) - 1)
+            i = 0
+            id = action_list[i].action_type
+            #obj = action_list[i].object
+
+            if debug > 0:
+                print 'Top level action selection: ' + str(id)
+
+            s = AMDPState(amdp_id=id, state=oo_state)
+            # s = AMDPState(amdp_id=4, state=oo_state)  # TODO: temporary, for drawer-only testing
 
         else:
             if self.env_type%2 == 0:
@@ -419,6 +419,8 @@ class AMDPNode:
                 i = randint(0, len(action_list) - 1)
                 # i = 0
                 action = action_list[i]
+                if debug > 0:
+                    print('Action selected from utilities')
             else:  # we need to select an action a different way
                 selected_from_utility = 0
                 if self.demo_mode.plan_network and not self.demo_mode.classifier:
@@ -485,6 +487,9 @@ class AMDPNode:
                                 else:
                                     action.object = obj
 
+                            if debug > 0:
+                                print('Action selected from plan network')
+
                     if use_classifier:
                         features = s.to_vector()
                         probs = self.classifiers[t_id_map[id]].predict_proba(np.asarray(features).reshape(1, -1)).flatten().tolist()
@@ -506,6 +511,8 @@ class AMDPNode:
                                     action.object = items[randint(0, len(items) - 1)]
                                 else:
                                     action.object = obj
+                        if debug > 0:
+                            print('Action selected from classifier')
 
                 elif self.demo_mode.classifier:
                     features = s.to_vector()
@@ -557,36 +564,38 @@ class AMDPNode:
         if debug > 0:
             print '\t\tLow level action selection: ' + str(action.action_type) + ', ' + str(action.object)
         if action.action_type == Action.PLACE:
-            action.position = DataUtils.semantic_action_to_position(req.state, action.object)
-            action.object = ''
-        elif action.action_type == Action.MOVE_ARM:
-            if action.object == 'l':
-                action.position.x = req.state.gripper_position.x - 10
-                action.position.y = req.state.gripper_position.y
-            elif action.object == 'fl':
-                action.position.x = req.state.gripper_position.x - 10
-                action.position.y = req.state.gripper_position.y - 5
-            elif action.object == 'f':
-                action.position.x = req.state.gripper_position.x
-                action.position.y = req.state.gripper_position.y - 5
-            elif action.object == 'fr':
-                action.position.x = req.state.gripper_position.x + 10
-                action.position.y = req.state.gripper_position.y - 5
-            elif action.object == 'r':
-                action.position.x = req.state.gripper_position.x + 10
-                action.position.y = req.state.gripper_position.y
-            elif action.object == 'br':
-                action.position.x = req.state.gripper_position.x + 10
-                action.position.y = req.state.gripper_position.y + 5
-            elif action.object == 'b':
-                action.position.x = req.state.gripper_position.x
-                action.position.y = req.state.gripper_position.y + 5
-            elif action.object == 'bl':
-                action.position.x = req.state.gripper_position.x - 10
-                action.position.y = req.state.gripper_position.y + 5
-            else:
+            if not self.continuous:
                 action.position = DataUtils.semantic_action_to_position(req.state, action.object)
-            action.object = ''
+                action.object = ''
+        elif action.action_type == Action.MOVE_ARM:
+            if not self.continuous:
+                if action.object == 'l':
+                    action.position.x = req.state.gripper_position.x - 10
+                    action.position.y = req.state.gripper_position.y
+                elif action.object == 'fl':
+                    action.position.x = req.state.gripper_position.x - 10
+                    action.position.y = req.state.gripper_position.y - 5
+                elif action.object == 'f':
+                    action.position.x = req.state.gripper_position.x
+                    action.position.y = req.state.gripper_position.y - 5
+                elif action.object == 'fr':
+                    action.position.x = req.state.gripper_position.x + 10
+                    action.position.y = req.state.gripper_position.y - 5
+                elif action.object == 'r':
+                    action.position.x = req.state.gripper_position.x + 10
+                    action.position.y = req.state.gripper_position.y
+                elif action.object == 'br':
+                    action.position.x = req.state.gripper_position.x + 10
+                    action.position.y = req.state.gripper_position.y + 5
+                elif action.object == 'b':
+                    action.position.x = req.state.gripper_position.x
+                    action.position.y = req.state.gripper_position.y + 5
+                elif action.object == 'bl':
+                    action.position.x = req.state.gripper_position.x - 10
+                    action.position.y = req.state.gripper_position.y + 5
+                else:
+                    action.position = DataUtils.semantic_action_to_position(req.state, action.object)
+                action.object = ''
         elif action.action_type != Action.GRASP:
             action.object = ''
 

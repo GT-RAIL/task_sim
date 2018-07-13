@@ -8,6 +8,8 @@ from task_sim.msg import Item as ItemMsg
 from task_sim.msg import Lid as LidMsg
 from task_sim.msg import Stack as StackMsg
 
+from math import sqrt
+
 # TODO:
 """
 Relations:
@@ -208,8 +210,8 @@ class Item:
 
         if self.continuous:
             if z_min <= self.z <= z_max:
-                dx = max(min_x - self.x, 0, self.x - max_x)
-                dy = max(min_y - self.y, 0, self.y - max_y)
+                dx = max(x_min - self.x, 0, self.x - x_max)
+                dy = max(y_min - self.y, 0, self.y - y_max)
                 return sqrt(pow(dx, 2) + pow(dy, 2)) < .1
         else:
             for i in range(-1, 2):
@@ -806,8 +808,8 @@ class Gripper:
 
         if self.continuous:
             if z_min <= self.z <= z_max:
-                dx = max(min_x - self.x, 0, self.x - max_x)
-                dy = max(min_y - self.y, 0, self.y - max_y)
+                dx = max(x_min - self.x, 0, self.x - x_max)
+                dy = max(y_min - self.y, 0, self.y - y_max)
                 return sqrt(pow(dx, 2) + pow(dy, 2)) < .1
         else:
             for i in range(-1, 2):
@@ -1086,9 +1088,9 @@ class Drawer:
 
         if self.continuous:
             # quick hack to check distance from Drawer center...
-            if z_min <= self.z <= z_max:
-                dx = max(min_x - self.x, 0, self.x - max_x)
-                dy = max(min_y - self.y, 0, self.y - max_y)
+            if z_min <= 0.203 <= z_max:
+                dx = max(x_min - self.x, 0, self.x - x_max)
+                dy = max(y_min - self.y, 0, self.y - y_max)
                 return sqrt(pow(dx, 2) + pow(dy, 2)) < 0.2159
         else:
             w = (self.width - 1)/2
@@ -1224,7 +1226,7 @@ class Lid:
         Valid classes: Box
         """
         if self.continuous:
-            return 0.15 <= self.z <= 0.23 and sqrt(pow(obj.x - self.x, 2) + pow(obj.y - self.y, 2)) <= 0.1
+            return 0.15 <= self.z <= 0.23 and sqrt(pow(obj.x - self.x, 2) + pow(obj.y - self.y, 2)) <= 0.15
         return self.x == obj.x and self.y == obj.y and self.z == 1
 
     def atop(self, obj):
