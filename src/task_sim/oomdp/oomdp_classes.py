@@ -1226,7 +1226,7 @@ class Lid:
         Valid classes: Box
         """
         if self.continuous:
-            return 0.15 <= self.z <= 0.23 and sqrt(pow(obj.x - self.x, 2) + pow(obj.y - self.y, 2)) <= 0.15
+            return 0.15 <= self.z <= 0.23 and sqrt(pow(obj.x - self.x, 2) + pow(obj.y - self.y, 2)) <= 0.2
         return self.x == obj.x and self.y == obj.y and self.z == 1
 
     def atop(self, obj):
