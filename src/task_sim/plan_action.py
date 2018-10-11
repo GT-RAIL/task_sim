@@ -10,14 +10,27 @@ from task_sim import data_utils as DataUtils
 
 class PlanAction:
 
+    objects = ['apple', 'batteries', 'flashlight', 'granola', 'knife', 'handle']
+    containers = ['box', 'drawer', 'lid', 'stack']
+    prepositions = ['in', 'in', 'on', 'on']
+    drawer_parts = ['stack', 'drawer', 'handle']
+    box_parts = ['box', 'lid']
+    everything = []
+    everything.extend(objects)
+    everything.extend(containers)
+
     def __init__(self, s0, a, s1=None):
         self.action = a.action_type
 
         # extract object and target from action message
         if a.action_type == Action.GRASP:
+            # object: what's being grasped
+            # target: none
             self.object = a.object.lower()
             self.target = None
         elif a.action_type == Action.PLACE:
+            # object: what's in the gripper
+            # target: place location
             if s0.object_in_gripper is not None and s0.object_in_gripper != '':
                 self.object = s0.object_in_gripper.lower()
             self.target = DataUtils.get_task_frame(s0, a.position).lower()
@@ -31,6 +44,8 @@ class PlanAction:
                             self.target = o.name.lower()
                             break
         elif a.action_type == Action.MOVE_ARM:
+            # object: what's in the gripper
+            # target: move location
             if s0.object_in_gripper is not None and s0.object_in_gripper != '':
                 self.object = s0.object_in_gripper.lower()
             else:
@@ -60,13 +75,25 @@ class PlanAction:
                 extended_target = DataUtils.get_task_frame(s0, pos).lower()
                 if extended_target != 'table':
                     self.target = extended_target
-        elif a.action_type in [Action.OPEN_GRIPPER, Action.RAISE_ARM, Action.LOWER_ARM, Action.RESET_ARM]:
+        elif a.action_type == Action.OPEN_GRIPPER:
+            # object: what's in gripper
+            # target: what's below the gripper
+            if s0.object_in_gripper is not None and s0.object_in_gripper != '':
+                self.object = s0.object_in_gripper.lower()
+            else:
+                self.object = None
+            self.target = DataUtils.get_task_frame(s0, s0.gripper_position).lower()
+        elif a.action_type in [Action.RAISE_ARM, Action.LOWER_ARM, Action.RESET_ARM]:
+            # object: what's in the gripper
+            # target: none
             if s0.object_in_gripper is not None and s0.object_in_gripper != '':
                 self.object = s0.object_in_gripper.lower()
             else:
                 self.object = None
             self.target = None
         elif a.action_type == Action.CLOSE_GRIPPER:
+            # object: what will be in the gripper
+            # target: none
             self.object = None
             if s1 is not None:
                 if s1.object_in_gripper is not None and s1.object_in_gripper != '':
@@ -84,170 +111,214 @@ class PlanAction:
             self.object = None
             self.target = None
 
-
-        # some things we'll need to calculate preconditions and effects...
-        obj0 = None
-        if self.object is not None:
-            for o in s0.objects:
-                if o.name.lower() == self.object:
-                    obj0 = o
-                    break
-
-        dst = sqrt(pow(s0.lid_position.x - s0.box_position.x, 2) + pow(s0.lid_position.y - s0.box_position.y, 2))
-        if dst < 2:
-            box_open_pre = False
-        else:
-            box_open_pre = True
+        # compute semantic state representation
+        s0_prime = DataUtils.semantic_state_vector(s0, return_dict=True)[0]
         if s1 is not None:
-            dst = sqrt(pow(s1.lid_position.x - s1.box_position.x, 2) + pow(s1.lid_position.y - s1.box_position.y, 2))
-            if dst < 2:
-                box_open_post = False
-            else:
-                box_open_post = True
+            s1_prime = DataUtils.semantic_state_vector(s1, return_dict=True)[0]
 
-        if s0.drawer_opening < 2:
-            drawer_open_pre = False
+        # ********************************  Preconditions  ********************************
+        # defaults
+        self.object_in = []
+        self.object_not_visible = 0
+        self.object_open = 1
+        self.object_near_edge = 0
+        self.object_touching = []
+        self.gripper_object_height = 0
+        self.gripper_object_x = 0
+        self.gripper_object_y = 0
+        self.gripper_open = 0
+        self.gripper_near_edge = 0
+        self.in_gripper = ''
+        self.gripper_touching = []
+
+        if a.action_type in [Action.GRASP, Action.CLOSE_GRIPPER, Action.RESET_ARM, Action.RAISE_ARM, Action.LOWER_ARM]:
+            # Preconditions refer to self.object
+            if self.object is not None:
+                for i in range(len(PlanAction.containers)):
+                    key = self.object + '_' + PlanAction.prepositions[i] + '_' + PlanAction.containers[i]
+                    if key in s0_prime and s0_prime[key]:
+                        self.object_in.append(PlanAction.containers[i])
+
+                key = self.object + '_not_visible'
+                if key in s0_prime:
+                    self.object_not_visible = s0_prime[key]
+
+                if self.object in PlanAction.drawer_parts:
+                    if 'drawer_open' in s0_prime:
+                        self.object_open = s0_prime['drawer_open']
+                elif self.object in PlanAction.box_parts:
+                    if 'box_open' in s0_prime:
+                        self.object_open = s0_prime['box_open']
+
+                key = self.object + '_near_edge'
+                if key in s0_prime:
+                    self.object_near_edge = s0_prime[key]
+
+                for i in range(len(PlanAction.everything)):
+                    key1 = 'touching_' + self.object + '_x_' + PlanAction.everything[i]
+                    key2 = 'touching_' + PlanAction.everything[i] + '_x_' + self.object
+                    if (key1 in s0_prime and s0_prime[key1]) or (key2 in s0_prime and s0_prime[key2]):
+                        self.object_touching.append(PlanAction.everything[i])
+
+                key = 'relative_h_' + self.object
+                if key in s0_prime:
+                    self.gripper_object_height = s0_prime[key]
+
+                key = 'relative_x_' + self.object
+                if key in s0_prime:
+                    self.gripper_object_x = s0_prime[key]
+
+                key = 'relative_y_' + self.object
+                if key in s0_prime:
+                    self.gripper_object_y = s0_prime[key]
         else:
-            drawer_open_pre = True
-        if s1 is not None:
-            if s1.drawer_opening < 2:
-                drawer_open_post = False
-            else:
-                drawer_open_post = True
+            # Preconditions refer to self.target
+            if self.target is not None:
+                for i in range(len(PlanAction.containers)):
+                    if PlanAction.containers[i] == self.target:
+                        suffix = '_' + PlanAction.prepositions[i] + '_' + PlanAction.containers[i]
+                        for o in PlanAction.objects:
+                            key = o + suffix
+                            if key in s0_prime and s0_prime[key]:
+                                self.object_in.append(o)
 
+                if self.target in PlanAction.drawer_parts:
+                    if 'drawer_open' in s0_prime:
+                        self.object_open = s0_prime['drawer_open']
+                elif self.target in PlanAction.box_parts:
+                    if 'box_open' in s0_prime:
+                        self.object_open = s0_prime['box_open']
 
-        # preconditions
-        if obj0 is not None:
-            self.object_in_drawer = obj0.in_drawer
-            self.object_in_box = obj0.in_box
-            self.object_on_lid = obj0.on_lid
-        else:
-            self.object_in_drawer = False
-            self.object_in_box = False
-            self.object_on_lid = False
+                for i in range(len(PlanAction.everything)):
+                    key1 = 'touching_' + self.target + '_x_' + PlanAction.everything[i]
+                    key2 = 'touching_' + PlanAction.everything[i] + '_x_' + self.target
+                    if (key1 in s0_prime and s0_prime[key1]) or (key2 in s0_prime and s0_prime[key2]):
+                        self.object_touching.append(PlanAction.everything[i])
 
-        self.object_open = False
-        if self.object is not None:
-            if self.object.lower() in ['drawer', 'stack', 'handle']:
-                self.object_open = drawer_open_pre
-            elif self.object.lower() in ['lid', 'box']:
-                self.object_open = box_open_pre
+                key = 'relative_h_' + self.target
+                if key in s0_prime:
+                    self.gripper_object_height = s0_prime[key]
 
-        self.gripper_open = s0.gripper_open
-        self.object_in_gripper = s0.object_in_gripper.lower()
+                key = 'relative_x_' + self.target
+                if key in s0_prime:
+                    self.gripper_object_x = s0_prime[key]
 
-        if self.target is not None:
-            if self.target.lower() == 'box' or self.target.lower() == 'lid':
-                self.target_open = box_open_pre
-            elif self.target.lower() == 'drawer' or self.target.lower() == 'handle' or self.target.lower() == 'stack':
-                self.target_open = drawer_open_pre
-            else:
-                self.target_open = True
-        else:
-            self.target_open = True
+                key = 'relative_y_' + self.target
+                if key in s0_prime:
+                    self.gripper_object_y = s0_prime[key]
 
-        # effects
+        # Gripper preconditions
+        key = 'gripper_open'
+        if key in s0_prime:
+            self.gripper_open = s0_prime[key]
+
+        key = 'gripper_near_edge'
+        if key in s0_prime:
+            self.gripper_near_edge = s0_prime[key]
+
+        key = 'object_in_gripper'
+        if key in s0_prime:
+            self.in_gripper = DataUtils.int_to_name(s0_prime[key])
+
+        for i in range(len(PlanAction.everything)):
+            key1 = 'touching_gripper_' + PlanAction.everything[i]
+            key2 = 'touching_' + PlanAction.everything[i] + '_gripper'
+            if (key1 in s0_prime and s0_prime[key1]) or (key2 in s0_prime and s0_prime[key2]):
+                self.gripper_touching.append(PlanAction.everything[i])
+
+        # ********************************  Effects  ********************************
+        def add_effect(key, s0, s1):
+            if key in s0 and key in s1 and s0[key] != s1[key]:
+                self.effects[key] = s1[key]
+
         self.effects = dict()
         if s1 is not None:
-            # small object effects
-            for o0 in s0.objects:
-                for o1 in s1.objects:
-                    if o0.name.lower() == o1.name.lower():
-                        state_change = False
-                        if o0.in_drawer != o1.in_drawer:
-                            if o1.in_drawer:
-                                self.add_effect('in_drawer', o1.name.lower())
-                            else:
-                                self.add_effect('not_in_drawer', o1.name.lower())
-                            state_change = True
-                        if o0.in_box != o1.in_box:
-                            if o1.in_box:
-                                self.add_effect('in_box', o1.name.lower())
-                            else:
-                                self.add_effect('not_in_box', o1.name.lower())
-                            state_change = True
-                        if o0.on_lid != o1.on_lid:
-                            if o1.on_lid:
-                                self.add_effect('on_lid', o1.name.lower())
-                            else:
-                                self.add_effect('not_on_lid', o1.name.lower())
-                            state_change = True
-                        if not state_change:
-                            if o0.position != o1.position:
-                                self.add_effect('moved', o1.name.lower())
+            # object effects
+            if self.object is not None:
+                for i in range(len(PlanAction.containers)):
+                    add_effect(self.object + '_' + PlanAction.prepositions[i] + '_' + PlanAction.containers[i], s0_prime, s1_prime)
+                add_effect(self.object + '_not_visible', s0_prime, s1_prime)
+                if self.object in PlanAction.drawer_parts:
+                    add_effect('drawer_open', s0_prime, s1_prime)
+                elif self.object in PlanAction.box_parts:
+                    add_effect('box_open', s0_prime, s1_prime)
+                add_effect(self.object + '_near_edge', s0_prime, s1_prime)
+                for i in range(len(PlanAction.everything)):
+                    add_effect('touching_' + self.object + '_x_' + PlanAction.everything[i], s0_prime, s1_prime)
+                    add_effect('touching_' + PlanAction.everything[i] + '_x_' + self.object, s0_prime, s1_prime)
+                add_effect('relative_h_' + self.object, s0_prime, s1_prime)
+                add_effect('relative_x_' + self.object, s0_prime, s1_prime)
+                add_effect('relative_y_' + self.object, s0_prime, s1_prime)
 
-            # large object effects
-            box_state_change = False
-            if box_open_pre != box_open_post:
-                box_state_change = True
-                if box_open_post:
-                    self.add_effect('open', 'box')
-                else:
-                    self.add_effect('closed', 'box')
-            if not box_state_change:
-                if s0.lid_position != s1.lid_position:
-                    self.add_effect('moved', 'lid')
-
-            drawer_state_change = False
-            if drawer_open_pre != drawer_open_post:
-                drawer_state_change = True
-                if drawer_open_post:
-                    self.add_effect('open', 'drawer')
-                else:
-                    self.add_effect('closed', 'drawer')
-            if not drawer_state_change:
-                if s0.drawer_opening != s1.drawer_opening:
-                    self.add_effect('moved', 'drawer')
-                    self.add_effect('moved', 'handle')
+            # target effects
+            if self.target is not None:
+                for i in range(len(PlanAction.containers)):
+                    add_effect(self.target + '_' + PlanAction.prepositions[i] + '_' + PlanAction.containers[i], s0_prime, s1_prime)
+                add_effect(self.target + '_not_visible', s0_prime, s1_prime)
+                if self.target in PlanAction.drawer_parts:
+                    add_effect('drawer_open', s0_prime, s1_prime)
+                elif self.target in PlanAction.box_parts:
+                    add_effect('box_open', s0_prime, s1_prime)
+                add_effect(self.target + '_near_edge', s0_prime, s1_prime)
+                for i in range(len(PlanAction.everything)):
+                    add_effect('touching_' + self.target + '_x_' + PlanAction.everything[i], s0_prime, s1_prime)
+                    add_effect('touching_' + PlanAction.everything[i] + '_x_' + self.target, s0_prime, s1_prime)
+                add_effect('relative_h_' + self.target, s0_prime, s1_prime)
+                add_effect('relative_x_' + self.target, s0_prime, s1_prime)
+                add_effect('relative_y_' + self.target, s0_prime, s1_prime)
 
             # gripper effects
-            if s0.object_in_gripper != s1.object_in_gripper:
-                if s1.object_in_gripper is None or s1.object_in_gripper == '':
-                    self.add_effect('object_in_gripper', '')
-                else:
-                    self.add_effect('object_in_gripper', s1.object_in_gripper.lower())
-            if s0.gripper_open != s1.gripper_open:
-                if s1.gripper_open:
-                    self.add_effect('change_gripper', 'open')
-                else:
-                    self.add_effect('change_gripper', 'closed')
+            add_effect('gripper_open', s0_prime, s1_prime)
+            add_effect('gripper_near_edge', s0_prime, s1_prime)
+            add_effect('object_in_gripper', s0_prime, s1_prime)
+            for i in range(len(PlanAction.everything)):
+                add_effect('touching_gripper_' + PlanAction.everything[i], s0_prime, s1_prime)
+                add_effect('touching_' + PlanAction.everything[i] + '_gripper', s0_prime, s1_prime)
 
 
     def check_preconditions(self, state, obj, target, object_to_cluster = None):
-        if obj not in ['drawer', 'stack', 'handle', 'box', 'lid']:
-            for o in state.objects:
-                if o.name.lower() == obj:
-                    if (self.object_in_drawer == o.in_drawer and self.object_in_box == o.in_box
-                        and self.object_on_lid == o.on_lid):
-                        break
-                    else:
-                        return False
+        s_prime = DataUtils.semantic_state_vector(state, return_dict=True)[0]
 
-        box_open = sqrt(pow(state.lid_position.x - state.box_position.x, 2)
-                       + pow(state.lid_position.y - state.box_position.y, 2)) >= 2
-        drawer_open = state.drawer_opening >= 2
-        if obj in ['drawer', 'stack', 'handle']:
-            if drawer_open != self.object_open:
-                return False
-        elif obj in ['box', 'lid']:
-            if box_open != self.object_open:
-                return False
-        if target in ['drawer', 'stack', 'handle']:
-            if drawer_open != self.target_open:
-                return False
-        elif target in ['box', 'lid']:
-            if box_open != self.target_open:
-                return False
+        if self.action in [Action.GRASP, Action.CLOSE_GRIPPER, Action.RESET_ARM, Action.RAISE_ARM, Action.LOWER_ARM]:
+            pass  # preconditions refer to object
+        else:
+            pass  # preconditions refer to target
+        # gripper preconditions
 
-        if self.gripper_open != state.gripper_open:
-            return False
-
-        if object_to_cluster is not None:
-            obj = state.object_in_gripper.lower()
-            if object_to_cluster.has_key(obj):
-                obj = object_to_cluster[obj]
-            if self.object_in_gripper != obj:
-                return False
+        # if obj not in ['drawer', 'stack', 'handle', 'box', 'lid']:
+        #     for o in state.objects:
+        #         if o.name.lower() == obj:
+        #             if (self.object_in_drawer == o.in_drawer and self.object_in_box == o.in_box
+        #                 and self.object_on_lid == o.on_lid):
+        #                 break
+        #             else:
+        #                 return False
+        #
+        # box_open = sqrt(pow(state.lid_position.x - state.box_position.x, 2)
+        #                + pow(state.lid_position.y - state.box_position.y, 2)) >= 2
+        # drawer_open = state.drawer_opening >= 2
+        # if obj in ['drawer', 'stack', 'handle']:
+        #     if drawer_open != self.object_open:
+        #         return False
+        # elif obj in ['box', 'lid']:
+        #     if box_open != self.object_open:
+        #         return False
+        # if target in ['drawer', 'stack', 'handle']:
+        #     if drawer_open != self.target_open:
+        #         return False
+        # elif target in ['box', 'lid']:
+        #     if box_open != self.target_open:
+        #         return False
+        #
+        # if self.gripper_open != state.gripper_open:
+        #     return False
+        #
+        # if object_to_cluster is not None:
+        #     obj = state.object_in_gripper.lower()
+        #     if object_to_cluster.has_key(obj):
+        #         obj = object_to_cluster[obj]
+        #     if self.object_in_gripper != obj:
+        #         return False
 
         return True
 
@@ -351,6 +422,7 @@ class PlanAction:
 
     def __str__(self):
         s = ''
+        '''
         s += 'action: ' + str(self.action) + '\n' \
              + 'object: ' + str(self.object) + '\n' \
              + 'target: ' + str(self.target) + '\n' \
@@ -363,6 +435,32 @@ class PlanAction:
              + '\tgripper_open: ' + str(self.gripper_open) + '\n' \
              + '\tobject_in_gripper: ' + str(self.object_in_gripper) + '\n' \
              + 'effects:' + '\n'
+        '''
+        s += 'action: ' + str(self.action) + '\n' \
+             + 'object: ' + str(self.object) + '\n' \
+             + 'target ' + str(self.target) + '\n'
+
+        s += 'preconditions:\n'
+        s += '\tobject in:\n'
+        for o in self.object_in:
+            s += '\t\t' + str(o) + '\n'
+        s += '\tobject_not_visible: ' + str(self.object_not_visible) + '\n'
+        s += '\tobject_open: ' + str(self.object_open) + '\n'
+        s += '\tobject_near_edge: ' + str(self.object_near_edge) + '\n'
+        s += '\tobject touching:\n'
+        for o in self.object_touching:
+            s += '\t\t' + str(o) + '\n'
+        s += '\tgripper_object_height: ' + str(self.gripper_object_height) + '\n'
+        s += '\tgripper_object_x: ' + str(self.gripper_object_x) + '\n'
+        s += '\tgripper_object_y: ' + str(self.gripper_object_y) + '\n'
+        s += '\tgripper_open: ' + str(self.gripper_open) + '\n'
+        s += '\tgripper_near_edge: ' + str(self.gripper_near_edge) + '\n'
+        s += '\tin_gripper: ' + str(self.in_gripper) + '\n'
+        s += '\tobject gripper_touching:\n'
+        for o in self.gripper_touching:
+            s += '\t\t' + str(o) + '\n'
+
+        s += 'effects:\n'
         if len(self.effects.keys()) == 0:
             s += '\tNone'
         else:

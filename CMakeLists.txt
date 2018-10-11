@@ -51,7 +51,16 @@ catkin_python_setup()
 add_message_files(
   FILES
   Action.msg
+  Box.msg
+  Container.msg
+  Drawer.msg
+  Gripper.msg
+  Item.msg
+  Lid.msg
   Object.msg
+  OOState.msg
+  SmallContainer.msg
+  Stack.msg
   State.msg
   Status.msg
   Log.msg

@@ -1,6 +1,7 @@
 # Create the image to perform RL task learning
 
 FROM nvidia/cuda:8.0-cudnn5-devel-ubuntu14.04
+#FROM nvidia/cuda:8.0-cudnn6-devel-ubuntu14.04
 ARG TASKSIM_FILES_ROOT
 ENV TASKSIM_FILES_ROOT ${TASKSIM_FILES_ROOT:-/root}
 
@@ -44,6 +45,7 @@ RUN apt-get install -y \
     ros-indigo-ros-base=1.1.5-0* \
     && rm -rf /var/lib/apt/lists/*
 
+# TODO: Build pytorch from source because they suck
 # Install pip and the other python dependencies
 RUN curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py" \
     && python get-pip.py \

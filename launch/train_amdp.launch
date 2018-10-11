@@ -1,0 +1,56 @@
+<!-- Script to train RL agents -->
+<launch>
+
+    <arg name="max_episode_length" default="100" />
+    <arg name="baseline_mode" default="false" />
+    <arg name="exploit_policy" default="false" />
+    <arg name="save_transitions" default="false" />
+
+    <!-- Table sim environments -->
+    <node name="eval" pkg="task_sim" type="table_sim.py">
+        <param name="terminal_input" value="false" />
+        <param name="quiet_mode" value="true" />
+        <param name="seed" value="0" />
+        <param name="complexity" value="1" />
+    </node>
+
+    <node name="drawer1" pkg="task_sim" type="table_sim.py">
+        <param name="terminal_input" value="false" />
+        <param name="quiet_mode" value="true" />
+        <param name="env_type" value="0" />
+        <param name="seed" value="0" />
+        <param name="complexity" value="0" />
+    </node>
+
+    <node name="drawer2" pkg="task_sim" type="table_sim.py">
+        <param name="terminal_input" value="false" />
+        <param name="quiet_mode" value="true" />
+        <param name="env_type" value="0" />
+        <param name="seed" value="0" />
+        <param name="complexity" value="0" />
+    </node>
+
+    <node name="box1" pkg="task_sim" type="table_sim.py">
+        <param name="terminal_input" value="false" />
+        <param name="quiet_mode" value="true" />
+        <param name="env_type" value="1" />
+        <param name="seed" value="0" />
+        <param name="complexity" value="0" />
+    </node>
+
+    <node name="box2" pkg="task_sim" type="table_sim.py">
+        <param name="terminal_input" value="false" />
+        <param name="quiet_mode" value="true" />
+        <param name="env_type" value="1" />
+        <param name="seed" value="0" />
+        <param name="complexity" value="0" />
+    </node>
+
+    <!-- Trainer node -->
+    <node name="amdp_trainer" pkg="task_sim" type="amdp_trainer.py" required="true" output="screen">
+        <param name="max_episode_length" type="int" value="$(arg max_episode_length)" />
+        <param name="baseline_mode" type="bool" value="$(arg baseline_mode)" />
+        <param name="exploit_policy" type="bool" value="$(arg exploit_policy)" />
+        <param name="save_transitions" type="bool" value="$(arg save_transitions)" />
+    </node>
+</launch>

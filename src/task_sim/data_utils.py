@@ -18,6 +18,7 @@ from task_sim.msg import Action
 # Globals
 
 class Globals:
+    # FIXME: This global map won't work with small containers
     OBJECT_TO_INT_MAP = bidict.frozenbidict({
         '': 0, # Also corresponds to the table
         'gripper': 1,
@@ -43,6 +44,7 @@ class Globals:
         'table_height': 15,
     }
 
+    # FIXME: This global map won't work with small containers
     TOUCH_SEARCH_OFFSETS = [
         Point(x,y,0) for x in xrange(-1,2) for y in xrange(-1,2)
     ]
@@ -157,8 +159,15 @@ def is_adjacent(position1, position2):
 def get_object_by_name(state, name):
     """Find an object given an object name"""
     for object in state.objects:
-        if object.name == name or object.name.lower() == name:
+        if object.unique_name == name or object.unique_name.lower() == name:
             return object
+    return None
+
+def get_container_by_name(state, name):
+    """Find a container given a container name"""
+    for container in state.containers:
+        if container.unique_name == name or container.unique_name.lower() == name:
+            return container
     return None
 
 def get_object_at(state, position):
@@ -292,9 +301,11 @@ def gripper_collision(state, position):
         state.gripper_position.z, state.gripper_position.z
     )
 
-def object_collision(state, position):
+def object_collision(state, position, ignore=None):
     """Detect collision with any object"""
     for object in state.objects:
+        if ignore is not None and object.unique_name == ignore:
+            continue
         if object.position == position:
             return object
     return None
@@ -366,11 +377,12 @@ def in_collision(
     box_height=Globals.DEFAULT_ENVIRONMENT['box_height'],
     drawer_width=Globals.DEFAULT_ENVIRONMENT['drawer_width'],
     drawer_depth=Globals.DEFAULT_ENVIRONMENT['drawer_depth'],
-    drawer_height=Globals.DEFAULT_ENVIRONMENT['drawer_height']
+    drawer_height=Globals.DEFAULT_ENVIRONMENT['drawer_height'],
+    ignore=None
 ):
-    """Detect collision with anything in the environment (gripper not included)"""
+    """Detect collision with anything in the environment (gripper not included, ignores objects in _ignore_)"""
     return (
-        object_collision(state, position)
+        object_collision(state, position, ignore)
         or environment_collision(
             state, position, box_radius, box_height,
             drawer_width, drawer_depth, drawer_height
@@ -389,6 +401,7 @@ def get_neighbor_count(
 ):
     """Get the count of the number of neighbours at a position"""
     count = 0
+    in_cont = in_container(state, position)
     for x in range(-1, 2):
         for y in range(-1, 2):
             if x == 0 and y == 0:
@@ -399,7 +412,18 @@ def get_neighbor_count(
                 drawer_width, drawer_depth, drawer_height
             ):
                 count += 1
+            if not in_cont and in_container(state, Point(position.x + x, position.y + y, position.z)):
+                    count += 1
     return count
+
+def in_container(state, pos, ignore=None):
+        for c in state.containers:
+            if ignore is not None and c.unique_name in ignore:
+                continue
+            if in_volume(pos, c.position.x, c.position.x + c.width - 1, c.position.y, c.position.y + c.height - 1,
+                             c.position.z, c.position.z):
+                return True
+        return False
 
 def is_touching_box(
     state, position,
@@ -537,7 +561,7 @@ def change_frame(state, frame):
         translation.z = -state_copy.gripper_position.z
     else:  # General object case
         for object in state_copy.objects:
-            if frame.lower() == object.name.lower():
+            if frame.lower() == object.unique_name.lower():
                 translation.x = -object.position.x
                 translation.y = -object.position.y
                 translation.z = -object.position.z
@@ -590,7 +614,7 @@ def change_frame_of_point(point, state, frame):
         point_copy.z -= state_copy.gripper_position.z
     else:  # General object case
         for object in state_copy.objects:
-            if frame.lower() == object.name.lower():
+            if frame.lower() == object.unique_name.lower():
                 point_copy.x -= object.position.x
                 point_copy.y -= object.position.y
                 point_copy.z -= object.position.z
@@ -634,7 +658,7 @@ def get_point_in_global_frame(state, point, frame):
         point_copy.z += state_copy.gripper_position.z
     else:  # General object case
         for object in state_copy.objects:
-            if frame.lower() == object.name.lower():
+            if frame.lower() == object.unique_name.lower():
                 point_copy.x += object.position.x
                 point_copy.y += object.position.y
                 point_copy.z += object.position.z
@@ -651,12 +675,12 @@ def get_closest_frame(state, position):
         dst = euclidean_3D(position, object.position)
         if dst < min_dst:
             min_dst = dst
-            frame = object.name
+            frame = object.unique_name
     # drawer stack
     dst = euclidean_3D(position, Point(state.drawer_position.x, state.drawer_position.y, 0))
     if dst < min_dst:
         min_dst = dst
-        frame = 'Stack'
+        frame = 'stack'
 
     # drawer
     if state.drawer_position.theta == 0:
@@ -669,7 +693,7 @@ def get_closest_frame(state, position):
         dst = euclidean_3D(position, Point(state.drawer_position.x, state.drawer_position.y - state.drawer_opening, 0))
     if dst < min_dst:
         min_dst = dst
-        frame = 'Drawer'
+        frame = 'drawer'
 
     # handle
     if state.drawer_position.theta == 0:
@@ -682,25 +706,25 @@ def get_closest_frame(state, position):
         dst = euclidean_3D(position, Point(state.drawer_position.x, state.drawer_position.y - state.drawer_opening - 4, 0))
     if dst < min_dst:
         min_dst = dst
-        frame = 'Handle'
+        frame = 'handle'
 
     # box
     dst = euclidean_3D(position, state.box_position)
     if dst < min_dst:
         min_dst = dst
-        frame = 'Box'
+        frame = 'box'
 
     # lid
     dst = euclidean_3D(position, state.lid_position)
     if dst < min_dst:
         min_dst = dst
-        frame = 'Lid'
+        frame = 'lid'
 
     # gripper
     dst = euclidean_3D(position, state.gripper_position)
     if dst < min_dst:
         min_dst = dst
-        frame = 'Gripper'
+        frame = 'gripper'
 
     return frame
 
@@ -711,46 +735,46 @@ def get_task_frame(state, position):
     if state.drawer_position.theta == 0:
         if (position.x >= state.drawer_position.x - 3 and position.x <= state.drawer_position.x + 3
             and position.y >= state.drawer_position.y - 2 and position.y <= state.drawer_position.y + 2):
-            return 'Stack'
+            return 'stack'
         elif (position.x >= state.drawer_position.x + state.drawer_opening - 3
               and position.x <= state.drawer_position.x + state.drawer_opening + 3
               and position.y >= state.drawer_position.y - 2 and position.y <= state.drawer_position.y + 2):
-            return 'Drawer'
+            return 'drawer'
     elif state.drawer_position.theta == 90:
         if (position.x >= state.drawer_position.x - 2 and position.x <= state.drawer_position.x + 2
             and position.y >= state.drawer_position.y - 3 and position.y <= state.drawer_position.y + 3):
-            return 'Stack'
+            return 'stack'
         elif (position.x >= state.drawer_position.x - 2 and position.x <= state.drawer_position.x + 2
               and position.y >= state.drawer_position.y + state.drawer_opening - 3
               and position.y <= state.drawer_position.y + state.drawer_opening + 3):
-            return 'Drawer'
+            return 'drawer'
     elif state.drawer_position.theta == 180:
         if (position.x >= state.drawer_position.x - 3 and position.x <= state.drawer_position.x + 3
             and position.y >= state.drawer_position.y - 2 and position.y <= state.drawer_position.y + 2):
-            return 'Stack'
+            return 'stack'
         elif (position.x >= state.drawer_position.x - state.drawer_opening - 3
               and position.x <= state.drawer_position.x - state.drawer_opening + 3
               and position.y >= state.drawer_position.y - 2 and position.y <= state.drawer_position.y + 2):
-            return 'Drawer'
+            return 'drawer'
     elif state.drawer_position.theta == 270:
         if (position.x >= state.drawer_position.x - 2 and position.x <= state.drawer_position.x + 2
             and position.y >= state.drawer_position.y - 3 and position.y <= state.drawer_position.y + 3):
-            return 'Stack'
+            return 'stack'
         elif (position.x >= state.drawer_position.x - 2 and position.x <= state.drawer_position.x + 2
               and position.y >= state.drawer_position.y - state.drawer_opening - 3
               and position.y <= state.drawer_position.y - state.drawer_opening + 3):
-            return 'Drawer'
+            return 'drawer'
 
     # box and lid
     if (position.x >= state.lid_position.x - 2 and position.x <= state.lid_position.x + 2
         and position.y >= state.lid_position.y - 2 and position.y <= state.lid_position.y + 2):
-        return 'Lid'
+        return 'lid'
     elif (position.x >= state.box_position.x - 2 and position.x <= state.box_position.x + 2
         and position.y >= state.box_position.y - 2 and position.y <= state.box_position.y + 2):
-        return 'Box'
+        return 'box'
 
     # default
-    return 'Table'
+    return 'table'
 
 
 # State representations
@@ -808,6 +832,8 @@ def semantic_state_vector(
     state, history_buffer=0, feature_type=int, return_dict=False
 ):
     """
+    FIXME: This does not work with containers
+
     Creates a semantic state vector with the following information (boolean
     unless otherwise specified in {}):
 
@@ -844,7 +870,7 @@ def semantic_state_vector(
     semantic_state = {}
 
     # Setup the helper variables
-    objects = [obj.name.lower() for obj in state.objects]
+    objects = [obj.unique_name.lower() for obj in state.objects]
 
     # First, get the properties of the objects one by one
     for idx, obj_name in enumerate(objects):
@@ -958,6 +984,11 @@ def semantic_state_vector(
         else (semantic_state, semantic_state_keys)
     )
 
+def readable_state(semantic_state):
+    s = ''
+    for k in semantic_state:
+        s += k + ': ' + str(semantic_state[k]) + '\n'
+    return s
 
 # Action representation helper functions
 
@@ -1139,7 +1170,7 @@ def semantic_action_to_position(state, target):
             break
     else:
         for o in state.objects:
-            if target.lower() == o.name.lower():
+            if target.lower() == o.unique_name.lower():
                 position = o.position
                 break
 
@@ -1205,7 +1236,7 @@ def get_action_obj_offset_candidates(state):
         if not object_key: # Table/Empty object name
             continue
 
-        # Do not allow a grasp on 'Handle' because it's the same as 'Drawer'
+        # Do not allow a grasp on 'handle' because it's the same as 'drawer'
         if object_key == 'handle':
             continue
 
@@ -1264,7 +1295,7 @@ def get_semantic_action_candidates(state):
         if not object_key: # Table/Empty object name
             continue
 
-        # Do not allow a grasp on 'Handle' because it's the same as 'Drawer'
+        # Do not allow a grasp on 'handle' because it's the same as 'drawer'
         if object_key == 'handle':
             continue
 
@@ -1307,24 +1338,24 @@ def msg_from_action_obj_offset(state, action_obj_offset):
         # First check to see if this is one of the graspable objects
         found_pos = None
         for state_obj in state.objects:
-            if obj_name == state_obj.name:
+            if obj_name == state_obj.unique_name:
                 found_pos = state_obj.position
                 break
 
         # If the object was not found, check stack, drawer, handle, box,
         # lid, and gripper
         if found_pos is None:
-            if obj_name == 'Stack':
+            if obj_name == 'stack':
                 found_pos = state.drawer_position
-            elif obj_name == 'Drawer':
+            elif obj_name == 'drawer':
                 found_pos = get_drawer_midpoint_pos(state)
-            elif obj_name == 'Handle':
+            elif obj_name == 'handle':
                 found_pos = get_handle_pos(state)
-            elif obj_name == 'Box':
+            elif obj_name == 'box':
                 found_pos = state.box_position
-            elif obj_name == 'Lid':
+            elif obj_name == 'lid':
                 found_pos = state.lid_position
-            elif obj_name == 'Gripper':
+            elif obj_name == 'gripper':
                 found_pos = state.gripper_position
 
         # Update the position in the action object
