@@ -85,4 +85,16 @@ See `config/rl/template.yaml` for a template of the config file for learning tas
 
 
 ## AMDP Training and Evaluation
-Coming soon...
+The following documentation describes the work published in Humanoids 2018 (publication forthcoming).
+
+### Running experiments
+Each of the conditions given in the paper can be evaluated over multiple episodes by running the either `launch/train_amdp.launch` (for SC, AC, SC+AC, and no-training baselines (set the `baseline_mode` arg to true for this)), or `launch/train_amdp_q_learning` (for Q-learning variants).
+
+Details of how the demonstrations are used to bias exploration can be found in `scripts/amdp_trainer.py`.  Exploration can use any combination of the following, by setting its associated parameter (listed in parentheses) to `True`:  
+ * RANDOM (`~demo_mode/random`) - select a random action
+ * SHADOW (`~demo_mode/shadow`) - repeat an action exactly as shown in the demonstrations
+ * CLASSIFIER (`~demo_mode/classifier`) - select an action returned by the state-centric classifier (SC)
+ * PLAN_NETWORK (`~demo_mode/plan_network`) - select an action returned by the action-centric plan network (AC)
+
+### Collecting demonstrations and retraining exploration biasing models
+
