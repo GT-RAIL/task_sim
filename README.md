@@ -1,5 +1,7 @@
 # task-sim
-Basic simulation for robot manipulation tasks
+Basic simulation for robot manipulation tasks.
+
+We also include supporting code for training and evaluating demonstration-guided relation-based AMDP task learning, as published in Humanoids 2018 (publication forthcoming).  For details on where this code sits and how to run it, please skip to the [AMDP Training and Evaluation](#amdp-training-and-evaluation) section below.
 
 ## Adding a new action selector
 1. Implement an action selection service on the topic `/table_sim/select_action` of type SelectAction (takes a State and returns an Action)
@@ -80,3 +82,7 @@ agent: Dictionary of keyword args to initialize the agent. Cannot use keywords `
 ```
 
 See `config/rl/template.yaml` for a template of the config file for learning task1 with an epsilon-greedy Q-table agent.
+
+
+## AMDP Training and Evaluation
+Coming soon...
