@@ -97,4 +97,15 @@ Details of how the demonstrations are used to bias exploration can be found in `
  * PLAN_NETWORK (`~demo_mode/plan_network`) - select an action returned by the action-centric plan network (AC)
 
 ### Collecting demonstrations and retraining exploration biasing models
+To collect new demonstrations, simply run the `scripts/table_sim.py` node with terminal input while recording the `~/task_log` topic with rosbag:  
 
+```
+rosbag record table_sim/task_log
+rosrun task_sim table_sim.py _quiet_mode:=False _terminal_input:=True _complexity:=0 _env_type:=0 _seed:=None
+```
+
+Make sure to set `env_type` to the desired environment (0 for a drawer task, 1 for a box task) and set `seed` to an appropriate integer if you are using fixed seeds for training environments.
+
+Save the .bag files in `data/task<n>/demos`, as shown in the included data folder.
+
+Once demos are collected, new classifiers can be trained using `scripts/train_amdp_classifier.py` for each AMDP (set the classifier type with the `classifier_types` parameter, the name of the task directory where demos are saved with the `task` parameter, and the AMDP to train a model for with the `amdp_id` parameter).  Similarly, new plan networks can be trained using `scripts/train_plan_network.py` (setting the `task` parameter appropriately).
